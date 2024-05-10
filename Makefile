@@ -1,4 +1,6 @@
-run:
+run: watch css-dev 
+
+watch:
 	@air -c config/.air.toml
 
 build: gen css
