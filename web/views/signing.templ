@@ -1,0 +1,25 @@
+package views
+
+templ Login() {
+@baseLayout("Login | Odin LS") {
+@container() {
+@form("/login", "Login") {
+@input("Email", "email", "email", "email")
+@input("Password", "password", "password", "password")
+}
+}
+}
+}
+
+templ Register() {
+@baseLayout("Register | Odin LS") {
+@container() {
+@form("/register", "Register") {
+@input("Username", "text", "username", "e.g. omareloui")
+@input("Email", "email", "email", "email")
+@input("Password", "password", "password", "password")
+@input("Confirm Password", "password", "cpassword", "confirm password")
+}
+}
+}
+}

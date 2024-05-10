@@ -1,0 +1,13 @@
+*Dockerfile
+docker-compose.yaml
+.dockerignore
+
+.git
+.gitignore
+
+Makefile
+
+README.md
+
+**/tmp
+**/build
