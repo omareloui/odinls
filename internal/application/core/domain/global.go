@@ -1,3 +1,5 @@
 package domain
 
-type ID string
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
+type ID primitive.ObjectID

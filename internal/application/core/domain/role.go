@@ -15,7 +15,7 @@ func (r *RoleEnum) String() string {
 		"op_admin", "super_admin",
 		"admin", "moderator",
 		"no_authority",
-	}[c]
+	}[*r]
 }
 
 type Role struct {

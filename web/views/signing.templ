@@ -1,25 +1,28 @@
 package views
 
 templ Login() {
-@baseLayout("Login | Odin LS") {
-@container() {
-@form("/login", "Login") {
-@input("Email", "email", "email", "email")
-@input("Password", "password", "password", "password")
-}
-}
-}
+	@baseLayout("Login | Odin LS") {
+		@container() {
+			@form("/login", "Login") {
+				@input("Email", "email", "email", "email")
+				@input("Password", "password", "password", "password")
+			}
+		}
+	}
 }
 
 templ Register() {
-@baseLayout("Register | Odin LS") {
-@container() {
-@form("/register", "Register") {
-@input("Username", "text", "username", "e.g. omareloui")
-@input("Email", "email", "email", "email")
-@input("Password", "password", "password", "password")
-@input("Confirm Password", "password", "cpassword", "confirm password")
-}
-}
-}
+	@baseLayout("Register | Odin LS") {
+		@container() {
+			@form("/register", "Register") {
+				<div class="grid grid-cols-2 gap-2">
+					@input("First Name", "text", "firstName", "e.g. Omar")
+					@input("Last Name", "text", "lastName", "e.g. Eloui")
+				</div>
+				@input("Email", "email", "email", "e.g. contact@omareloui.com")
+				@input("Password", "password", "password", "********")
+				@input("Confirm Password", "password", "cpassword", "********")
+			}
+		}
+	}
 }

@@ -1,17 +1,25 @@
 package domain
 
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
 type Name struct {
-	First string
-	Last  string
+	First string `bson:"first"`
+	Last  string `bson:"last"`
 }
 
 type User struct {
-	ID       ID
-	Name     Name
-	Email    string
-	Password string
-	Phone    string
-	Role     ID
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	Name      Name               `bson:"name"`
+	Email     string             `bson:"email"`
+	Password  string             `bson:"password"`
+	Phone     string             `bson:"phone,omitempty"`
+	Role      primitive.ObjectID `bson:"role,omitempty"`
+	CreatedAt time.Time          `bson:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt"`
 }
 
 type Craftsman struct {
