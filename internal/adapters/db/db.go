@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/omareloui/odinls/internal/application/core/domain"
@@ -27,10 +28,16 @@ type Adapter struct {
 func NewAdapter(uri string) (*Adapter, error) {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(fmt.Errorf("error trying to connect to the database \"%s\": %s", uri, err))
+		log.Fatalf("error trying to connect to the database \"%s\": %s", uri, err)
 	}
 	db := client.Database("ODINLS_DEV")
+
 	usersCol := db.Collection("users")
+	_, err = usersCol.Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: bson.D{{Key: "email", Value: 1}}})
+	if err != nil {
+		log.Fatalf(`error creating the "email" index for "users" collection: %s`, err)
+	}
+
 	return &Adapter{client: client, db: db, usersCol: usersCol}, nil
 }
 
