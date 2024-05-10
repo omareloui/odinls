@@ -25,8 +25,9 @@ type Adapter struct {
 	usersCol *mongo.Collection
 }
 
-func NewAdapter(uri string) (*Adapter, error) {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
+func NewAdapter(uri string, cred options.Credential) (*Adapter, error) {
+	opts := options.Client().ApplyURI(uri).SetAuth(cred)
+	client, err := mongo.Connect(context.Background(), opts)
 	if err != nil {
 		log.Fatalf("error trying to connect to the database \"%s\": %s", uri, err)
 	}
