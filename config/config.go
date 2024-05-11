@@ -10,7 +10,7 @@ func GetDataSource() string {
 	return getEnvironmentValue("DATA_SOURCE")
 }
 
-func GetDataCred() options.Credential {
+func GetDataSourceCred() options.Credential {
 	return options.Credential{
 		Username: getEnvironmentValue("DB_USER"),
 		Password: getEnvironmentValue("DB_PASSWORD"),

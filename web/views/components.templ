@@ -1,31 +1,55 @@
 package views
 
-templ input(label, kind, name, placeholder string) {
-<div>
-  <label for={ name } class="mb-1 block text-sm font-medium text-gray-900">{ label }</label>
-  <input id={ name } type={ kind } name={ name } placeholder={ placeholder }
-    class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none" />
-</div>
+templ errIcon(size string) {
+	<svg width={ size } height={ size } viewBox="0 0 24 24" class="fill-red-400">
+		<path d="M0 0h24v24H0z" fill="none"></path>
+		<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z"></path>
+	</svg>
+}
+
+templ input(label, kind, name, placeholder string, errors ...string) {
+	<div>
+		<label for={ name } class="mb-1 block text-sm font-medium text-gray-900">{ label }</label>
+		<input
+			id={ name }
+			type={ kind }
+			name={ name }
+			placeholder={ placeholder }
+			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+		/>
+		if len(errors) > 0 {
+			for _, err := range errors {
+				if err != "" {
+					<div class="flex flex-column gap-1 text-red-400 mt-1 ml-2 items-center text-sm">
+						@errIcon("18px")
+						<span>{ err }</span>
+					</div>
+				}
+			}
+		}
+	</div>
 }
 
 templ form(postTo, submitStr string) {
-<form class="grid gap-6 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML">
-  { children... }
-  <button type="submit"
-    class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">
-    { submitStr }
-  </button>
-</form>
+	<form class="grid gap-6 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML">
+		{ children... }
+		<button
+			type="submit"
+			class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+		>
+			{ submitStr }
+		</button>
+	</form>
 }
 
 templ container() {
-<div class="md:max-w-screen-md px-5 mx-auto max-w-full">
-  { children... }
-</div>
+	<div class="md:max-w-screen-md px-5 mx-auto max-w-full">
+		{ children... }
+	</div>
 }
 
 templ link(href templ.SafeURL, text string) {
-<a href={ href } class="text font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">
-  { text }
-</a>
+	<a href={ href } class="text font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">
+		{ text }
+	</a>
 }

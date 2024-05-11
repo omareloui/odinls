@@ -15,7 +15,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	dbAdapter, _ := db.NewAdapter(config.GetDataSource(), config.GetDataCred())
+	dbAdapter, _ := db.NewAdapter(config.GetDataSource(), config.GetDataSourceCred())
 
 	application := api.NewApplication(dbAdapter)
 

@@ -11,7 +11,11 @@ templ Login() {
 	}
 }
 
-templ Register() {
+type RegisterFormErrors struct {
+	NotMatchingPasswords string
+}
+
+templ Register(errors RegisterFormErrors) {
 	@baseLayout("Register | Odin LS") {
 		@container() {
 			@form("/register", "Register") {
@@ -21,7 +25,7 @@ templ Register() {
 				</div>
 				@input("Email", "email", "email", "e.g. contact@omareloui.com")
 				@input("Password", "password", "password", "********")
-				@input("Confirm Password", "password", "cpassword", "********")
+				@input("Confirm Password", "password", "cpassword", "********", errors.NotMatchingPasswords)
 			}
 		}
 	}

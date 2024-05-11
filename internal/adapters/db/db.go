@@ -34,12 +34,21 @@ func NewAdapter(uri string, cred options.Credential) (*Adapter, error) {
 	db := client.Database("ODINLS_DEV")
 
 	usersCol := db.Collection("users")
-	_, err = usersCol.Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: bson.D{{Key: "email", Value: 1}}})
+	createIdx(usersCol, bson.D{{Key: "email", Value: 1}}, true)
+
+	return &Adapter{client: client, db: db, usersCol: usersCol}, nil
+}
+
+func createIdx(col *mongo.Collection, keys bson.D, unique bool) {
+	idxModel := mongo.IndexModel{
+		Keys:    keys,
+		Options: options.Index().SetUnique(unique),
+	}
+
+	_, err := col.Indexes().CreateOne(context.Background(), idxModel)
 	if err != nil {
 		log.Fatalf(`error creating the "email" index for "users" collection: %s`, err)
 	}
-
-	return &Adapter{client: client, db: db, usersCol: usersCol}, nil
 }
 
 func (a *Adapter) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
