@@ -70,7 +70,10 @@ func (a *Adapter) CreateUser(ctx context.Context, dto domain.Register) (*domain.
 	}
 	now := time.Now()
 	usr := domain.User{
-		Name:      dto.Name,
+		Name: domain.Name{
+			First: dto.Name.First,
+			Last:  dto.Name.Last,
+		},
 		Email:     dto.Email,
 		Password:  string(hashed),
 		CreatedAt: now,

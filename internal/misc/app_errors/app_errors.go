@@ -1,6 +1,11 @@
 package app_errors
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type EntityNotFound struct {
 	Identifier string
@@ -34,22 +39,22 @@ func (e *EmailAlreadyInUse) Error() string {
 // ------------------------------------------ //
 
 type ValidationErr struct {
-	Code    int16
-	Message string
+	Code   int
+	Errors validator.ValidationErrors
 }
 
 func (e *ValidationErr) Error() string {
-	return fmt.Sprintf("ValidationError: %s\n", e.Message)
+	return fmt.Sprintf("ValidationError: %+v\n", e.Errors)
 }
 
-func NewValidationErr(msg string) *ValidationErr {
-	return &ValidationErr{Code: 422, Message: msg}
+func NewValidationErr(errors *validator.ValidationErrors) *ValidationErr {
+	return &ValidationErr{Code: http.StatusUnprocessableEntity, Errors: *errors}
 }
 
 // ------------------------------------------ //
 
 type HttpErr struct {
-	Code    int16
+	Code    int
 	Message string
 }
 
@@ -57,7 +62,7 @@ func (e *HttpErr) Error() string {
 	return fmt.Sprintf("HttpError: %s\n", e.Message)
 }
 
-func NewHttpErr(msg string, code int16) *HttpErr {
+func NewHttpErr(msg string, code int) *HttpErr {
 	return &HttpErr{
 		Code:    code,
 		Message: msg,

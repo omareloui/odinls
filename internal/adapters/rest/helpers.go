@@ -5,13 +5,14 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func respondWithTemplate(template templ.Component) func(c fiber.Ctx) error {
+func respondWithTemplate(status int, template templ.Component) func(c fiber.Ctx) error {
 	return func(c fiber.Ctx) error {
+		c.Status(status)
 		c.Type(".html")
-		return renderToBody(c, template)
+		return renderToResponseBody(c, template)
 	}
 }
 
-func renderToBody(c fiber.Ctx, template templ.Component) error {
+func renderToResponseBody(c fiber.Ctx, template templ.Component) error {
 	return template.Render(c.Context(), c.Response().BodyWriter())
 }

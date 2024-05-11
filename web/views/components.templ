@@ -7,7 +7,7 @@ templ errIcon(size string) {
 	</svg>
 }
 
-templ input(label, kind, name, placeholder string, errors ...string) {
+templ input(label, kind, name, placeholder, value string, errors ...string) {
 	<div>
 		<label for={ name } class="mb-1 block text-sm font-medium text-gray-900">{ label }</label>
 		<input
@@ -16,6 +16,7 @@ templ input(label, kind, name, placeholder string, errors ...string) {
 			name={ name }
 			placeholder={ placeholder }
 			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+			value={ value }
 		/>
 		if len(errors) > 0 {
 			for _, err := range errors {
@@ -31,7 +32,7 @@ templ input(label, kind, name, placeholder string, errors ...string) {
 }
 
 templ form(postTo, submitStr string) {
-	<form class="grid gap-6 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML">
+	<form class="grid gap-6 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML" hx-target="this">
 		{ children... }
 		<button
 			type="submit"

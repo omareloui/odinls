@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/omareloui/odinls/internal/application/core/domain"
 	"github.com/omareloui/odinls/internal/misc/app_errors"
 	"github.com/omareloui/odinls/internal/ports"
@@ -19,8 +20,10 @@ func NewApplication(db ports.DBProt) *Application {
 }
 
 func (a *Application) Register(ctx context.Context, dto domain.Register) (*domain.User, error) {
-	if dto.Password != dto.ConfirmPassword {
-		return nil, new(app_errors.ConfirmPasswordNotMatching)
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err := validate.Struct(dto)
+	if err != nil {
+		return nil, err
 	}
 
 	matchingEmail, err := a.db.GetUserByEmail(ctx, dto.Email)

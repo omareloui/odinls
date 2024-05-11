@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/omareloui/odinls/internal/application/core/domain"
 	"github.com/omareloui/odinls/internal/misc/app_errors"
@@ -25,13 +26,14 @@ func (a *Adapter) registerHandler(c fiber.Ctx) error {
 	password := c.FormValue("password")
 	cpassword := c.FormValue("cpassword")
 
-	dto := domain.NewRegister(domain.Name{First: firstName, Last: lastName}, email, password, cpassword)
+	dto := domain.NewRegister(domain.AuthName{First: firstName, Last: lastName}, email, password, cpassword)
 
 	usr, err := a.api.Register(c.Context(), *dto)
 	if err != nil {
-		vErr := app_errors.NewValidationErr(err.Error())
-		c.Status(int(vErr.Code))
-		return renderToBody(c, views.Register(views.RegisterFormErrors{}))
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			vErr := app_errors.NewValidationErr(&validationErrs)
+			return respondWithTemplate(vErr.Code, views.RegisterForm(dto, vErr.Errors))(c)
+		}
 	}
 
 	return c.SendString(fmt.Sprintf("the created user is: %+v\n", usr))
