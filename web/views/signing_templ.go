@@ -10,9 +10,11 @@ import "context"
 import "io"
 import "bytes"
 
+import "slices"
+import "fmt"
+
 import "github.com/go-playground/validator/v10"
 import "github.com/omareloui/odinls/internal/application/core/domain"
-import "slices"
 
 func Login() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -216,10 +218,23 @@ func RegisterForm(values *domain.Register, errs validator.ValidationErrors) temp
 	})
 }
 
+func msgForTag(tag string, param string) string {
+	switch tag {
+	case "required":
+		return "This field is required"
+	case "email":
+		return "Invalid email"
+	case "gte":
+		return fmt.Sprintf("Value is too short (at least %s characters)", param)
+	}
+	return ""
+}
+
 func getFieldError(errs validator.ValidationErrors, field string) string {
 	idx := slices.IndexFunc(errs, func(err validator.FieldError) bool { return err.Field() == field })
 	if idx == -1 {
 		return ""
 	}
-	return errs[idx].Error()
+	err := errs[idx]
+	return msgForTag(err.Tag(), err.Param())
 }

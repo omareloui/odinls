@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/omareloui/odinls/internal/application/core/domain"
-	"github.com/omareloui/odinls/internal/misc/app_errors"
 	"github.com/omareloui/odinls/internal/ports"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,18 +20,21 @@ func NewApplication(db ports.DBProt) *Application {
 
 func (a *Application) Register(ctx context.Context, dto domain.Register) (*domain.User, error) {
 	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	validate.RegisterValidation("unique_email", func(fl validator.FieldLevel) bool {
+		matchingEmail, err := a.db.GetUserByEmail(ctx, dto.Email)
+		if err != nil {
+			return false
+		}
+		if matchingEmail != nil {
+			return false
+		}
+		return true
+	})
+
 	err := validate.Struct(dto)
 	if err != nil {
 		return nil, err
-	}
-
-	matchingEmail, err := a.db.GetUserByEmail(ctx, dto.Email)
-	if err != nil {
-		return nil, err
-	}
-
-	if matchingEmail != nil {
-		return nil, new(app_errors.EmailAlreadyInUse)
 	}
 
 	return a.db.CreateUser(ctx, dto)

@@ -34,6 +34,9 @@ func (a *Adapter) registerHandler(c fiber.Ctx) error {
 			vErr := app_errors.NewValidationErr(&validationErrs)
 			return respondWithTemplate(vErr.Code, views.RegisterForm(dto, vErr.Errors))(c)
 		}
+		if existingEmailErr, ok := err.(app_errors.EmailAlreadyInUse); ok {
+			return respondWithTemplate(existingEmailErr.Code, views.RegisterForm(dto, existingEmailErr.Errors))(c)
+		}
 	}
 
 	return c.SendString(fmt.Sprintf("the created user is: %+v\n", usr))

@@ -12,7 +12,7 @@ type EntityNotFound struct {
 	Entity     string
 }
 
-func (e *EntityNotFound) Error() string {
+func (e EntityNotFound) Error() string {
 	return fmt.Sprintf(`entity "%s" with filter "%s" was not found`, e.Entity, e.Identifier)
 }
 
@@ -24,16 +24,23 @@ func NewEntityNotFound(entity string, id string) error {
 
 type ConfirmPasswordNotMatching struct{}
 
-func (e *ConfirmPasswordNotMatching) Error() string {
+func (e ConfirmPasswordNotMatching) Error() string {
 	return "the passwords doesn't match"
 }
 
 // ------------------------------------------ //
 
-type EmailAlreadyInUse struct{}
+type EmailAlreadyInUse struct {
+	Code   int
+	Errors validator.ValidationErrors
+}
 
-func (e *EmailAlreadyInUse) Error() string {
+func (e EmailAlreadyInUse) Error() string {
 	return "email already in use"
+}
+
+func NewEmailAlreadyInUse() *EmailAlreadyInUse {
+	return &EmailAlreadyInUse{Code: http.StatusUnprocessableEntity}
 }
 
 // ------------------------------------------ //
@@ -43,7 +50,7 @@ type ValidationErr struct {
 	Errors validator.ValidationErrors
 }
 
-func (e *ValidationErr) Error() string {
+func (e ValidationErr) Error() string {
 	return fmt.Sprintf("ValidationError: %+v\n", e.Errors)
 }
 
@@ -58,7 +65,7 @@ type HttpErr struct {
 	Message string
 }
 
-func (e *HttpErr) Error() string {
+func (e HttpErr) Error() string {
 	return fmt.Sprintf("HttpError: %s\n", e.Message)
 }
 
