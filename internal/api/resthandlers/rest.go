@@ -1,4 +1,4 @@
-package restfiber
+package resthandlers
 
 import (
 	"net/http"
@@ -31,6 +31,7 @@ func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, tem
 	if err := renderToBody(w, r, template); err != nil {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 

@@ -1,4 +1,4 @@
-package restfiber
+package fiberserver
 
 import (
 	"fmt"
@@ -8,15 +8,16 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/omareloui/odinls/config"
+	"github.com/omareloui/odinls/internal/api/resthandlers"
 )
 
 type APIAdapter struct {
-	handler Handler
+	handler resthandlers.Handler
 	port    int
 	server  *fiber.App
 }
 
-func NewAdapter(handler Handler, port int) *APIAdapter {
+func NewAdapter(handler resthandlers.Handler, port int) *APIAdapter {
 	return &APIAdapter{handler: handler, port: port}
 }
 

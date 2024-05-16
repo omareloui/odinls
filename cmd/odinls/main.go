@@ -5,7 +5,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/omareloui/odinls/config"
-	"github.com/omareloui/odinls/internal/api/restfiber"
+	fiberserver "github.com/omareloui/odinls/internal/api/fiber"
+	"github.com/omareloui/odinls/internal/api/resthandlers"
 	application "github.com/omareloui/odinls/internal/application/core"
 	"github.com/omareloui/odinls/internal/repositories/mongo"
 	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
@@ -27,8 +28,8 @@ func main() {
 
 	validator := playgroundvalidator.NewValidator()
 	app := application.NewApplication(repo, validator)
-	handler := restfiber.NewHandler(app)
+	handler := resthandlers.NewHandler(app)
 
-	api := restfiber.NewAdapter(handler, config.GetApplicationPort())
+	api := fiberserver.NewAdapter(handler, config.GetApplicationPort())
 	api.Run()
 }

@@ -1,4 +1,4 @@
-package restfiber
+package resthandlers
 
 import (
 	"net/http"
@@ -35,13 +35,19 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 	err := h.app.MerchantService.CreateMerchant(merchantform)
 
 	if err == nil {
-		renderToBody(w, r, views.MerchantOOB(merchantform))
+		if err := renderToBody(w, r, views.MerchantOOB(merchantform)); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+			return
+		}
 		respondWithTemplate(w, r, http.StatusOK, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+		return
 	}
 
 	if valerr, ok := err.(errs.ValidationError); ok {
 		defaultValueAndErrs := newCreateMerchantFormData(merchantform, &valerr)
 		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateMerchantForm(defaultValueAndErrs))
+		return
 	}
 
 	respondWithTemplate(w, r, http.StatusInternalServerError, views.CreateMerchantForm(newCreateMerchantFormData(merchantform, &errs.ValidationError{})))

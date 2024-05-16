@@ -1,4 +1,4 @@
-package restfiber
+package resthandlers
 
 import (
 	"net/http"
