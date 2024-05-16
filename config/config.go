@@ -10,9 +10,9 @@ func GetDataSource() string {
 	return getEnvironmentValue("DATA_SOURCE")
 }
 
-func GetDataSourceCred() options.Credential {
+func GetMongoCred() options.Credential {
 	return options.Credential{
-		Username: getEnvironmentValue("DB_USER"),
-		Password: getEnvironmentValue("DB_PASSWORD"),
+		Username: getEnvironmentValue("MONGO_DB_USER"),
+		Password: getEnvironmentValue("MONGO_DB_PASSWORD"),
 	}
 }

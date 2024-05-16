@@ -5,9 +5,10 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/omareloui/odinls/config"
-	"github.com/omareloui/odinls/internal/adapters/db"
-	"github.com/omareloui/odinls/internal/adapters/rest"
-	"github.com/omareloui/odinls/internal/application/core/api"
+	"github.com/omareloui/odinls/internal/api/restfiber"
+	application "github.com/omareloui/odinls/internal/application/core"
+	"github.com/omareloui/odinls/internal/repositories/mongo"
+	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
 )
 
 func main() {
@@ -15,10 +16,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	dbAdapter, _ := db.NewAdapter(config.GetDataSource(), config.GetDataSourceCred())
+	repo, err := mongo.NewRepository(
+		config.GetDataSource(),
+		"ODINLS_DEV", // TODO: get from env var
+		14,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	application := api.NewApplication(dbAdapter)
+	validator := playgroundvalidator.NewValidator()
+	app := application.NewApplication(repo, validator)
+	handler := restfiber.NewHandler(app)
 
-	restAdapter := rest.NewAdapter(application, config.GetApplicationPort())
-	restAdapter.Run()
+	api := restfiber.NewAdapter(handler, config.GetApplicationPort())
+	api.Run()
 }

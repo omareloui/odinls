@@ -4,7 +4,6 @@ import "slices"
 import "fmt"
 
 import "github.com/go-playground/validator/v10"
-import "github.com/omareloui/odinls/internal/application/core/domain"
 
 templ Login() {
 	@baseLayout("Login | Odin LS") {
@@ -17,25 +16,45 @@ templ Login() {
 	}
 }
 
-templ Register(values *domain.Register, errors validator.ValidationErrors) {
+templ Register() {
 	@baseLayout("Register | Odin LS") {
 		@container() {
-			@RegisterForm(values, errors)
+			@RegisterForm()
 		}
 	}
 }
 
-templ RegisterForm(values *domain.Register, errs validator.ValidationErrors) {
+templ RegisterForm() {
 	@form("/register", "Register") {
 		<div class="grid grid-cols-2 gap-2">
-			@input("First Name", "text", "firstName", "e.g. Omar", values.Name.First, getFieldError(errs, "Name.First"))
-			@input("Last Name", "text", "lastName", "e.g. Eloui", values.Name.Last, getFieldError(errs, "Name.Last"))
+			@input("First Name", "text", "firstName", "e.g. Omar", "")
+			@input("Last Name", "text", "lastName", "e.g. Eloui", "")
 		</div>
-		@input("Email", "email", "email", "e.g. contact@omareloui.com", values.Email, getFieldError(errs, "Email"))
-		@input("Password", "password", "password", "********", values.Password, getFieldError(errs, "Password"))
-		@input("Confirm Password", "password", "cpassword", "********", values.ConfirmPassword, getFieldError(errs, "ConfirmPassword"))
+		@input("Email", "email", "email", "e.g. contact@omareloui.com", "")
+		@input("Password", "password", "password", "********", "")
+		@input("Confirm Password", "password", "cpassword", "********", "")
 	}
 }
+
+// templ Register(values *domain.Register, errors validator.ValidationErrors) {
+// 	@baseLayout("Register | Odin LS") {
+// 		@container() {
+// 			@RegisterForm(values, errors)
+// 		}
+// 	}
+// }
+
+// templ RegisterForm(values *domain.Register, errs validator.ValidationErrors) {
+// 	@form("/register", "Register") {
+// 		<div class="grid grid-cols-2 gap-2">
+// 			@input("First Name", "text", "firstName", "e.g. Omar", values.Name.First, getFieldError(errs, "Name.First"))
+// 			@input("Last Name", "text", "lastName", "e.g. Eloui", values.Name.Last, getFieldError(errs, "Name.Last"))
+// 		</div>
+// 		@input("Email", "email", "email", "e.g. contact@omareloui.com", values.Email, getFieldError(errs, "Email"))
+// 		@input("Password", "password", "password", "********", values.Password, getFieldError(errs, "Password"))
+// 		@input("Confirm Password", "password", "cpassword", "********", values.ConfirmPassword, getFieldError(errs, "ConfirmPassword"))
+// 	}
+// }
 
 func msgForTag(tag string, param string) string {
 	switch tag {

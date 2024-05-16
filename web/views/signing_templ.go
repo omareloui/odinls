@@ -14,7 +14,6 @@ import "slices"
 import "fmt"
 
 import "github.com/go-playground/validator/v10"
-import "github.com/omareloui/odinls/internal/application/core/domain"
 
 func Login() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -93,7 +92,7 @@ func Login() templ.Component {
 	})
 }
 
-func Register(values *domain.Register, errors validator.ValidationErrors) templ.Component {
+func Register() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -118,7 +117,7 @@ func Register(values *domain.Register, errors validator.ValidationErrors) templ.
 					templ_7745c5c3_Buffer = templ.GetBuffer()
 					defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 				}
-				templ_7745c5c3_Err = RegisterForm(values, errors).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = RegisterForm().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -147,7 +146,7 @@ func Register(values *domain.Register, errors validator.ValidationErrors) templ.
 	})
 }
 
-func RegisterForm(values *domain.Register, errs validator.ValidationErrors) templ.Component {
+func RegisterForm() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -170,11 +169,11 @@ func RegisterForm(values *domain.Register, errs validator.ValidationErrors) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("First Name", "text", "firstName", "e.g. Omar", values.Name.First, getFieldError(errs, "Name.First")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("First Name", "text", "firstName", "e.g. Omar", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("Last Name", "text", "lastName", "e.g. Eloui", values.Name.Last, getFieldError(errs, "Name.Last")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Last Name", "text", "lastName", "e.g. Eloui", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -182,7 +181,7 @@ func RegisterForm(values *domain.Register, errs validator.ValidationErrors) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("Email", "email", "email", "e.g. contact@omareloui.com", values.Email, getFieldError(errs, "Email")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Email", "email", "email", "e.g. contact@omareloui.com", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -190,7 +189,7 @@ func RegisterForm(values *domain.Register, errs validator.ValidationErrors) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("Password", "password", "password", "********", values.Password, getFieldError(errs, "Password")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Password", "password", "password", "********", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -198,7 +197,7 @@ func RegisterForm(values *domain.Register, errs validator.ValidationErrors) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("Confirm Password", "password", "cpassword", "********", values.ConfirmPassword, getFieldError(errs, "ConfirmPassword")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Confirm Password", "password", "cpassword", "********", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -217,6 +216,26 @@ func RegisterForm(values *domain.Register, errs validator.ValidationErrors) temp
 		return templ_7745c5c3_Err
 	})
 }
+
+// templ Register(values *domain.Register, errors validator.ValidationErrors) {
+// 	@baseLayout("Register | Odin LS") {
+// 		@container() {
+// 			@RegisterForm(values, errors)
+// 		}
+// 	}
+// }
+
+// templ RegisterForm(values *domain.Register, errs validator.ValidationErrors) {
+// 	@form("/register", "Register") {
+// 		<div class="grid grid-cols-2 gap-2">
+// 			@input("First Name", "text", "firstName", "e.g. Omar", values.Name.First, getFieldError(errs, "Name.First"))
+// 			@input("Last Name", "text", "lastName", "e.g. Eloui", values.Name.Last, getFieldError(errs, "Name.Last"))
+// 		</div>
+// 		@input("Email", "email", "email", "e.g. contact@omareloui.com", values.Email, getFieldError(errs, "Email"))
+// 		@input("Password", "password", "password", "********", values.Password, getFieldError(errs, "Password"))
+// 		@input("Confirm Password", "password", "cpassword", "********", values.ConfirmPassword, getFieldError(errs, "ConfirmPassword"))
+// 	}
+// }
 
 func msgForTag(tag string, param string) string {
 	switch tag {
