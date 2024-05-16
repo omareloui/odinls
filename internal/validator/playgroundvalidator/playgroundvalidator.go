@@ -25,7 +25,6 @@ func (v *playgroundValidator) ParseError(error any) errs.ValidationError {
 }
 
 func NewValidator() *playgroundValidator {
-	return &playgroundValidator{
-		validator: validator.New(validator.WithRequiredStructEnabled()),
-	}
+	val := validator.New(validator.WithRequiredStructEnabled())
+	return &playgroundValidator{validator: val}
 }
