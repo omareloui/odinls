@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/omareloui/odinls/internal/interfaces"
+	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrUserNotFound = errors.New("User Not Found")
-	ErrUserInvalid  = errors.New("User Invalid")
-)
+const passwordHashCost = 14
+
+var ErrUserNotFound = errors.New("User Not Found")
 
 type userService struct {
 	userRepository UserRepository
@@ -27,9 +27,15 @@ func (s *userService) FindUser(id string) (*User, error) {
 
 func (s *userService) CreateUser(usr *User) error {
 	if err := s.validator.Validate(usr); err != nil {
-		// TODO: find a way to send the error details "err" with the error
-		return ErrUserInvalid
+		return s.validator.ParseError(err)
 	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(usr.Password), passwordHashCost)
+	if err != nil {
+		return err
+	}
+
+	usr.Password = string(hash)
 
 	usr.CreatedAt = time.Now()
 	usr.UpdatedAt = time.Now()

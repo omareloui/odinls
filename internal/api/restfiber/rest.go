@@ -6,6 +6,7 @@ import (
 	application "github.com/omareloui/odinls/internal/application/core"
 )
 
+// TODO: update this to work with http.Handler (and use the fiber.HTTPHandler)
 type Handler interface {
 	GetHomepage(fiber.Ctx) error
 
@@ -29,5 +30,9 @@ func NewHandler(app *application.Application) Handler {
 func respondWithTemplate(c fiber.Ctx, status int, template templ.Component) error {
 	c.Status(status)
 	c.Type(".html")
+	return renderToBody(c, template)
+}
+
+func renderToBody(c fiber.Ctx, template templ.Component) error {
 	return template.Render(c.Context(), c.Response().BodyWriter())
 }

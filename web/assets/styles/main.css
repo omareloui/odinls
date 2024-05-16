@@ -2,3 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 @tailwind variants;
+
+.no-entries:empty:before {
+  content: "No entries yet!";
+  @apply text-gray-400 italic;
+}

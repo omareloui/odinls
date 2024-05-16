@@ -1,78 +1,49 @@
 package views
 
-import "slices"
-import "fmt"
+type RegisterFormData struct {
+	FristName       FormInputData
+	LastName        FormInputData
+	Email           FormInputData
+	Password        FormInputData
+	ConfirmPassword FormInputData
+}
 
-import "github.com/go-playground/validator/v10"
+type LoginFormData struct {
+	Email    FormInputData
+	Password FormInputData
+}
 
-templ Login() {
+templ Login(formdata *LoginFormData) {
 	@baseLayout("Login | Odin LS") {
 		@container() {
-			@form("/login", "Login") {
-				@input("Email", "email", "email", "email", "")
-				@input("Password", "password", "password", "password", "")
-			}
+			@LoginForm(formdata)
 		}
 	}
 }
 
-templ Register() {
+templ LoginForm(formdata *LoginFormData) {
+	@form("Login", "/login", "Login") {
+		@input("Email", "email", "email", "email", formdata.Email)
+		@input("Password", "password", "password", "password", formdata.Password)
+	}
+}
+
+templ Register(formdata *RegisterFormData) {
 	@baseLayout("Register | Odin LS") {
 		@container() {
-			@RegisterForm()
+			@RegisterForm(formdata)
 		}
 	}
 }
 
-templ RegisterForm() {
-	@form("/register", "Register") {
+templ RegisterForm(formdata *RegisterFormData) {
+	@form("Register", "/register", "Register") {
 		<div class="grid grid-cols-2 gap-2">
-			@input("First Name", "text", "firstName", "e.g. Omar", "")
-			@input("Last Name", "text", "lastName", "e.g. Eloui", "")
+			@input("First Name", "text", "firstName", "e.g. Omar", formdata.FristName)
+			@input("Last Name", "text", "lastName", "e.g. Eloui", formdata.LastName)
 		</div>
-		@input("Email", "email", "email", "e.g. contact@omareloui.com", "")
-		@input("Password", "password", "password", "********", "")
-		@input("Confirm Password", "password", "cpassword", "********", "")
+		@input("Email", "email", "email", "e.g. contact@omareloui.com", formdata.Email)
+		@input("Password", "password", "password", "********", formdata.Password)
+		@input("Confirm Password", "password", "cpassword", "********", formdata.ConfirmPassword)
 	}
-}
-
-// templ Register(values *domain.Register, errors validator.ValidationErrors) {
-// 	@baseLayout("Register | Odin LS") {
-// 		@container() {
-// 			@RegisterForm(values, errors)
-// 		}
-// 	}
-// }
-
-// templ RegisterForm(values *domain.Register, errs validator.ValidationErrors) {
-// 	@form("/register", "Register") {
-// 		<div class="grid grid-cols-2 gap-2">
-// 			@input("First Name", "text", "firstName", "e.g. Omar", values.Name.First, getFieldError(errs, "Name.First"))
-// 			@input("Last Name", "text", "lastName", "e.g. Eloui", values.Name.Last, getFieldError(errs, "Name.Last"))
-// 		</div>
-// 		@input("Email", "email", "email", "e.g. contact@omareloui.com", values.Email, getFieldError(errs, "Email"))
-// 		@input("Password", "password", "password", "********", values.Password, getFieldError(errs, "Password"))
-// 		@input("Confirm Password", "password", "cpassword", "********", values.ConfirmPassword, getFieldError(errs, "ConfirmPassword"))
-// 	}
-// }
-
-func msgForTag(tag string, param string) string {
-	switch tag {
-	case "required":
-		return "This field is required"
-	case "email":
-		return "Invalid email"
-	case "gte":
-		return fmt.Sprintf("Value is too short (at least %s characters)", param)
-	}
-	return ""
-}
-
-func getFieldError(errs validator.ValidationErrors, field string) string {
-	idx := slices.IndexFunc(errs, func(err validator.FieldError) bool { return err.Field() == field })
-	if idx == -1 {
-		return ""
-	}
-	err := errs[idx]
-	return msgForTag(err.Tag(), err.Param())
 }

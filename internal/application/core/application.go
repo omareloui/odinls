@@ -8,13 +8,13 @@ import (
 )
 
 type Application struct {
-	userService     user.UserService
-	merchantService merchant.MerchantService
+	UserService     user.UserService
+	MerchantService merchant.MerchantService
 }
 
 func NewApplication(repo repository.Repository, validator interfaces.Validator) *Application {
 	return &Application{
-		userService:     user.NewUserService(repo, validator),
-		merchantService: merchant.NewMerchantService(repo, validator),
+		UserService:     user.NewUserService(repo, validator),
+		MerchantService: merchant.NewMerchantService(repo, validator),
 	}
 }

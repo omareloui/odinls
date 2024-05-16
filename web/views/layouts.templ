@@ -13,14 +13,21 @@ templ baseLayout(pageTitle string) {
 		</head>
 		<body>
 			@container() {
-				<nav hx-boost="true" class="flex gap-6 items-start my-4">
-					@link("/", "/")
-					@link("/login", "/login")
-					@link("/register", "/register")
-				</nav>
+				@navbar()
 			}
-			{ children... }
+			<div class="pb-5">
+				{ children... }
+			</div>
 			<script>document.body.addEventListener("htmx:beforeSwap", function (ev) { if (ev.detail.xhr.status === 422) { ev.detail.shouldSwap = true; ev.detail.isError = false; } })</script>
 		</body>
 	</html>
+}
+
+templ navbar() {
+	<nav hx-boost="true" class="flex gap-6 items-start my-4">
+		@link("/", "/")
+		@link("/login", "/login")
+		@link("/register", "/register")
+		@link("/merchant", "/merchant")
+	</nav>
 }

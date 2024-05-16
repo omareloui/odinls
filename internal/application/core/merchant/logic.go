@@ -7,14 +7,15 @@ import (
 	"github.com/omareloui/odinls/internal/interfaces"
 )
 
-var (
-	ErrMerchantNotFound = errors.New("Merchant Not Found")
-	ErrMerchantInvalid  = errors.New("Invalid Merchant")
-)
+var ErrMerchantNotFound = errors.New("Merchant Not Found")
 
 type merchantService struct {
 	merchantRepository MerchantRepository
 	validator          interfaces.Validator
+}
+
+func (s *merchantService) GetMerchants() ([]Merchant, error) {
+	return s.merchantRepository.GetMerchants()
 }
 
 func (s *merchantService) FindMerchant(id string) (*Merchant, error) {
@@ -23,8 +24,7 @@ func (s *merchantService) FindMerchant(id string) (*Merchant, error) {
 
 func (s *merchantService) CreateMerchant(merchant *Merchant) error {
 	if err := s.validator.Validate(merchant); err != nil {
-		// TODO: find a way to send the error details "err" with the error
-		return ErrMerchantInvalid
+		return s.validator.ParseError(err)
 	}
 
 	merchant.CreatedAt = time.Now()

@@ -18,8 +18,8 @@ func main() {
 
 	repo, err := mongo.NewRepository(
 		config.GetDataSource(),
-		"ODINLS_DEV", // TODO: get from env var
-		14,
+		config.GetMongoDatabaseName(),
+		config.GetMongoQueryTimeout(),
 	)
 	if err != nil {
 		log.Fatal(err)

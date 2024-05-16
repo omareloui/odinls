@@ -1,0 +1,44 @@
+package views
+
+import "github.com/omareloui/odinls/internal/application/core/merchant"
+import "time"
+
+type CreateMerchantFormData struct {
+	Name FormInputData
+	Logo FormInputData
+}
+
+templ MerchantPage(merchants []merchant.Merchant, formdata *CreateMerchantFormData) {
+	@baseLayout("Merchants | Odin LS") {
+		@container() {
+			@CreateMerchantForm(formdata)
+			<h2 class="text-3xl font-bold mb-3">Merchants</h2>
+			@MerchantsList(merchants)
+		}
+	}
+}
+
+templ CreateMerchantForm(formdata *CreateMerchantFormData) {
+	@form("Create Merchant", "/merchant", "Create Merchant") {
+		@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", formdata.Name)
+		@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", formdata.Logo)
+	}
+}
+
+templ MerchantsList(merchants []merchant.Merchant) {
+	<div id="merchantsList" class="grid no-entries">
+		for _, m := range merchants {
+			@Merchant(&m)
+		}
+	</div>
+}
+
+templ Merchant(merchant *merchant.Merchant) {
+	<div>{ merchant.ID }:{ merchant.Name }:{ merchant.CreatedAt.Format(time.RFC822) }</div>
+}
+
+templ MerchantOOB(merchant *merchant.Merchant) {
+	<div id="merchantsList" hx-swap-oob="beforeend">
+		@Merchant(merchant)
+	</div>
+}
