@@ -11,8 +11,9 @@ import "io"
 import "bytes"
 
 type RegisterFormData struct {
-	FristName       FormInputData
+	FirstName       FormInputData
 	LastName        FormInputData
+	Username        FormInputData
 	Email           FormInputData
 	Password        FormInputData
 	ConfirmPassword FormInputData
@@ -96,7 +97,7 @@ func LoginForm(formdata *LoginFormData) templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			templ_7745c5c3_Err = input("Email", "email", "email", "email", formdata.Email).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Username or Email", "text", "email_or_username", "e.g. omareloui", formdata.Email).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -104,7 +105,7 @@ func LoginForm(formdata *LoginFormData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("Password", "password", "password", "password", formdata.Password).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Password", "password", "password", "********", formdata.Password).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -201,15 +202,23 @@ func RegisterForm(formdata *RegisterFormData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("First Name", "text", "firstName", "e.g. Omar", formdata.FristName).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("First Name", "text", "first_name", "e.g. Omar", formdata.FirstName).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = input("Last Name", "text", "lastName", "e.g. Eloui", formdata.LastName).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = input("Last Name", "text", "last_name", "e.g. Eloui", formdata.LastName).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = input("Username", "text", "username", "e.g. omareloui", formdata.Username).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

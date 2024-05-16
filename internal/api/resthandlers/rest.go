@@ -11,7 +11,9 @@ type Handler interface {
 	GetHomepage(w http.ResponseWriter, r *http.Request)
 
 	GetLogin(w http.ResponseWriter, r *http.Request)
+	PostLogin(w http.ResponseWriter, r *http.Request)
 	GetRegister(w http.ResponseWriter, r *http.Request)
+	PostRegister(w http.ResponseWriter, r *http.Request)
 
 	GetMerchant(w http.ResponseWriter, r *http.Request)
 	PostMerchant(w http.ResponseWriter, r *http.Request)

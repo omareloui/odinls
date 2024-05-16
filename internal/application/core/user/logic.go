@@ -21,6 +21,10 @@ func (s *userService) FindUserByEmailOrUsername(emailOrPassword string) (*User, 
 	return s.userRepository.FindUserByEmailOrUsername(emailOrPassword)
 }
 
+func (s *userService) FindUserByEmailOrUsernameFromUser(usr *User) (*User, error) {
+	return s.userRepository.FindUserByEmailOrUsernameFromUser(usr)
+}
+
 func (s *userService) FindUser(id string) (*User, error) {
 	return s.userRepository.FindUser(id)
 }
@@ -29,6 +33,9 @@ func (s *userService) CreateUser(usr *User) error {
 	if err := s.validator.Validate(usr); err != nil {
 		return s.validator.ParseError(err)
 	}
+
+	/// TODO: handle this
+	/// alreadyExistingEmailOrUsername ,err:= s.FindUserByEmailOrUsernameFromUser(usr)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(usr.Password), passwordHashCost)
 	if err != nil {

@@ -2,9 +2,11 @@ package mongo
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/omareloui/odinls/config"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -43,6 +45,13 @@ func newMongoClient(mongoURL string, mongoTimeout int) (*mongo.Client, error) {
 	return client, err
 }
 
+func createIndex(coll *mongo.Collection, idxModel mongo.IndexModel) {
+	_, err := coll.Indexes().CreateOne(context.Background(), idxModel)
+	if err != nil {
+		log.Fatalf("error creating the for the %s model\n", coll.Name())
+	}
+}
+
 func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, error) {
 	repo := &repository{timeout: time.Duration(mongoTimeout) * time.Second}
 	client, err := newMongoClient(mongoURL, mongoTimeout)
@@ -51,7 +60,12 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 	}
 	repo.client = client
 	repo.db = client.Database(dbName)
-	repo.merchantsColl = repo.db.Collection(merchantsCollectionName)
+
 	repo.usersColl = repo.db.Collection(usersCollectionName)
+	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "username", Value: 1}}})
+	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "email", Value: 1}}})
+
+	repo.merchantsColl = repo.db.Collection(merchantsCollectionName)
+
 	return repo, nil
 }

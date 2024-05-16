@@ -45,8 +45,8 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if valerr, ok := err.(errs.ValidationError); ok {
-		defaultValueAndErrs := newCreateMerchantFormData(merchantform, &valerr)
-		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateMerchantForm(defaultValueAndErrs))
+		e := newCreateMerchantFormData(merchantform, &valerr)
+		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateMerchantForm(e))
 		return
 	}
 

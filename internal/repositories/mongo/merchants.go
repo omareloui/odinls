@@ -51,15 +51,7 @@ func (r *repository) CreateMerchant(merchant *merchant.Merchant) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	res, err := r.merchantsColl.InsertOne(
-		ctx,
-		bson.M{
-			"name":       merchant.Name,
-			"logo":       merchant.Logo,
-			"created_at": merchant.CreatedAt,
-			"updated_at": merchant.UpdatedAt,
-		},
-	)
+	res, err := r.merchantsColl.InsertOne(ctx, merchant)
 
 	if err == nil {
 		merchant.ID = res.InsertedID.(primitive.ObjectID).Hex()

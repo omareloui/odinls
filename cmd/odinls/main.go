@@ -5,7 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/omareloui/odinls/config"
-	fiberserver "github.com/omareloui/odinls/internal/api/fiber"
+	"github.com/omareloui/odinls/internal/api/fibersrv"
 	"github.com/omareloui/odinls/internal/api/resthandlers"
 	application "github.com/omareloui/odinls/internal/application/core"
 	"github.com/omareloui/odinls/internal/repositories/mongo"
@@ -30,6 +30,6 @@ func main() {
 	app := application.NewApplication(repo, validator)
 	handler := resthandlers.NewHandler(app)
 
-	api := fiberserver.NewAdapter(handler, config.GetApplicationPort())
+	api := fibersrv.NewAdapter(handler, config.GetApplicationPort())
 	api.Run()
 }

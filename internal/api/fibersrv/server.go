@@ -1,4 +1,4 @@
-package fiberserver
+package fibersrv
 
 import (
 	"fmt"
@@ -30,7 +30,9 @@ func (a *APIAdapter) Run() {
 	a.server.Get("/", adaptor.HTTPHandlerFunc(a.handler.GetHomepage))
 
 	a.server.Get("/login", adaptor.HTTPHandlerFunc(a.handler.GetLogin))
+	a.server.Post("/login", adaptor.HTTPHandlerFunc(a.handler.PostLogin))
 	a.server.Get("/register", adaptor.HTTPHandlerFunc(a.handler.GetRegister))
+	a.server.Post("/register", adaptor.HTTPHandlerFunc(a.handler.PostRegister))
 
 	a.server.Get("/merchant", adaptor.HTTPHandlerFunc(a.handler.GetMerchant))
 	a.server.Post("/merchant", adaptor.HTTPHandlerFunc(a.handler.PostMerchant))

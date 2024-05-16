@@ -29,6 +29,29 @@ func (r *repository) FindUser(id string) (*user.User, error) {
 	return u, nil
 }
 
+func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User) (*user.User, error) {
+	ctx, cancel := r.newCtx()
+	defer cancel()
+
+	u := &user.User{}
+	filter := bson.M{
+		"$or": bson.A{
+			bson.M{"email": usr.Email},
+			bson.M{"username": usr.Username},
+		},
+	}
+
+	err := r.usersColl.FindOne(ctx, filter).Decode(u)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, user.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return u, nil
+}
+
 func (r *repository) FindUserByEmailOrUsername(emailOrUsername string) (*user.User, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
@@ -56,19 +79,7 @@ func (r *repository) CreateUser(user *user.User) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	res, err := r.usersColl.InsertOne(
-		ctx,
-		bson.M{
-			"name":       bson.M{"first": user.Name.First, "last": user.Name.Last},
-			"username":   user.Username,
-			"email":      user.Email,
-			"password":   user.Password,
-			"phone":      user.Phone,
-			"role":       user.Role,
-			"created_at": user.CreatedAt,
-			"updated_at": user.UpdatedAt,
-		},
-	)
+	res, err := r.usersColl.InsertOne(ctx, user)
 
 	if err == nil {
 		user.ID = res.InsertedID.(primitive.ObjectID).Hex()
