@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/omareloui/odinls/config"
 )
@@ -25,13 +26,13 @@ func (a *APIAdapter) Run() {
 
 	a.server.Use(logger.New())
 
-	a.server.Get("/", a.handler.GetHomepage)
+	a.server.Get("/", adaptor.HTTPHandlerFunc(a.handler.GetHomepage))
 
-	a.server.Get("/login", a.handler.GetLogin)
-	a.server.Get("/register", a.handler.GetRegister)
+	a.server.Get("/login", adaptor.HTTPHandlerFunc(a.handler.GetLogin))
+	a.server.Get("/register", adaptor.HTTPHandlerFunc(a.handler.GetRegister))
 
-	a.server.Get("/merchant", a.handler.GetMerchant)
-	a.server.Post("/merchant", a.handler.PostMerchant)
+	a.server.Get("/merchant", adaptor.HTTPHandlerFunc(a.handler.GetMerchant))
+	a.server.Post("/merchant", adaptor.HTTPHandlerFunc(a.handler.PostMerchant))
 
 	log.Fatal(a.server.Listen(fmt.Sprintf(":%d", config.GetApplicationPort())))
 }

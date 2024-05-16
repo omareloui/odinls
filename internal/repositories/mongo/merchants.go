@@ -51,7 +51,6 @@ func (r *repository) CreateMerchant(merchant *merchant.Merchant) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	// TODO: find a better way to map from struct to bson
 	res, err := r.merchantsColl.InsertOne(
 		ctx,
 		bson.M{

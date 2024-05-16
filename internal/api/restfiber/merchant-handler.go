@@ -3,7 +3,6 @@ package restfiber
 import (
 	"net/http"
 
-	"github.com/gofiber/fiber/v3"
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/web/views"
@@ -18,32 +17,32 @@ func newCreateMerchantFormData(merchant *merchant.Merchant, valerr *errs.Validat
 
 // TODO: add a page for the handler to show not found and 500 pages
 
-func (h *handler) GetMerchant(c fiber.Ctx) error {
+func (h *handler) GetMerchant(w http.ResponseWriter, r *http.Request) {
 	merchants, err := h.app.MerchantService.GetMerchants()
 	status := http.StatusOK
 	if err != nil {
 		status = http.StatusInternalServerError
 	}
-	return respondWithTemplate(c, status, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+	respondWithTemplate(w, r, status, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
 }
 
-func (h *handler) PostMerchant(c fiber.Ctx) error {
+func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 	merchantform := &merchant.Merchant{
-		Name: c.FormValue("name"),
-		Logo: c.FormValue("logo"),
+		Name: r.FormValue("name"),
+		Logo: r.FormValue("logo"),
 	}
 
 	err := h.app.MerchantService.CreateMerchant(merchantform)
 
 	if err == nil {
-		renderToBody(c, views.MerchantOOB(merchantform))
-		return respondWithTemplate(c, http.StatusOK, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+		renderToBody(w, r, views.MerchantOOB(merchantform))
+		respondWithTemplate(w, r, http.StatusOK, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
 	}
 
 	if valerr, ok := err.(errs.ValidationError); ok {
 		defaultValueAndErrs := newCreateMerchantFormData(merchantform, &valerr)
-		return respondWithTemplate(c, http.StatusUnprocessableEntity, views.CreateMerchantForm(defaultValueAndErrs))
+		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateMerchantForm(defaultValueAndErrs))
 	}
 
-	return respondWithTemplate(c, http.StatusInternalServerError, views.CreateMerchantForm(newCreateMerchantFormData(merchantform, &errs.ValidationError{})))
+	respondWithTemplate(w, r, http.StatusInternalServerError, views.CreateMerchantForm(newCreateMerchantFormData(merchantform, &errs.ValidationError{})))
 }

@@ -1,20 +1,20 @@
 package restfiber
 
 import (
+	"net/http"
+
 	"github.com/a-h/templ"
-	"github.com/gofiber/fiber/v3"
 	application "github.com/omareloui/odinls/internal/application/core"
 )
 
-// TODO: update this to work with http.Handler (and use the fiber.HTTPHandler)
 type Handler interface {
-	GetHomepage(fiber.Ctx) error
+	GetHomepage(w http.ResponseWriter, r *http.Request)
 
-	GetLogin(fiber.Ctx) error
-	GetRegister(fiber.Ctx) error
+	GetLogin(w http.ResponseWriter, r *http.Request)
+	GetRegister(w http.ResponseWriter, r *http.Request)
 
-	GetMerchant(fiber.Ctx) error
-	PostMerchant(fiber.Ctx) error
+	GetMerchant(w http.ResponseWriter, r *http.Request)
+	PostMerchant(w http.ResponseWriter, r *http.Request)
 }
 
 type handler struct {
@@ -22,17 +22,18 @@ type handler struct {
 }
 
 func NewHandler(app *application.Application) Handler {
-	return &handler{
-		app: app,
+	return &handler{app: app}
+}
+
+func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, template templ.Component) {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(status)
+	if err := renderToBody(w, r, template); err != nil {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
-func respondWithTemplate(c fiber.Ctx, status int, template templ.Component) error {
-	c.Status(status)
-	c.Type(".html")
-	return renderToBody(c, template)
-}
-
-func renderToBody(c fiber.Ctx, template templ.Component) error {
-	return template.Render(c.Context(), c.Response().BodyWriter())
+func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {
+	return template.Render(r.Context(), w)
 }

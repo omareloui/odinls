@@ -56,7 +56,6 @@ func (r *repository) CreateUser(user *user.User) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	// TODO: find a better way to map from struct to bson
 	res, err := r.usersColl.InsertOne(
 		ctx,
 		bson.M{

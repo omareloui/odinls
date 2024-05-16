@@ -3,7 +3,6 @@ package restfiber
 import (
 	"net/http"
 
-	"github.com/gofiber/fiber/v3"
 	"github.com/omareloui/odinls/web/views"
 )
 
@@ -24,10 +23,10 @@ func newRegisterFormData() *views.RegisterFormData {
 	}
 }
 
-func (h *handler) GetLogin(c fiber.Ctx) error {
-	return respondWithTemplate(c, http.StatusOK, views.Login(newLoginFormData()))
+func (h *handler) GetLogin(w http.ResponseWriter, r *http.Request) {
+	respondWithTemplate(w, r, http.StatusOK, views.Login(newLoginFormData()))
 }
 
-func (h *handler) GetRegister(c fiber.Ctx) error {
-	return respondWithTemplate(c, http.StatusOK, views.Register(newRegisterFormData()))
+func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) {
+	respondWithTemplate(w, r, http.StatusOK, views.Register(newRegisterFormData()))
 }
