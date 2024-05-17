@@ -1,7 +1,10 @@
 package playgroundvalidator
 
 import (
+	"regexp"
+
 	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10/non-standard/validators"
 	"github.com/omareloui/odinls/internal/errs"
 )
 
@@ -26,5 +29,13 @@ func (v *playgroundValidator) ParseError(error any) errs.ValidationError {
 
 func NewValidator() *playgroundValidator {
 	val := validator.New(validator.WithRequiredStructEnabled())
+	val.RegisterValidation("not_blank", validators.NotBlank)
+	val.RegisterValidation("alphanum_with_underscore", IsAlphaNumWithUnderScore)
 	return &playgroundValidator{validator: val}
+}
+
+func IsAlphaNumWithUnderScore(fl validator.FieldLevel) bool {
+	re := regexp.MustCompile(`^[A-Za-z0-9_]+$`)
+	field := fl.Field()
+	return re.Match([]byte(field.String()))
 }

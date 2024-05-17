@@ -40,7 +40,7 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 			return
 		}
-		respondWithTemplate(w, r, http.StatusOK, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+		respondWithTemplate(w, r, http.StatusCreated, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
 		return
 	}
 

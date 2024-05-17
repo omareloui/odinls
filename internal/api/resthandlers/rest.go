@@ -40,3 +40,7 @@ func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, tem
 func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {
 	return template.Render(r.Context(), w)
 }
+
+func hxRespondWithRedirect(w http.ResponseWriter, path string) {
+	w.Header().Set("HX-Location", path)
+}

@@ -1,6 +1,7 @@
 package resthandlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/omareloui/odinls/internal/application/core/user"
@@ -44,20 +45,36 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 		ConfirmPassword: r.FormValue("cpassword"),
 	}
 
-	// TODO: make sure the email and username are unique (in business logic)
+	// TODO(auth): make the tokens (refresh/access)
+
 	err := h.app.UserService.CreateUser(usrform)
 	if err == nil {
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		hxRespondWithRedirect(w, "/")
 		return
 	}
 
 	if valerr, ok := err.(errs.ValidationError); ok {
 		e := newRegisterFormData(usrform, &valerr)
-		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.Register(e))
+		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.RegisterForm(e))
 		return
 	}
 
-	respondWithTemplate(w, r, http.StatusInternalServerError, views.Register(newRegisterFormData(usrform, &errs.ValidationError{})))
+	emailExists := errors.Is(err, user.ErrEmailAlreadyExists)
+	usernameExists := errors.Is(err, user.ErrUsernameAlreadyExists)
+
+	if emailExists || usernameExists {
+		e := newRegisterFormData(usrform, &errs.ValidationError{})
+		if emailExists {
+			e.Email.Error = "Email already exists, try another one"
+		}
+		if usernameExists {
+			e.Username.Error = "Username already exists, try another one"
+		}
+		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.RegisterForm(e))
+		return
+	}
+
+	respondWithTemplate(w, r, http.StatusInternalServerError, views.RegisterForm(newRegisterFormData(usrform, &errs.ValidationError{})))
 }
 
 func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
@@ -83,5 +100,5 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	hxRespondWithRedirect(w, "/")
 }

@@ -32,8 +32,25 @@ func (v ValidationField) Msg() string {
 		return fmt.Sprintf("Value is low (at least %s is required)", v.Param)
 	case "min":
 		return fmt.Sprintf("Value is too short (at least %s characters)", v.Param)
+	case "max":
+		return fmt.Sprintf("Value is too log (maximum %s characters)", v.Param)
+	case "eqfield":
+		return fmt.Sprintf(`This field must match the "%s" field`, v.Tag)
+	case "not_blank":
+		return "This field can't empty"
+	case "alphanum":
+		return "This field expects alphanumeric value"
+	case "alphanum_with_underscore":
+		return "This field expects alphanumeric or underscore characters"
+	case "mongodb":
+		return "Invalid ID"
+	default:
+		msg := fmt.Sprintf(`Failed on "%s" tag`, v.Tag)
+		if v.Param != "" {
+			msg += fmt.Sprintf(` with "%s" as a param`, v.Param)
+		}
+		return msg
 	}
-	return ""
 }
 
 type ValidationError struct {

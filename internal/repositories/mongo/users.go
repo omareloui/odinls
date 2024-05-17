@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"errors"
+
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -75,14 +77,28 @@ func (r *repository) FindUserByEmailOrUsername(emailOrUsername string) (*user.Us
 	return u, nil
 }
 
-func (r *repository) CreateUser(user *user.User) error {
+func (r *repository) CreateUser(usr *user.User) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	res, err := r.usersColl.InsertOne(ctx, user)
+	// TODO(security): make sure to prevent to create multible emails with +
+	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
+
+	res, err := r.usersColl.InsertOne(ctx, usr)
 
 	if err == nil {
-		user.ID = res.InsertedID.(primitive.ObjectID).Hex()
+		usr.ID = res.InsertedID.(primitive.ObjectID).Hex()
+	}
+
+	if ok := mongo.IsDuplicateKeyError(err); ok {
+		if se := mongo.ServerError(nil); errors.As(err, &se) {
+			if se.HasErrorMessage("{ username: ") {
+				return user.ErrUsernameAlreadyExists
+			}
+			if se.HasErrorMessage("{ email: ") {
+				return user.ErrEmailAlreadyExists
+			}
+		}
 	}
 
 	return err
