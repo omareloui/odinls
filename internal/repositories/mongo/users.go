@@ -81,7 +81,7 @@ func (r *repository) CreateUser(usr *user.User) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	// TODO(security): make sure to prevent to create multible emails with +
+	// TODO(security): make sure to prevent to create multiple emails with +
 	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
 
 	res, err := r.usersColl.InsertOne(ctx, usr)
