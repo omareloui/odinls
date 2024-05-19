@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// TODO(response): know what to response with on failure
+
 func newLoginFormData(usr *user.User, valerr *errs.ValidationError) *views.LoginFormData {
 	return &views.LoginFormData{
 		Email:    views.FormInputData{Value: usr.Email, Error: valerr.Errors.MsgFor("Email")},
@@ -45,10 +47,17 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 		ConfirmPassword: r.FormValue("cpassword"),
 	}
 
-	// TODO(auth): make the tokens (refresh/access)
-
 	err := h.app.UserService.CreateUser(usrform)
 	if err == nil {
+		cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usrform)
+		if err != nil {
+			internalServerErrorResponse(w)
+			return
+		}
+
+		http.SetCookie(w, cookiesPair.Access)
+		http.SetCookie(w, cookiesPair.Refresh)
+
 		hxRespondWithRedirect(w, "/")
 		return
 	}
@@ -91,6 +100,15 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
 		return
 	}
+
+	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
+	if err != nil {
+		internalServerErrorResponse(w)
+		return
+	}
+
+	http.SetCookie(w, cookiesPair.Access)
+	http.SetCookie(w, cookiesPair.Refresh)
 
 	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(usrform.Password))
 	if err != nil {

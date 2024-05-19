@@ -10,6 +10,10 @@ func GetDataSource() string {
 	return getEnvironmentValue("DATA_SOURCE")
 }
 
+func GetJwtSecret() []byte {
+	return []byte(getEnvironmentValue("TOKEN_SECRET"))
+}
+
 func GetMongoDatabaseName() string {
 	return getEnvironmentValue("MONGO_DB_NAME")
 }

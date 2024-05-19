@@ -12,9 +12,9 @@ import (
 const passwordHashCost = 14
 
 var (
-	ErrUserNotFound          = errors.New("User Not Found")
-	ErrEmailAlreadyExists    = errors.New("User Email Exists")
-	ErrUsernameAlreadyExists = errors.New("User Username Exists")
+	ErrUserNotFound          = errors.New("user not found")
+	ErrEmailAlreadyExists    = errors.New("user email exists")
+	ErrUsernameAlreadyExists = errors.New("user username Exists")
 )
 
 type userService struct {

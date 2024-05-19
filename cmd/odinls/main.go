@@ -5,6 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/omareloui/odinls/config"
+	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/api/fibersrv"
 	"github.com/omareloui/odinls/internal/api/resthandlers"
 	application "github.com/omareloui/odinls/internal/application/core"
@@ -12,11 +13,13 @@ import (
 	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
 )
 
-func main() {
+func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalln(err)
 	}
+}
 
+func main() {
 	repo, err := mongo.NewRepository(
 		config.GetDataSource(),
 		config.GetMongoDatabaseName(),
@@ -28,7 +31,8 @@ func main() {
 
 	validator := playgroundvalidator.NewValidator()
 	app := application.NewApplication(repo, validator)
-	handler := resthandlers.NewHandler(app)
+	jwtAdapter := jwtadapter.NewJWTV5Adapter(config.GetJwtSecret())
+	handler := resthandlers.NewHandler(app, jwtAdapter)
 
 	api := fibersrv.NewAdapter(handler, config.GetApplicationPort())
 	api.Run()

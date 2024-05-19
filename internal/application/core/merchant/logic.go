@@ -7,7 +7,7 @@ import (
 	"github.com/omareloui/odinls/internal/interfaces"
 )
 
-var ErrMerchantNotFound = errors.New("Merchant Not Found")
+var ErrMerchantNotFound = errors.New("merchant not found")
 
 type merchantService struct {
 	merchantRepository MerchantRepository
