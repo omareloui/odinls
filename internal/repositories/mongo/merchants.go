@@ -59,3 +59,33 @@ func (r *repository) CreateMerchant(merchant *merchant.Merchant) error {
 
 	return err
 }
+
+func (r *repository) UpdateMerchantByID(id string, mer *merchant.Merchant) error {
+	ctx, cancel := r.newCtx()
+	defer cancel()
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errs.ErrInvalidID
+	}
+
+	filter := bson.D{{Key: "_id", Value: objId}}
+	update := bson.D{
+		{
+			Key: "$set",
+			Value: bson.M{
+				"name": mer.Name,
+				"logo": mer.Logo,
+			},
+		},
+	}
+
+	updated, err := r.merchantsColl.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if updated.ModifiedCount == 0 {
+		return merchant.ErrMerchantNotFound
+	}
+	return nil
+}

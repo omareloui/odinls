@@ -22,6 +22,14 @@ func (s *merchantService) FindMerchant(id string) (*Merchant, error) {
 	return s.merchantRepository.FindMerchant(id)
 }
 
+func (s *merchantService) UpdateMerchantByID(id string, merchant *Merchant) error {
+	if err := s.validator.Validate(merchant); err != nil {
+		return s.validator.ParseError(err)
+	}
+
+	return s.merchantRepository.UpdateMerchantByID(id, merchant)
+}
+
 func (s *merchantService) CreateMerchant(merchant *Merchant) error {
 	if err := s.validator.Validate(merchant); err != nil {
 		return s.validator.ParseError(err)

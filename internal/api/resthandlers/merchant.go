@@ -1,6 +1,7 @@
 package resthandlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/omareloui/odinls/internal/application/core/merchant"
@@ -17,13 +18,30 @@ func newCreateMerchantFormData(merchant *merchant.Merchant, valerr *errs.Validat
 
 // TODO(refactor): add a page for the handler to show not found and 500 pages
 
-func (h *handler) GetMerchant(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) {
 	merchants, err := h.app.MerchantService.GetMerchants()
-	status := http.StatusOK
 	if err != nil {
-		status = http.StatusInternalServerError
+		respondWithInternalServerError(w)
+		return
 	}
-	respondWithTemplate(w, r, status, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+	respondWithTemplate(w, r, http.StatusOK, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+}
+
+func (h *handler) GetMerchant(id string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m, err := h.app.MerchantService.FindMerchant(id)
+		if ok := errors.Is(err, merchant.ErrMerchantNotFound); ok {
+			w.WriteHeader(http.StatusNotFound)
+			_, err = w.Write([]byte(err.Error()))
+			if err != nil {
+				respondWithInternalServerError(w)
+				return
+			}
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK, views.Merchant(m))
+	}
 }
 
 func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
@@ -50,4 +68,35 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithInternalServerError(w)
+}
+
+func (h *handler) GetEditMerchant(id string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m, err := h.app.MerchantService.FindMerchant(id)
+		if err != nil {
+			respondWithInternalServerError(w)
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK,
+			views.EditMerchant(m, newCreateMerchantFormData(m, &errs.ValidationError{})))
+	}
+}
+
+func (h *handler) EditMerchant(id string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		name := r.FormValue("name")
+		logo := r.FormValue("logo")
+
+		m := &merchant.Merchant{ID: id, Name: name, Logo: logo}
+
+		err := h.app.MerchantService.UpdateMerchantByID(id, m)
+
+		if valerr, ok := err.(errs.ValidationError); ok {
+			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditMerchant(m, newCreateMerchantFormData(m, &valerr)))
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK, views.Merchant(m))
+	}
 }

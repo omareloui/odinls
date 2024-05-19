@@ -28,6 +28,8 @@ func (v ValidationField) Msg() string {
 		return "This field is required"
 	case "email":
 		return "Invalid email"
+	case "http_url":
+		return "This field must be a valid URL"
 	case "gte":
 		return fmt.Sprintf("Value is low (at least %s is required)", v.Param)
 	case "min":

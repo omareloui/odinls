@@ -1,7 +1,8 @@
 package views
 
-import "github.com/omareloui/odinls/internal/application/core/merchant"
+import "fmt"
 import "time"
+import "github.com/omareloui/odinls/internal/application/core/merchant"
 
 type CreateMerchantFormData struct {
 	Name FormInputData
@@ -19,7 +20,7 @@ templ MerchantPage(merchants []merchant.Merchant, formdata *CreateMerchantFormDa
 }
 
 templ CreateMerchantForm(formdata *CreateMerchantFormData) {
-	@form("Create Merchant", "/merchant", "Create Merchant") {
+	@form("Create Merchant", "/merchants", "Create Merchant") {
 		@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", formdata.Name)
 		@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", formdata.Logo)
 	}
@@ -27,14 +28,49 @@ templ CreateMerchantForm(formdata *CreateMerchantFormData) {
 
 templ MerchantsList(merchants []merchant.Merchant) {
 	<div id="merchantsList" class="grid no-entries">
-		for _, m := range merchants {
+		for i, m := range merchants {
+			if i > 0 {
+				<br/>
+			}
 			@Merchant(&m)
 		}
 	</div>
 }
 
 templ Merchant(merchant *merchant.Merchant) {
-	<div>{ merchant.ID }:{ merchant.Name }:{ merchant.CreatedAt.Format(time.RFC822) }</div>
+	<div hx-target="this">
+		<p>ID: { merchant.ID }</p>
+		<p>Name: { merchant.Name }</p>
+		<p>Logo: { merchant.Logo }</p>
+		<p>Created At: { merchant.CreatedAt.Format(time.RFC822) }</p>
+		<p>Updated At: { merchant.UpdatedAt.Format(time.RFC822) }</p>
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/merchants/edit/%s", merchant.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
+}
+
+templ EditMerchant(merchant *merchant.Merchant, data *CreateMerchantFormData) {
+	<form hx-patch={ fmt.Sprintf("/merchants/%s", merchant.ID) } hx-swap="outerHTML" hx-target="this">
+		<p>ID: { merchant.ID }</p>
+		@input("Name", "text", "name", "e.g. Odin Leahter Store", data.Name)
+		@input("Logo", "url", "logo", "e.g. https://odinleahter.store/logo.png", data.Logo)
+		<div class="flex gap-2 mt-2 ">
+			<button
+				type="submit"
+				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+			>
+				Update
+			</button>
+			<button
+				type="button"
+				class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+				hx-get={ fmt.Sprintf("/merchants/%s", merchant.ID) }
+			>Cancel</button>
+		</div>
+	</form>
 }
 
 templ MerchantOOB(merchant *merchant.Merchant) {
