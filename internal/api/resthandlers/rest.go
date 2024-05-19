@@ -9,6 +9,9 @@ import (
 )
 
 type Handler interface {
+	AttachAuthenticatedUserMiddleware(h http.HandlerFunc) http.HandlerFunc
+	// RefreshToken(w http.ResponseWriter, r *http.Request)
+
 	GetHomepage(w http.ResponseWriter, r *http.Request)
 
 	GetLogin(w http.ResponseWriter, r *http.Request)
