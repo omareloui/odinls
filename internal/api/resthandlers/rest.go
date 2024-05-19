@@ -38,7 +38,7 @@ func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, tem
 	}
 }
 
-func internalServerErrorResponse(w http.ResponseWriter) {
+func respondWithInternalServerError(w http.ResponseWriter) {
 	w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 	w.Header().Set("Content-Type", "plain/text")
 	w.WriteHeader(http.StatusInternalServerError)

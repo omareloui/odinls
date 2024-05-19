@@ -15,7 +15,7 @@ func newCreateMerchantFormData(merchant *merchant.Merchant, valerr *errs.Validat
 	}
 }
 
-// TODO: add a page for the handler to show not found and 500 pages
+// TODO(refactor): add a page for the handler to show not found and 500 pages
 
 func (h *handler) GetMerchant(w http.ResponseWriter, r *http.Request) {
 	merchants, err := h.app.MerchantService.GetMerchants()
@@ -36,8 +36,7 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil {
 		if err := renderToBody(w, r, views.MerchantOOB(merchantform)); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+			respondWithInternalServerError(w)
 			return
 		}
 		respondWithTemplate(w, r, http.StatusCreated, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
@@ -50,5 +49,5 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithTemplate(w, r, http.StatusInternalServerError, views.CreateMerchantForm(newCreateMerchantFormData(merchantform, &errs.ValidationError{})))
+	respondWithInternalServerError(w)
 }

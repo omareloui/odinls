@@ -51,7 +51,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usrform)
 		if err != nil {
-			internalServerErrorResponse(w)
+			respondWithInternalServerError(w)
 			return
 		}
 
@@ -103,7 +103,7 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
 	if err != nil {
-		internalServerErrorResponse(w)
+		respondWithInternalServerError(w)
 		return
 	}
 

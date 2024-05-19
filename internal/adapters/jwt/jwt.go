@@ -15,8 +15,8 @@ import (
 type TokenType int
 
 const (
-	accessTokenCookieName  = "access_token"
-	refreshTokenCookieName = "refresh_token"
+	AccessTokenCookieName  = "access_token"
+	RefreshTokenCookieName = "refresh_token"
 )
 
 const (
@@ -96,10 +96,10 @@ func (a *JwtV5Adapter) ParseRefreshClaims(token string) (*JwtRefreshClaims, erro
 }
 
 func (a *JwtV5Adapter) NewCookie(tokenType TokenType, token string, expr time.Time) (*http.Cookie, error) {
-	tokenName := accessTokenCookieName
+	tokenName := AccessTokenCookieName
 
 	if tokenType == RefreshToken {
-		tokenName = refreshTokenCookieName
+		tokenName = RefreshTokenCookieName
 	}
 
 	return &http.Cookie{
