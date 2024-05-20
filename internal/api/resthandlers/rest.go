@@ -6,13 +6,17 @@ import (
 	"github.com/a-h/templ"
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	application "github.com/omareloui/odinls/internal/application/core"
+	"github.com/omareloui/odinls/web/views"
 )
 
 type Handler interface {
 	AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler
 
+	AuthGuard(next http.HandlerFunc) http.HandlerFunc
+
+	Unauthorized(w http.ResponseWriter, r *http.Request)
+
 	// RefreshToken(w http.ResponseWriter, r *http.Request)
-	// GetMe(w http.ResponseWriter, r *http.Request)
 
 	GetHomepage(w http.ResponseWriter, r *http.Request)
 
@@ -46,10 +50,20 @@ func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, tem
 	}
 }
 
-func respondWithInternalServerError(w http.ResponseWriter) {
-	w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
-	w.Header().Set("Content-Type", "plain/text")
-	w.WriteHeader(http.StatusInternalServerError)
+func respondWithInternalServerError(w http.ResponseWriter, r *http.Request) {
+	respondWithErrorPage(w, r, http.StatusInternalServerError)
+}
+
+func respondWithUnauthorized(w http.ResponseWriter, r *http.Request) {
+	respondWithErrorPage(w, r, http.StatusUnauthorized)
+}
+
+func respondWithNotFound(w http.ResponseWriter, r *http.Request) {
+	respondWithErrorPage(w, r, http.StatusNotFound)
+}
+
+func respondWithErrorPage(w http.ResponseWriter, r *http.Request, status int) {
+	respondWithTemplate(w, r, status, views.ErrorPage(http.StatusText(status), status))
 }
 
 func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {

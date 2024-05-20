@@ -2,6 +2,7 @@ package resthandlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -11,6 +12,8 @@ import (
 type authContextKeyType string
 
 const authContextKey authContextKeyType = "auth"
+
+var ErrNoAccessToken = errors.New("no access token context")
 
 func (h *handler) AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +38,10 @@ func (h *handler) AttachAuthenticatedUserMiddleware(next http.Handler) http.Hand
 	return http.HandlerFunc(fn)
 }
 
-func (h *handler) getAuthFromContext(r *http.Request) *jwtadapter.JwtAccessClaims {
+func (h *handler) getAuthFromContext(r *http.Request) (*jwtadapter.JwtAccessClaims, error) {
 	auth := r.Context().Value(authContextKey)
-	return auth.(*jwtadapter.JwtAccessClaims)
+	if auth == nil {
+		return nil, ErrNoAccessToken
+	}
+	return auth.(*jwtadapter.JwtAccessClaims), nil
 }

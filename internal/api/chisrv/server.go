@@ -33,21 +33,23 @@ func (a *APIAdapter) Run() {
 	a.router.Get("/register", a.handler.GetRegister)
 	a.router.Post("/register", a.handler.PostRegister)
 
-	a.router.Get("/merchants", a.handler.GetMerchants)
-	a.router.Post("/merchants", a.handler.PostMerchant)
+	a.router.Get("/merchants", a.handler.AuthGuard(a.handler.GetMerchants))
+	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.PostMerchant))
 
-	a.router.Get("/merchants/{id}", func(w http.ResponseWriter, r *http.Request) {
+	a.router.Get("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.GetMerchant(id)(w, r)
-	})
-	a.router.Patch("/merchants/{id}", func(w http.ResponseWriter, r *http.Request) {
+	}))
+	a.router.Patch("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.EditMerchant(id)(w, r)
-	})
-	a.router.Get("/merchants/edit/{id}", func(w http.ResponseWriter, r *http.Request) {
+	}))
+	a.router.Get("/merchants/edit/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.GetEditMerchant(id)(w, r)
-	})
+	}))
+
+	a.router.Get("/unauthorized", a.handler.Unauthorized)
 
 	static(a.router, []string{"styles"}, "./web/public")
 

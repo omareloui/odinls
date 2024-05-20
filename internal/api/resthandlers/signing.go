@@ -51,7 +51,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usrform)
 		if err != nil {
-			respondWithInternalServerError(w)
+			respondWithInternalServerError(w, r)
 			return
 		}
 
@@ -103,7 +103,7 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
 	if err != nil {
-		respondWithInternalServerError(w)
+		respondWithInternalServerError(w, r)
 		return
 	}
 
@@ -119,4 +119,18 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hxRespondWithRedirect(w, "/")
+}
+
+func (h *handler) getMe(r *http.Request) (*user.User, error) {
+	access, err := h.getAuthFromContext(r)
+	if errors.Is(err, ErrNoAccessToken) {
+		return nil, err
+	}
+
+	me, err := h.app.UserService.FindUser(access.ID)
+	if errors.Is(err, user.ErrUserNotFound) {
+		return nil, err
+	}
+
+	return me, nil
 }

@@ -21,7 +21,7 @@ func newCreateMerchantFormData(merchant *merchant.Merchant, valerr *errs.Validat
 func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) {
 	merchants, err := h.app.MerchantService.GetMerchants()
 	if err != nil {
-		respondWithInternalServerError(w)
+		respondWithInternalServerError(w, r)
 		return
 	}
 	respondWithTemplate(w, r, http.StatusOK, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
@@ -34,7 +34,7 @@ func (h *handler) GetMerchant(id string) http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 			_, err = w.Write([]byte(err.Error()))
 			if err != nil {
-				respondWithInternalServerError(w)
+				respondWithInternalServerError(w, r)
 				return
 			}
 			return
@@ -54,7 +54,7 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil {
 		if err := renderToBody(w, r, views.MerchantOOB(merchantform)); err != nil {
-			respondWithInternalServerError(w)
+			respondWithInternalServerError(w, r)
 			return
 		}
 		respondWithTemplate(w, r, http.StatusCreated, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
@@ -67,14 +67,14 @@ func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithInternalServerError(w)
+	respondWithInternalServerError(w, r)
 }
 
 func (h *handler) GetEditMerchant(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m, err := h.app.MerchantService.FindMerchant(id)
 		if err != nil {
-			respondWithInternalServerError(w)
+			respondWithInternalServerError(w, r)
 			return
 		}
 

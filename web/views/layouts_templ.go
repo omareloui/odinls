@@ -67,7 +67,7 @@ func baseLayout(pageTitle string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><script>document.body.addEventListener(\"htmx:beforeSwap\", function (ev) { if (ev.detail.xhr.status === 422) { ev.detail.shouldSwap = true; ev.detail.isError = false; } })</script></body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><script>\n\t\t\t\tdocument.body.addEventListener(\"htmx:beforeSwap\", function (ev) {\n\t\t\t\t\tconst status =ev.detail.xhr.status   \n\t\t\t\t\tif (status === 422 || status === 401) {\n\t\t\t\t\t\tev.detail.shouldSwap = true;\n\t\t\t\t\t\tev.detail.isError = false;\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
