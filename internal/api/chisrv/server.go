@@ -32,6 +32,7 @@ func (a *APIAdapter) Run() {
 	a.router.Post("/login", a.handler.AlreadyAuthedGuard(a.handler.PostLogin))
 	a.router.Get("/register", a.handler.AlreadyAuthedGuard(a.handler.GetRegister))
 	a.router.Post("/register", a.handler.AlreadyAuthedGuard(a.handler.PostRegister))
+	a.router.Post("/logout", a.handler.AuthGuard(a.handler.Logout))
 
 	a.router.Get("/merchants", a.handler.AuthGuard(a.handler.GetMerchants))
 	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.PostMerchant))

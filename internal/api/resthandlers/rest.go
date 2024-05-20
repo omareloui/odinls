@@ -23,7 +23,7 @@ type Handler interface {
 	PostLogin(w http.ResponseWriter, r *http.Request)
 	GetRegister(w http.ResponseWriter, r *http.Request)
 	PostRegister(w http.ResponseWriter, r *http.Request)
-	// Logout(w http.ResponseWriter, r *http.Request)
+	Logout(w http.ResponseWriter, r *http.Request)
 	// RefreshToken(w http.ResponseWriter, r *http.Request)
 
 	GetMerchants(w http.ResponseWriter, r *http.Request)

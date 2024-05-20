@@ -3,7 +3,9 @@ package resthandlers
 import (
 	"errors"
 	"net/http"
+	"time"
 
+	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/web/views"
@@ -117,6 +119,16 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
 		return
 	}
+
+	hxRespondWithRedirect(w, "/")
+}
+
+func (h *handler) Logout(w http.ResponseWriter, r *http.Request) {
+	emptyAccessCookie := h.jwtAdapter.NewCookie(jwtadapter.AccessToken, "", time.Unix(0, 0))
+	emptyRefreshCookie := h.jwtAdapter.NewCookie(jwtadapter.RefreshToken, "", time.Unix(0, 0))
+
+	http.SetCookie(w, emptyAccessCookie)
+	http.SetCookie(w, emptyRefreshCookie)
 
 	hxRespondWithRedirect(w, "/")
 }

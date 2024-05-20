@@ -69,7 +69,7 @@ func baseLayout(pageTitle string, accessClaims *jwtadapter.JwtAccessClaims) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><script>\n\t\t\t\tdocument.body.addEventListener(\"htmx:beforeSwap\", function (ev) {\n\t\t\t\t\tconst status =ev.detail.xhr.status   \n\t\t\t\t\tif (status === 422 || status === 401) {\n\t\t\t\t\t\tev.detail.shouldSwap = true;\n\t\t\t\t\t\tev.detail.isError = false;\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t</script></body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><script>\n\t\t\t\tdocument.body.addEventListener(\"htmx:beforeSwap\", function (ev) {\n\t\t\t\t\tconst status =ev.detail.xhr.status\n\t\t\t\t\tif (status === 422 || status === 401) {\n\t\t\t\t\t\tev.detail.shouldSwap = true;\n\t\t\t\t\t\tev.detail.isError = false;\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -93,20 +93,30 @@ func navbar(accessClaims *jwtadapter.JwtAccessClaims) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"flex gap-6 items-start my-4\"><div class=\"flex gap-6 items-start\"><p>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"flex gap-6 items-start my-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(accessClaims.Username)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/layouts.templ`, Line: 39, Col: 29}
+		if accessClaims != nil {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"text font-bold text-green-500\"><p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(accessClaims.Username)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/layouts.templ`, Line: 40, Col: 30}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p></div><div hx-boost=\"true\" class=\"flex gap-6 justify-between w-full\"><div class=\"flex gap-6 items-start\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-boost=\"true\" class=\"flex gap-6 justify-between w-full\"><div class=\"flex gap-6 items-start\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -138,7 +148,7 @@ func navbar(accessClaims *jwtadapter.JwtAccessClaims) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = link("/logout", "/logout").Render(ctx, templ_7745c5c3_Buffer)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-post=\"/logout\" class=\"text font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none\">/logout</button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

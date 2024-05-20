@@ -41,6 +41,8 @@ type JwtAdapter interface {
 	GenTokenPairInCookie(usr *user.User) (*CookiePair, error)
 	ParseAccessClaims(token string) (*JwtAccessClaims, error)
 	ParseRefreshClaims(token string) (*JwtRefreshClaims, error)
+	// TODO(refactor): make the cookies in its own adapter?
+	NewCookie(tokenType TokenType, token string, expr time.Time) *http.Cookie
 }
 
 type JwtV5Adapter struct {
@@ -95,7 +97,7 @@ func (a *JwtV5Adapter) ParseRefreshClaims(token string) (*JwtRefreshClaims, erro
 	return NewRefreshClaimsFromClaims(claims), nil
 }
 
-func (a *JwtV5Adapter) NewCookie(tokenType TokenType, token string, expr time.Time) (*http.Cookie, error) {
+func (a *JwtV5Adapter) NewCookie(tokenType TokenType, token string, expr time.Time) *http.Cookie {
 	tokenName := AccessTokenCookieName
 
 	if tokenType == RefreshToken {
@@ -107,7 +109,8 @@ func (a *JwtV5Adapter) NewCookie(tokenType TokenType, token string, expr time.Ti
 		Value:    token,
 		HttpOnly: true,
 		Expires:  expr,
-	}, nil
+		Path:     "/",
+	}
 }
 
 func (a *JwtV5Adapter) GenTokenPairInCookie(usr *user.User) (*CookiePair, error) {
@@ -135,14 +138,8 @@ func (a *JwtV5Adapter) GenTokenPairInCookie(usr *user.User) (*CookiePair, error)
 		return nil, err
 	}
 
-	accessCookie, err := a.NewCookie(AccessToken, accessToken, accessExp)
-	if err != nil {
-		return nil, err
-	}
-	refreshCookie, err := a.NewCookie(RefreshToken, refreshToken, refreshExp)
-	if err != nil {
-		return nil, err
-	}
+	accessCookie := a.NewCookie(AccessToken, accessToken, accessExp)
+	refreshCookie := a.NewCookie(RefreshToken, refreshToken, refreshExp)
 
 	return &CookiePair{Access: accessCookie, Refresh: refreshCookie}, nil
 }

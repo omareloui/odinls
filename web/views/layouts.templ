@@ -22,7 +22,7 @@ templ baseLayout(pageTitle string, accessClaims *jwtadapter.JwtAccessClaims) {
 			</div>
 			<script>
 				document.body.addEventListener("htmx:beforeSwap", function (ev) {
-					const status =ev.detail.xhr.status   
+					const status =ev.detail.xhr.status
 					if (status === 422 || status === 401) {
 						ev.detail.shouldSwap = true;
 						ev.detail.isError = false;
@@ -35,9 +35,11 @@ templ baseLayout(pageTitle string, accessClaims *jwtadapter.JwtAccessClaims) {
 
 templ navbar(accessClaims *jwtadapter.JwtAccessClaims) {
 	<nav class="flex gap-6 items-start my-4">
-		<div class="flex gap-6 items-start">
-			<p>{ accessClaims.Username }</p>
-		</div>
+		if accessClaims != nil {
+			<div class="text font-bold text-green-500">
+				<p>{ accessClaims.Username }</p>
+			</div>
+		}
 		<div hx-boost="true" class="flex gap-6 justify-between w-full">
 			<div class="flex gap-6 items-start">
 				@link("/", "/")
@@ -50,7 +52,9 @@ templ navbar(accessClaims *jwtadapter.JwtAccessClaims) {
 					@link("/login", "/login")
 					@link("/register", "/register")
 				} else {
-					@link("/logout", "/logout")
+					<button hx-post="/logout" class="text font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">
+						/logout
+					</button>
 				}
 			</div>
 		</div>
