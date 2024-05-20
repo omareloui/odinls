@@ -21,8 +21,16 @@ type CookiePair struct {
 type JwtAccessClaims struct {
 	ID       string
 	Email    string
-	Name     string
 	Username string
+	Name     string
+}
+
+func (jwt *JwtAccessClaims) String() string {
+	return fmt.Sprintf("{\n  ID: \"%s\",\n  Email: \"%s\",\n  Username: \"%s\",\n  Name: \"%s\"\n}", jwt.ID, jwt.Email, jwt.Username, jwt.Name)
+}
+
+func (jwt *JwtRefreshClaims) String() string {
+	return fmt.Sprintf("{ ID: \"%s\" }", jwt.ID)
 }
 
 func NewAccessClaims(usr *user.User) *JwtAccessClaims {

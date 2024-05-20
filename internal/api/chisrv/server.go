@@ -24,6 +24,7 @@ func (a *APIAdapter) Run() {
 	a.router = chi.NewRouter()
 
 	a.router.Use(middleware.Logger)
+	a.router.Use(a.handler.AttachAuthenticatedUserMiddleware)
 
 	a.router.Get("/", a.handler.GetHomepage)
 
