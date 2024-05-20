@@ -10,9 +10,13 @@ import "context"
 import "io"
 import "bytes"
 
-import "strconv"
+import (
+	"strconv"
 
-func ErrorPage(message string, status int) templ.Component {
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+)
+
+func ErrorPage(message string, status int, accessClaims *jwtadapter.JwtAccessClaims) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -44,7 +48,7 @@ func ErrorPage(message string, status int) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(status))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/errors.templ`, Line: 9, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/errors.templ`, Line: 13, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -57,7 +61,7 @@ func ErrorPage(message string, status int) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/errors.templ`, Line: 10, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/errors.templ`, Line: 14, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -81,7 +85,7 @@ func ErrorPage(message string, status int) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = baseLayout("Error | Odin Leather Store").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = baseLayout("Error | Odin Leather Store", accessClaims).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

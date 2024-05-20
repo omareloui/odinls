@@ -13,10 +13,9 @@ type Handler interface {
 	AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler
 
 	AuthGuard(next http.HandlerFunc) http.HandlerFunc
+	AlreadyAuthedGuard(next http.HandlerFunc) http.HandlerFunc
 
 	Unauthorized(w http.ResponseWriter, r *http.Request)
-
-	// RefreshToken(w http.ResponseWriter, r *http.Request)
 
 	GetHomepage(w http.ResponseWriter, r *http.Request)
 
@@ -24,6 +23,8 @@ type Handler interface {
 	PostLogin(w http.ResponseWriter, r *http.Request)
 	GetRegister(w http.ResponseWriter, r *http.Request)
 	PostRegister(w http.ResponseWriter, r *http.Request)
+	// Logout(w http.ResponseWriter, r *http.Request)
+	// RefreshToken(w http.ResponseWriter, r *http.Request)
 
 	GetMerchants(w http.ResponseWriter, r *http.Request)
 	PostMerchant(w http.ResponseWriter, r *http.Request)
@@ -63,7 +64,8 @@ func respondWithNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func respondWithErrorPage(w http.ResponseWriter, r *http.Request, status int) {
-	respondWithTemplate(w, r, status, views.ErrorPage(http.StatusText(status), status))
+	auth := r.Context().Value(authContextKey)
+	respondWithTemplate(w, r, status, views.ErrorPage(http.StatusText(status), status, auth.(*jwtadapter.JwtAccessClaims)))
 }
 
 func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {

@@ -6,6 +6,7 @@
     "usr",
     "alphanum",
     "templ",
-    "jwtadapter"
+    "jwtadapter",
+    "authed"
   ]
 }

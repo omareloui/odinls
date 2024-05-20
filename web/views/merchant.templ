@@ -1,16 +1,20 @@
 package views
 
-import "fmt"
-import "time"
-import "github.com/omareloui/odinls/internal/application/core/merchant"
+import (
+	"fmt"
+	"time"
+
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/merchant"
+)
 
 type CreateMerchantFormData struct {
 	Name FormInputData
 	Logo FormInputData
 }
 
-templ MerchantPage(merchants []merchant.Merchant, formdata *CreateMerchantFormData) {
-	@baseLayout("Merchants | Odin LS") {
+templ MerchantPage(merchants []merchant.Merchant, formdata *CreateMerchantFormData, accessClaims *jwtadapter.JwtAccessClaims) {
+	@baseLayout("Merchants | Odin LS", accessClaims) {
 		@container() {
 			@CreateMerchantForm(formdata)
 			<h2 class="text-3xl font-bold mb-3">Merchants</h2>

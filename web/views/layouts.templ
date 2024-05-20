@@ -1,6 +1,8 @@
 package views
 
-templ baseLayout(pageTitle string) {
+import "github.com/omareloui/odinls/internal/adapters/jwt"
+
+templ baseLayout(pageTitle string, accessClaims *jwtadapter.JwtAccessClaims) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -13,7 +15,7 @@ templ baseLayout(pageTitle string) {
 		</head>
 		<body>
 			@container() {
-				@navbar()
+				@navbar(accessClaims)
 			}
 			<div class="pb-5">
 				{ children... }
@@ -31,11 +33,26 @@ templ baseLayout(pageTitle string) {
 	</html>
 }
 
-templ navbar() {
-	<nav hx-boost="true" class="flex gap-6 items-start my-4">
-		@link("/", "/")
-		@link("/login", "/login")
-		@link("/register", "/register")
-		@link("/merchants", "/merchants")
+templ navbar(accessClaims *jwtadapter.JwtAccessClaims) {
+	<nav class="flex gap-6 items-start my-4">
+		<div class="flex gap-6 items-start">
+			<p>{ accessClaims.Username }</p>
+		</div>
+		<div hx-boost="true" class="flex gap-6 justify-between w-full">
+			<div class="flex gap-6 items-start">
+				@link("/", "/")
+				if accessClaims != nil {
+					@link("/merchants", "/merchants")
+				}
+			</div>
+			<div class="flex gap-6 items-start">
+				if accessClaims == nil {
+					@link("/login", "/login")
+					@link("/register", "/register")
+				} else {
+					@link("/logout", "/logout")
+				}
+			</div>
+		</div>
 	</nav>
 }

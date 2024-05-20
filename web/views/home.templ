@@ -1,7 +1,9 @@
 package views
 
-templ Homepage() {
-	@baseLayout("Odin Leather Store") {
+import "github.com/omareloui/odinls/internal/adapters/jwt"
+
+templ Homepage(accessClaims *jwtadapter.JwtAccessClaims) {
+	@baseLayout("Odin Leather Store", accessClaims) {
 		@container() {
 			<h1 class="text-2xl mb-2">Odin Leather Store</h1>
 			<p>This is the homepage</p>

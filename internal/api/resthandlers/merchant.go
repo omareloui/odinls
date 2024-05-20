@@ -24,7 +24,8 @@ func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) {
 		respondWithInternalServerError(w, r)
 		return
 	}
-	respondWithTemplate(w, r, http.StatusOK, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+	accessClaims, _ := h.getAuthFromContext(r)
+	respondWithTemplate(w, r, http.StatusOK, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{}), accessClaims))
 }
 
 func (h *handler) GetMerchant(id string) http.HandlerFunc {
