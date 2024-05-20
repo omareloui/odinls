@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"time"
+
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -74,8 +76,9 @@ func (r *repository) UpdateMerchantByID(id string, mer *merchant.Merchant) error
 		{
 			Key: "$set",
 			Value: bson.M{
-				"name": mer.Name,
-				"logo": mer.Logo,
+				"name":       mer.Name,
+				"logo":       mer.Logo,
+				"updated_at": time.Now(),
 			},
 		},
 	}
