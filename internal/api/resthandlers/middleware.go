@@ -3,7 +3,6 @@ package resthandlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
@@ -30,8 +29,6 @@ func (h *handler) AttachAuthenticatedUserMiddleware(next http.Handler) http.Hand
 		}
 
 		ctx := context.WithValue(r.Context(), authContextKey, access)
-
-		fmt.Println(ctx.Value(authContextKey))
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
