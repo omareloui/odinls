@@ -38,7 +38,7 @@ func baseLayout(pageTitle string, accessClaims *jwtadapter.JwtAccessClaims) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><link rel=\"stylesheet\" href=\"/styles/main.css\"><link rel=\"stylesheet\" href=\"https://rsms.me/inter/inter.css\"><script src=\"https://unpkg.com/htmx.org/dist/htmx.min.js\"></script></head><body>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><link rel=\"stylesheet\" href=\"/styles/main.css\"><link rel=\"stylesheet\" href=\"https://rsms.me/inter/inter.css\"><script src=\"/js/htmx.lib.js\"></script></head><body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
