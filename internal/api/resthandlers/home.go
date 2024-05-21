@@ -9,7 +9,7 @@ import (
 
 func (h *handler) GetHomepage(w http.ResponseWriter, r *http.Request) {
 	accessClaims, err := h.getAuthFromContext(r)
-	if errors.Is(err, ErrNoAccessToken) {
+	if errors.Is(err, ErrNoAccessCookie) {
 		respondWithTemplate(w, r, http.StatusOK, views.Homepage(accessClaims))
 		return
 	}

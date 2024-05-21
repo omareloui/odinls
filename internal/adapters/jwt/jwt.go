@@ -25,8 +25,8 @@ const (
 )
 
 const (
-	refreshExpirationInHours  = 24 * 30
-	accessExpirationInMinutes = 15
+	RefreshExpiration = time.Hour * 24 * 30
+	AccessExpiration  = time.Minute * 15
 )
 
 var (
@@ -41,19 +41,21 @@ type JwtAdapter interface {
 	GenTokenPairInCookie(usr *user.User) (*CookiePair, error)
 	ParseAccessClaims(token string) (*JwtAccessClaims, error)
 	ParseRefreshClaims(token string) (*JwtRefreshClaims, error)
-	// TODO(refactor): make the cookies in its own adapter?
+	// TODO(refactor): make the cookies in its own adapter? or remove it all.
 	NewCookie(tokenType TokenType, token string, expr time.Time) *http.Cookie
 }
 
 type JwtV5Adapter struct {
 	secret        []byte
 	signingMethod jwt.SigningMethod
+	validator     *jwt.Validator
 }
 
 func NewJWTV5Adapter(secret []byte) *JwtV5Adapter {
 	return &JwtV5Adapter{
 		secret:        secret,
 		signingMethod: jwt.SigningMethodHS256,
+		validator:     jwt.NewValidator(jwt.WithExpirationRequired()),
 	}
 }
 
@@ -114,8 +116,8 @@ func (a *JwtV5Adapter) NewCookie(tokenType TokenType, token string, expr time.Ti
 }
 
 func (a *JwtV5Adapter) GenTokenPairInCookie(usr *user.User) (*CookiePair, error) {
-	accessExp := time.Now().Add(time.Minute * accessExpirationInMinutes)
-	refreshExp := time.Now().Add(time.Hour * refreshExpirationInHours)
+	accessExp := time.Now().Add(AccessExpiration)
+	refreshExp := time.Now().Add(RefreshExpiration)
 
 	accessClaims := jwt.MapClaims{
 		"id":       usr.ID,
@@ -152,11 +154,13 @@ func (a *JwtV5Adapter) parse(tokenStr string) (*jwt.MapClaims, error) {
 		return a.secret, nil
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrExpiredToken
+		}
 		return nil, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
-
 	if !ok {
 		return nil, ErrInvalidClaimsType
 	}
@@ -170,7 +174,7 @@ func (a *JwtV5Adapter) genAccessToken(usr *user.User) (string, error) {
 		"email":    usr.Email,
 		"username": usr.Username,
 		"name":     fmt.Sprintf("%s %s", usr.Name.First, usr.Name.Last),
-		"exp":      time.Now().Add(time.Minute * accessExpirationInMinutes).Unix(),
+		"exp":      time.Now().Add(AccessExpiration).Unix(),
 	}
 	return a.genToken(claims)
 }
@@ -178,7 +182,7 @@ func (a *JwtV5Adapter) genAccessToken(usr *user.User) (string, error) {
 func (a *JwtV5Adapter) genRefreshToken(usr *user.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":  usr.ID,
-		"exp": time.Now().Add(time.Hour * refreshExpirationInHours).Unix(),
+		"exp": time.Now().Add(RefreshExpiration).Unix(),
 	}
 	return a.genToken(claims)
 }

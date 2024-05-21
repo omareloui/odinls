@@ -12,8 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO(response): know what to response with on failure
-
 func newLoginFormData(usr *user.User, valerr *errs.ValidationError) *views.LoginFormData {
 	return &views.LoginFormData{
 		Email:    views.FormInputData{Value: usr.Email, Error: valerr.Errors.MsgFor("Email")},
@@ -103,15 +101,6 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
-	if err != nil {
-		respondWithInternalServerError(w, r)
-		return
-	}
-
-	http.SetCookie(w, cookiesPair.Access)
-	http.SetCookie(w, cookiesPair.Refresh)
-
 	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(usrform.Password))
 	if err != nil {
 		e := newLoginFormData(usrform, &errs.ValidationError{})
@@ -119,6 +108,14 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
 		return
 	}
+
+	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
+	if err != nil {
+		respondWithInternalServerError(w, r)
+		return
+	}
+	http.SetCookie(w, cookiesPair.Access)
+	http.SetCookie(w, cookiesPair.Refresh)
 
 	hxRespondWithRedirect(w, "/")
 }
@@ -133,9 +130,36 @@ func (h *handler) Logout(w http.ResponseWriter, r *http.Request) {
 	hxRespondWithRedirect(w, "/")
 }
 
+func (h *handler) refreshTokens(w http.ResponseWriter, r *http.Request) *jwtadapter.CookiePair {
+	cookie, err := r.Cookie(jwtadapter.RefreshTokenCookieName)
+	if err != nil || cookie.Value == "" {
+		return nil
+	}
+
+	parsed, err := h.jwtAdapter.ParseRefreshClaims(cookie.Value)
+	if err != nil {
+		return nil
+	}
+
+	usr, err := h.app.UserService.FindUser(parsed.ID)
+	if err != nil {
+		return nil
+	}
+
+	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
+	if err != nil {
+		return nil
+	}
+
+	http.SetCookie(w, cookiesPair.Access)
+	http.SetCookie(w, cookiesPair.Refresh)
+
+	return cookiesPair
+}
+
 func (h *handler) getMe(r *http.Request) (*user.User, error) {
 	access, err := h.getAuthFromContext(r)
-	if errors.Is(err, ErrNoAccessToken) {
+	if errors.Is(err, ErrNoAccessCookie) {
 		return nil, err
 	}
 
