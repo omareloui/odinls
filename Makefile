@@ -1,11 +1,11 @@
 watch:
 	@air -c config/.air.toml
 
-build: gen css
+build: templ css
 	@echo "Building the binary..."
 	@go build -o ./tmp/main ./cmd/odinls
 
-gen:
+templ:
 	@echo "Generating the templates..."
 	@templ generate
 
