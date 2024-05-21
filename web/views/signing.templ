@@ -15,7 +15,7 @@ type LoginFormData struct {
 }
 
 templ Login(formdata *LoginFormData) {
-	@baseLayout("Login | Odin LS", nil) {
+	@baseLayout(nil, "Login | Odin LS") {
 		@container() {
 			@LoginForm(formdata)
 		}
@@ -30,7 +30,7 @@ templ LoginForm(formdata *LoginFormData) {
 }
 
 templ Register(formdata *RegisterFormData) {
-	@baseLayout("Register | Odin LS", nil) {
+	@baseLayout(nil, "Register | Odin LS") {
 		@container() {
 			@RegisterForm(formdata)
 		}

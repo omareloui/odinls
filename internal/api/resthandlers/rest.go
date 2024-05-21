@@ -65,7 +65,7 @@ func respondWithNotFound(w http.ResponseWriter, r *http.Request) {
 
 func respondWithErrorPage(w http.ResponseWriter, r *http.Request, status int) {
 	auth := r.Context().Value(authContextKey)
-	respondWithTemplate(w, r, status, views.ErrorPage(http.StatusText(status), status, auth.(*jwtadapter.JwtAccessClaims)))
+	respondWithTemplate(w, r, status, views.ErrorPage(auth.(*jwtadapter.JwtAccessClaims), http.StatusText(status), status))
 }
 
 func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {

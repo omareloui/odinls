@@ -14,7 +14,7 @@ type CreateMerchantFormData struct {
 }
 
 templ MerchantPage(merchants []merchant.Merchant, formdata *CreateMerchantFormData, accessClaims *jwtadapter.JwtAccessClaims) {
-	@baseLayout("Merchants | Odin LS", accessClaims) {
+	@baseLayout(accessClaims, "Merchants | Odin LS") {
 		@container() {
 			@CreateMerchantForm(formdata)
 			<h2 class="text-3xl font-bold mb-3">Merchants</h2>

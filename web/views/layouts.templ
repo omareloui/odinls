@@ -2,7 +2,7 @@ package views
 
 import "github.com/omareloui/odinls/internal/adapters/jwt"
 
-templ baseLayout(pageTitle string, accessClaims *jwtadapter.JwtAccessClaims) {
+templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
