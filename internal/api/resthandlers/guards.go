@@ -9,7 +9,11 @@ func (h *handler) AuthGuard(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		access := r.Context().Value(authContextKey)
 		if access == nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			if r.Header.Get("Hx-Request") == "true" {
+				hxRespondWithRedirect(w, "/")
+			} else {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+			}
 			return
 		}
 		next(w, r)
@@ -20,7 +24,11 @@ func (h *handler) AlreadyAuthedGuard(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		access := r.Context().Value(authContextKey)
 		if access != nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			if r.Header.Get("Hx-Request") == "true" {
+				hxRespondWithRedirect(w, "/")
+			} else {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+			}
 			return
 		}
 		next(w, r)
