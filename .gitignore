@@ -1,2 +1,5 @@
 tmp
 .env
+
+web/public/styles/main.css
+web/views/**/*_templ.go
