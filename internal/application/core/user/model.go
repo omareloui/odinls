@@ -3,6 +3,7 @@ package user
 import (
 	"time"
 
+	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/role"
 )
 
@@ -23,5 +24,18 @@ type User struct {
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
 
+	Craftsman *Craftsman `json:"craftsman" bson:"craftsman,omitempty"`
+
 	Role *role.Role `json:"role" bson:"populatedRole"`
+}
+
+type Craftsman struct {
+	HourlyRate float64
+	MerchantID string `json:"merchant_id" bson:"merchant,omitempty" validate:"required,mongodb"`
+
+	Merchant *merchant.Merchant `json:"merchant" bson:"populatedMerchant"`
+}
+
+func (u *User) IsCraftsman() bool {
+	return u.Craftsman != nil
 }

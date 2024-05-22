@@ -20,7 +20,7 @@ const (
 )
 
 const (
-	AccessToken TokenType = iota + 1
+	AccessToken TokenType = iota
 	RefreshToken
 )
 
