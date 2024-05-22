@@ -2,6 +2,8 @@ package user
 
 import (
 	"time"
+
+	"github.com/omareloui/odinls/internal/application/core/role"
 )
 
 type Name struct {
@@ -17,7 +19,9 @@ type User struct {
 	Password        string    `json:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
 	ConfirmPassword string    `json:"-" bson:"-" validate:"required,min=8,eqfield=Password,not_blank"`
 	Phone           string    `json:"phone" bson:"phone,omitempty"`
-	Role            string    `json:"role" bson:"role,omitempty"`
+	RoleID          string    `json:"role_id" bson:"role,omitempty" validate:"required,mongodb"`
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
+
+	Role *role.Role `json:"role" bson:"populatedRole"`
 }

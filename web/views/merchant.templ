@@ -46,8 +46,8 @@ templ Merchant(merchant *merchant.Merchant) {
 		<p>ID: { merchant.ID }</p>
 		<p>Name: { merchant.Name }</p>
 		<p>Logo: { merchant.Logo }</p>
-		<p>Created At: { merchant.CreatedAt.Format(time.RFC822) }</p>
-		<p>Updated At: { merchant.UpdatedAt.Format(time.RFC822) }</p>
+		<p>Created At: { merchant.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { merchant.UpdatedAt.Format(time.RFC1123) }</p>
 		<button
 			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
 			hx-get={ fmt.Sprintf("/merchants/%s/edit", merchant.ID) }

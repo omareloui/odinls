@@ -1,10 +1,10 @@
 package user
 
 type UserService interface {
-	GetUsers() ([]User, error)
-	FindUser(id string) (*User, error)
-	FindUserByEmailOrUsername(emailOrUsername string) (*User, error)
-	FindUserByEmailOrUsernameFromUser(*User) (*User, error)
-	CreateUser(user *User) error
-	UpdateUserByID(id string, user *User) error
+	GetUsers(opts ...RetrieveOptsFunc) ([]User, error)
+	FindUser(id string, opts ...RetrieveOptsFunc) (*User, error)
+	FindUserByEmailOrUsername(emailOrUsername string, opts ...RetrieveOptsFunc) (*User, error)
+	FindUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error)
+	CreateUser(user *User, opts ...RetrieveOptsFunc) error
+	UpdateUserByID(id string, user *User, opts ...RetrieveOptsFunc) error
 }

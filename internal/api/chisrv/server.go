@@ -48,6 +48,8 @@ func (a *APIAdapter) Run() {
 		a.handler.AuthGuard(a.handler.EditUser(id))(w, r)
 	})
 
+	a.router.Get("/roles", a.handler.AuthGuard(a.handler.GetRoles))
+
 	a.router.Get("/merchants", a.handler.AuthGuard(a.handler.GetMerchants))
 	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.PostMerchant))
 

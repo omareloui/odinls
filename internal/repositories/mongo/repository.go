@@ -17,14 +17,17 @@ import (
 const (
 	merchantsCollectionName = "merchants"
 	usersCollectionName     = "users"
+	rolesCollectionName     = "roles"
 )
 
 type repository struct {
-	client        *mongo.Client
-	timeout       time.Duration
-	db            *mongo.Database
+	client  *mongo.Client
+	timeout time.Duration
+	db      *mongo.Database
+
 	merchantsColl *mongo.Collection
 	usersColl     *mongo.Collection
+	rolesColl     *mongo.Collection
 }
 
 func (r *repository) newCtx() (context.Context, context.CancelFunc) {
@@ -66,6 +69,9 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	repo.merchantsColl = repo.db.Collection(merchantsCollectionName)
+
+	repo.rolesColl = repo.db.Collection(rolesCollectionName)
+	createIndex(repo.rolesColl, mongo.IndexModel{Keys: bson.D{{Key: "name", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	return repo, nil
 }

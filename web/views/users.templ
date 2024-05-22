@@ -6,6 +6,7 @@ import (
 
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/user"
+	"github.com/omareloui/odinls/internal/application/core/role"
 )
 
 type NameFormData struct {
@@ -17,6 +18,7 @@ type CreateUserFormData struct {
 	Name     NameFormData
 	Email    FormInputData
 	Username FormInputData
+	Role     FormInputData
 }
 
 templ UserPage(accessClaims *jwtadapter.JwtAccessClaims, users []user.User) {
@@ -45,8 +47,13 @@ templ User(user *user.User) {
 		<p>Name: { user.Name.First } { user.Name.Last }</p>
 		<p>Username: { user.Username }</p>
 		<p>Email: { user.Email }</p>
-		<p>Created At: { user.CreatedAt.Format(time.RFC822) }</p>
-		<p>Updated At: { user.UpdatedAt.Format(time.RFC822) }</p>
+		if user.Role != nil {
+			<p>Role: { user.Role.Name }</p>
+		} else {
+			<p>RoleID: { user.RoleID }</p>
+		}
+		<p>Created At: { user.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { user.UpdatedAt.Format(time.RFC1123) }</p>
 		<button
 			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
 			hx-get={ fmt.Sprintf("/users/%s/edit", user.ID) }
@@ -55,7 +62,7 @@ templ User(user *user.User) {
 	</div>
 }
 
-templ EditUser(user *user.User, data *CreateUserFormData) {
+templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData) {
 	<form hx-patch={ fmt.Sprintf("/users/%s", user.ID) } hx-swap="outerHTML" hx-target="this">
 		<p>ID: { user.ID }</p>
 		<div class="grid grid-cols-2 gap-2">
@@ -64,6 +71,22 @@ templ EditUser(user *user.User, data *CreateUserFormData) {
 		</div>
 		@input("Username", "text", "username", "e.g. omareloui", data.Username)
 		@input("Email", "email", "email", "e.g. contact@omareloui.com", data.Email)
+		<label for="role" class="mb-1 block text-sm font-medium text-gray-900">Role</label>
+		<select
+			id="role"
+			name="role"
+			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+			required
+		>
+			<option value="" disabled selected>Select a role</option>
+			for _, r := range roles {
+				if r.ID == user.RoleID {
+					<option value={ r.ID } selected>{ r.Name }</option>
+				} else {
+					<option value={ r.ID }>{ r.Name }</option>
+				}
+			}
+		</select>
 		<div class="flex gap-2 mt-2 ">
 			<button
 				type="submit"

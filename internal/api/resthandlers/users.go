@@ -10,7 +10,7 @@ import (
 )
 
 func (h *handler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.app.UserService.GetUsers()
+	users, err := h.app.UserService.GetUsers(user.WithPopulatedRole)
 	if err != nil {
 		respondWithInternalServerError(w, r)
 		return
@@ -22,7 +22,7 @@ func (h *handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) GetUser(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		usr, err := h.app.UserService.FindUser(id)
+		usr, err := h.app.UserService.FindUser(id, user.WithPopulatedRole)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				w.WriteHeader(http.StatusNotFound)
@@ -42,7 +42,7 @@ func (h *handler) GetUser(id string) http.HandlerFunc {
 
 func (h *handler) GetEditUser(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		usr, err := h.app.UserService.FindUser(id)
+		usr, err := h.app.UserService.FindUser(id, user.WithPopulatedRole)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				w.WriteHeader(http.StatusNotFound)
@@ -56,7 +56,13 @@ func (h *handler) GetEditUser(id string) http.HandlerFunc {
 			return
 		}
 
-		respondWithTemplate(w, r, http.StatusOK, views.EditUser(usr, newEditUserFormData(usr, &errs.ValidationError{})))
+		roles, err := h.app.RoleService.GetRoles()
+		if err != nil {
+			respondWithInternalServerError(w, r)
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK, views.EditUser(usr, roles, newEditUserFormData(usr, &errs.ValidationError{})))
 	}
 }
 
@@ -66,18 +72,21 @@ func (h *handler) EditUser(id string) http.HandlerFunc {
 		lastName := r.FormValue("last_name")
 		email := r.FormValue("email")
 		username := r.FormValue("username")
+		role := r.FormValue("role")
 
 		usr := &user.User{
 			ID:       id,
 			Name:     user.Name{First: firstName, Last: lastName},
 			Email:    email,
 			Username: username,
+			RoleID:   role,
 		}
 
-		err := h.app.UserService.UpdateUserByID(id, usr)
+		err := h.app.UserService.UpdateUserByID(id, usr, user.WithPopulatedRole)
 		if err != nil {
 			if valerr, ok := err.(errs.ValidationError); ok {
-				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditUser(usr, newEditUserFormData(usr, &valerr)))
+				roles, _ := h.app.RoleService.GetRoles()
+				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditUser(usr, roles, newEditUserFormData(usr, &valerr)))
 				return
 			}
 
@@ -92,7 +101,8 @@ func (h *handler) EditUser(id string) http.HandlerFunc {
 				if usernameExists {
 					e.Username.Error = "Username already exists, try another one"
 				}
-				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditUser(usr, e))
+				roles, _ := h.app.RoleService.GetRoles()
+				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditUser(usr, roles, e))
 				return
 			}
 
@@ -112,5 +122,6 @@ func newEditUserFormData(user *user.User, valerr *errs.ValidationError) *views.C
 		},
 		Email:    views.FormInputData{Value: user.Email, Error: valerr.Errors.MsgFor("Email")},
 		Username: views.FormInputData{Value: user.Username, Error: valerr.Errors.MsgFor("Username")},
+		Role:     views.FormInputData{Value: user.RoleID, Error: valerr.Errors.MsgFor("RoleID")},
 	}
 }

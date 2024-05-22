@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/interfaces"
 	"github.com/omareloui/odinls/internal/sanitizer"
 	"golang.org/x/crypto/bcrypt"
@@ -19,33 +20,38 @@ var (
 
 type userService struct {
 	userRepository UserRepository
+	roleService    role.RoleService
 	validator      interfaces.Validator
 }
 
-func NewUserService(userRepository UserRepository, validator interfaces.Validator) UserService {
-	return &userService{userRepository: userRepository, validator: validator}
+func NewUserService(userRepository UserRepository, roleService role.RoleService, validator interfaces.Validator) UserService {
+	return &userService{
+		userRepository: userRepository,
+		roleService:    roleService,
+		validator:      validator,
+	}
 }
 
-func (s *userService) GetUsers() ([]User, error) {
-	return s.userRepository.GetUsers()
+func (s *userService) GetUsers(opts ...RetrieveOptsFunc) ([]User, error) {
+	return s.userRepository.GetUsers(opts...)
 }
 
-func (s *userService) FindUserByEmailOrUsername(emailOrPassword string) (*User, error) {
-	return s.userRepository.FindUserByEmailOrUsername(sanitizer.TrimAndLowerCaseString(emailOrPassword))
+func (s *userService) FindUserByEmailOrUsername(emailOrPassword string, opts ...RetrieveOptsFunc) (*User, error) {
+	return s.userRepository.FindUserByEmailOrUsername(sanitizer.TrimAndLowerCaseString(emailOrPassword), opts...)
 }
 
-func (s *userService) FindUserByEmailOrUsernameFromUser(usr *User) (*User, error) {
+func (s *userService) FindUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error) {
 	return s.userRepository.FindUserByEmailOrUsernameFromUser(&User{
 		Username: sanitizer.TrimAndLowerCaseString(usr.Username),
 		Email:    sanitizer.TrimAndLowerCaseString(usr.Email),
-	})
+	}, opts...)
 }
 
-func (s *userService) FindUser(id string) (*User, error) {
-	return s.userRepository.FindUser(id)
+func (s *userService) FindUser(id string, opts ...RetrieveOptsFunc) (*User, error) {
+	return s.userRepository.FindUser(id, opts...)
 }
 
-func (s *userService) CreateUser(usr *User) error {
+func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
 	sanitizeUser(usr)
 
 	if err := s.validator.Validate(usr); err != nil {
@@ -63,7 +69,7 @@ func (s *userService) CreateUser(usr *User) error {
 	usr.CreatedAt = time.Now()
 	usr.UpdatedAt = time.Now()
 
-	err = s.userRepository.CreateUser(usr)
+	err = s.userRepository.CreateUser(usr, opts...)
 	if err != nil {
 		usr.Password = passStr
 		usr.ConfirmPassword = passStr
@@ -72,13 +78,13 @@ func (s *userService) CreateUser(usr *User) error {
 	return err
 }
 
-func (s *userService) UpdateUserByID(id string, usr *User) error {
+func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsFunc) error {
 	type updateUser struct {
 		Name     Name   `validate:"required"`
 		Username string `validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
 		Email    string `validate:"required,email,not_blank"`
+		RoleID   string `validate:"required,mongodb"`
 		Phone    string
-		Role     string
 	}
 
 	sanitizeUser(usr)
@@ -88,7 +94,7 @@ func (s *userService) UpdateUserByID(id string, usr *User) error {
 		Username: usr.Username,
 		Email:    usr.Email,
 		Phone:    usr.Phone,
-		Role:     usr.Role,
+		RoleID:   usr.RoleID,
 	}
 
 	if err := s.validator.Validate(u); err != nil {
@@ -111,7 +117,16 @@ func (s *userService) UpdateUserByID(id string, usr *User) error {
 		return ErrUsernameAlreadyExists
 	}
 
-	return s.userRepository.UpdateUserByID(id, usr)
+	existingRole, err := s.roleService.FindRole(u.RoleID)
+	if err != nil {
+		return err
+	}
+
+	if existingRole == nil {
+		return role.ErrInvalidRole
+	}
+
+	return s.userRepository.UpdateUserByID(id, usr, opts...)
 }
 
 func sanitizeUser(usr *User) {

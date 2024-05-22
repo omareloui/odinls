@@ -45,6 +45,7 @@ templ navbar(accessClaims *jwtadapter.JwtAccessClaims) {
 				@link("/", "/")
 				if accessClaims != nil {
 					@link("/users", "/users")
+					@link("/roles", "/roles")
 					@link("/merchants", "/merchants")
 				}
 			</div>

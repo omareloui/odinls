@@ -87,13 +87,13 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
-	emailOrPassword := r.FormValue("email_or_username")
+	emailOrUsername := r.FormValue("email_or_username")
 	usrform := &user.User{
-		Email:    emailOrPassword,
+		Email:    emailOrUsername,
 		Password: r.FormValue("password"),
 	}
 
-	usr, err := h.app.UserService.FindUserByEmailOrUsername(emailOrPassword)
+	usr, err := h.app.UserService.FindUserByEmailOrUsername(emailOrUsername)
 	if err != nil {
 		e := newLoginFormData(usrform, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"

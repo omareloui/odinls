@@ -46,6 +46,10 @@ func (h *handler) getAuthedContext(w http.ResponseWriter, r *http.Request) conte
 func (h *handler) refreshTokensAndGetContext(w http.ResponseWriter, r *http.Request) context.Context {
 	cookies := h.refreshTokens(w, r)
 
+	if cookies == nil {
+		return r.Context()
+	}
+
 	access, err := h.jwtAdapter.ParseAccessClaims(cookies.Access.Value)
 	if err != nil {
 		return r.Context()

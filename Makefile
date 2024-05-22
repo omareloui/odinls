@@ -10,6 +10,7 @@ templ:
 	@templ generate
 
 
+
 start: build
 	@echo "Starting the service..."
 	@./tmp/main
@@ -19,3 +20,8 @@ css-dev:
 
 css:
 	@pnpm dlx tailwindcss -c ./config/.tailwind.config.js -i ./web/assets/styles/main.css -o ./web/public/styles/main.css --minify
+
+
+seed:
+	@echo "Seeding..."
+	@go run ./cmd/seeder

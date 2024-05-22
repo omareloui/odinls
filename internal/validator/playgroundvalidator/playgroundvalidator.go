@@ -2,6 +2,8 @@ package playgroundvalidator
 
 import (
 	"regexp"
+	"slices"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
@@ -31,6 +33,7 @@ func NewValidator() *playgroundValidator {
 	val := validator.New(validator.WithRequiredStructEnabled())
 	val.RegisterValidation("not_blank", validators.NotBlank)
 	val.RegisterValidation("alphanum_with_underscore", IsAlphaNumWithUnderScore)
+	val.RegisterValidation("enum", Enum)
 	return &playgroundValidator{validator: val}
 }
 
@@ -38,4 +41,10 @@ func IsAlphaNumWithUnderScore(fl validator.FieldLevel) bool {
 	re := regexp.MustCompile(`^[A-Za-z0-9_]+$`)
 	field := fl.Field()
 	return re.Match([]byte(field.String()))
+}
+
+func Enum(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+	params := strings.Split(fl.Param(), "|")
+	return slices.Index(params, field) > -1
 }

@@ -11,12 +11,33 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *repository) GetUsers() ([]user.User, error) {
+func (r *repository) GetUsers(options ...user.RetrieveOptsFunc) ([]user.User, error) {
+	opts := user.ParseRetrieveOpts(options...)
+
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
+	var cursor *mongo.Cursor
+	var err error
+
 	filter := bson.M{}
-	cursor, err := r.usersColl.Find(ctx, filter)
+
+	if !opts.PopulateRole {
+		cursor, err = r.usersColl.Find(ctx, filter)
+	} else {
+		cursor, err = r.usersColl.Aggregate(ctx, bson.A{
+			bson.M{
+				"$lookup": bson.M{
+					"from":         rolesCollectionName,
+					"localField":   "role",
+					"foreignField": "_id",
+					"as":           "populatedRole",
+				},
+			},
+			bson.M{"$unwind": "$populatedRole"},
+		})
+	}
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, user.ErrUserNotFound
@@ -32,7 +53,9 @@ func (r *repository) GetUsers() ([]user.User, error) {
 	return *usrs, nil
 }
 
-func (r *repository) FindUser(id string) (*user.User, error) {
+func (r *repository) FindUser(id string, options ...user.RetrieveOptsFunc) (*user.User, error) {
+	opts := user.ParseRetrieveOpts(options...)
+
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -50,10 +73,16 @@ func (r *repository) FindUser(id string) (*user.User, error) {
 		return nil, err
 	}
 
+	if opts.PopulateRole {
+		r.populateRoleForUser(u)
+	}
+
 	return u, nil
 }
 
-func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User) (*user.User, error) {
+func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User, options ...user.RetrieveOptsFunc) (*user.User, error) {
+	opts := user.ParseRetrieveOpts(options...)
+
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -73,10 +102,16 @@ func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User) (*user.Us
 		return nil, err
 	}
 
+	if opts.PopulateRole {
+		r.populateRoleForUser(u)
+	}
+
 	return u, nil
 }
 
-func (r *repository) FindUserByEmailOrUsername(emailOrUsername string) (*user.User, error) {
+func (r *repository) FindUserByEmailOrUsername(emailOrUsername string, options ...user.RetrieveOptsFunc) (*user.User, error) {
+	opts := user.ParseRetrieveOpts(options...)
+
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -96,10 +131,16 @@ func (r *repository) FindUserByEmailOrUsername(emailOrUsername string) (*user.Us
 		return nil, err
 	}
 
+	if opts.PopulateRole {
+		r.populateRoleForUser(u)
+	}
+
 	return u, nil
 }
 
-func (r *repository) CreateUser(usr *user.User) error {
+func (r *repository) CreateUser(usr *user.User, options ...user.RetrieveOptsFunc) error {
+	opts := user.ParseRetrieveOpts(options...)
+
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -123,14 +164,25 @@ func (r *repository) CreateUser(usr *user.User) error {
 		}
 	}
 
+	if opts.PopulateRole {
+		r.populateRoleForUser(usr)
+	}
+
 	return err
 }
 
-func (r *repository) UpdateUserByID(id string, usr *user.User) error {
+func (r *repository) UpdateUserByID(id string, usr *user.User, options ...user.RetrieveOptsFunc) error {
+	opts := user.ParseRetrieveOpts(options...)
+
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
 	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errs.ErrInvalidID
+	}
+
+	roleId, err := primitive.ObjectIDFromHex(usr.RoleID)
 	if err != nil {
 		return errs.ErrInvalidID
 	}
@@ -143,6 +195,7 @@ func (r *repository) UpdateUserByID(id string, usr *user.User) error {
 				"name":       usr.Name,
 				"email":      usr.Email,
 				"username":   usr.Username,
+				"role":       roleId,
 				"updated_at": time.Now(),
 			},
 		},
@@ -155,5 +208,17 @@ func (r *repository) UpdateUserByID(id string, usr *user.User) error {
 	if updated.ModifiedCount == 0 {
 		return user.ErrUserNotFound
 	}
+
+	if opts.PopulateRole {
+		r.populateRoleForUser(usr)
+	}
+
 	return nil
+}
+
+func (r *repository) populateRoleForUser(u *user.User) {
+	role, err := r.FindRole(u.RoleID)
+	if err == nil {
+		u.Role = role
+	}
 }
