@@ -44,6 +44,7 @@ templ navbar(accessClaims *jwtadapter.JwtAccessClaims) {
 			<div class="flex gap-6 items-start">
 				@link("/", "/")
 				if accessClaims != nil {
+					@link("/users", "/users")
 					@link("/merchants", "/merchants")
 				}
 			</div>

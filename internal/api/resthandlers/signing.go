@@ -83,7 +83,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithTemplate(w, r, http.StatusInternalServerError, views.RegisterForm(newRegisterFormData(usrform, &errs.ValidationError{})))
+	respondWithInternalServerError(w, r)
 }
 
 func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {

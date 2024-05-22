@@ -22,6 +22,14 @@ type userService struct {
 	validator      interfaces.Validator
 }
 
+func NewUserService(userRepository UserRepository, validator interfaces.Validator) UserService {
+	return &userService{userRepository: userRepository, validator: validator}
+}
+
+func (s *userService) GetUsers() ([]User, error) {
+	return s.userRepository.GetUsers()
+}
+
 func (s *userService) FindUserByEmailOrUsername(emailOrPassword string) (*User, error) {
 	return s.userRepository.FindUserByEmailOrUsername(sanitizer.TrimAndLowerCaseString(emailOrPassword))
 }
@@ -64,8 +72,46 @@ func (s *userService) CreateUser(usr *User) error {
 	return err
 }
 
-func NewUserService(userRepository UserRepository, validator interfaces.Validator) UserService {
-	return &userService{userRepository: userRepository, validator: validator}
+func (s *userService) UpdateUserByID(id string, usr *User) error {
+	type updateUser struct {
+		Name     Name   `validate:"required"`
+		Username string `validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
+		Email    string `validate:"required,email,not_blank"`
+		Phone    string
+		Role     string
+	}
+
+	sanitizeUser(usr)
+
+	u := &updateUser{
+		Name:     usr.Name,
+		Username: usr.Username,
+		Email:    usr.Email,
+		Phone:    usr.Phone,
+		Role:     usr.Role,
+	}
+
+	if err := s.validator.Validate(u); err != nil {
+		return s.validator.ParseError(err)
+	}
+
+	sameEmailUsr, err := s.userRepository.FindUserByEmailOrUsername(u.Email)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return err
+	}
+	if sameEmailUsr != nil && sameEmailUsr.ID != id {
+		return ErrEmailAlreadyExists
+	}
+
+	sameUsernameUsr, err := s.userRepository.FindUserByEmailOrUsername(u.Username)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return err
+	}
+	if sameUsernameUsr != nil && sameUsernameUsr.ID != id {
+		return ErrUsernameAlreadyExists
+	}
+
+	return s.userRepository.UpdateUserByID(id, usr)
 }
 
 func sanitizeUser(usr *User) {

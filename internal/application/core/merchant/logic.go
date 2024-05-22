@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/omareloui/odinls/internal/interfaces"
+	"github.com/omareloui/odinls/internal/sanitizer"
 )
 
 var ErrMerchantNotFound = errors.New("merchant not found")
@@ -23,6 +24,8 @@ func (s *merchantService) FindMerchant(id string) (*Merchant, error) {
 }
 
 func (s *merchantService) UpdateMerchantByID(id string, merchant *Merchant) error {
+	sanitizeMerchant(merchant)
+
 	if err := s.validator.Validate(merchant); err != nil {
 		return s.validator.ParseError(err)
 	}
@@ -31,6 +34,8 @@ func (s *merchantService) UpdateMerchantByID(id string, merchant *Merchant) erro
 }
 
 func (s *merchantService) CreateMerchant(merchant *Merchant) error {
+	sanitizeMerchant(merchant)
+
 	if err := s.validator.Validate(merchant); err != nil {
 		return s.validator.ParseError(err)
 	}
@@ -42,4 +47,9 @@ func (s *merchantService) CreateMerchant(merchant *Merchant) error {
 
 func NewMerchantService(merchantRepository MerchantRepository, validator interfaces.Validator) MerchantService {
 	return &merchantService{merchantRepository: merchantRepository, validator: validator}
+}
+
+func sanitizeMerchant(m *Merchant) {
+	m.Name = sanitizer.TrimString(m.Name)
+	m.Logo = sanitizer.TrimString(m.Logo)
 }

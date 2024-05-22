@@ -1,0 +1,87 @@
+package views
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/user"
+)
+
+type NameFormData struct {
+	First FormInputData
+	Last  FormInputData
+}
+
+type CreateUserFormData struct {
+	Name     NameFormData
+	Email    FormInputData
+	Username FormInputData
+}
+
+templ UserPage(accessClaims *jwtadapter.JwtAccessClaims, users []user.User) {
+	@baseLayout(accessClaims, "Users | Odin LS") {
+		@container() {
+			<h2 class="text-3xl font-bold mb-3">Users</h2>
+			@UsersList(users)
+		}
+	}
+}
+
+templ UsersList(users []user.User) {
+	<div id="usersList" class="grid no-entries">
+		for i, m := range users {
+			if i > 0 {
+				<br/>
+			}
+			@User(&m)
+		}
+	</div>
+}
+
+templ User(user *user.User) {
+	<div hx-target="this">
+		<p>ID: { user.ID }</p>
+		<p>Name: { user.Name.First } { user.Name.Last }</p>
+		<p>Username: { user.Username }</p>
+		<p>Email: { user.Email }</p>
+		<p>Created At: { user.CreatedAt.Format(time.RFC822) }</p>
+		<p>Updated At: { user.UpdatedAt.Format(time.RFC822) }</p>
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/users/%s/edit", user.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
+}
+
+templ EditUser(user *user.User, data *CreateUserFormData) {
+	<form hx-patch={ fmt.Sprintf("/users/%s", user.ID) } hx-swap="outerHTML" hx-target="this">
+		<p>ID: { user.ID }</p>
+		<div class="grid grid-cols-2 gap-2">
+			@input("First Name", "text", "first_name", "e.g. Omar", data.Name.First)
+			@input("Last Name", "text", "last_name", "e.g. Eloui", data.Name.Last)
+		</div>
+		@input("Username", "text", "username", "e.g. omareloui", data.Username)
+		@input("Email", "email", "email", "e.g. contact@omareloui.com", data.Email)
+		<div class="flex gap-2 mt-2 ">
+			<button
+				type="submit"
+				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+			>
+				Update
+			</button>
+			<button
+				type="button"
+				class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+				hx-get={ fmt.Sprintf("/users/%s", user.ID) }
+			>Cancel</button>
+		</div>
+	</form>
+}
+
+templ UserOOB(user *user.User) {
+	<div id="usersList" hx-swap-oob="beforeend">
+		@User(user)
+	</div>
+}

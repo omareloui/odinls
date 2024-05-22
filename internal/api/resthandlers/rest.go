@@ -24,7 +24,11 @@ type Handler interface {
 	GetRegister(w http.ResponseWriter, r *http.Request)
 	PostRegister(w http.ResponseWriter, r *http.Request)
 	Logout(w http.ResponseWriter, r *http.Request)
-	// RefreshToken(w http.ResponseWriter, r *http.Request)
+
+	GetUsers(w http.ResponseWriter, r *http.Request)
+	GetUser(id string) http.HandlerFunc
+	GetEditUser(id string) http.HandlerFunc
+	EditUser(id string) http.HandlerFunc
 
 	GetMerchants(w http.ResponseWriter, r *http.Request)
 	PostMerchant(w http.ResponseWriter, r *http.Request)

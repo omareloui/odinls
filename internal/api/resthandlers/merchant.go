@@ -9,13 +9,6 @@ import (
 	"github.com/omareloui/odinls/web/views"
 )
 
-func newCreateMerchantFormData(merchant *merchant.Merchant, valerr *errs.ValidationError) *views.CreateMerchantFormData {
-	return &views.CreateMerchantFormData{
-		Name: views.FormInputData{Value: merchant.Name, Error: valerr.Errors.MsgFor("Name")},
-		Logo: views.FormInputData{Value: merchant.Logo, Error: valerr.Errors.MsgFor("Logo")},
-	}
-}
-
 // TODO(refactor): add a page for the handler to show not found and 500 pages
 
 func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +18,7 @@ func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	accessClaims, _ := h.getAuthFromContext(r)
-	respondWithTemplate(w, r, http.StatusOK, views.MerchantPage(merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{}), accessClaims))
+	respondWithTemplate(w, r, http.StatusOK, views.MerchantPage(accessClaims, merchants, newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
 }
 
 func (h *handler) GetMerchant(id string) http.HandlerFunc {
@@ -92,12 +85,22 @@ func (h *handler) EditMerchant(id string) http.HandlerFunc {
 		m := &merchant.Merchant{ID: id, Name: name, Logo: logo}
 
 		err := h.app.MerchantService.UpdateMerchantByID(id, m)
-
-		if valerr, ok := err.(errs.ValidationError); ok {
-			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditMerchant(m, newCreateMerchantFormData(m, &valerr)))
+		if err != nil {
+			if valerr, ok := err.(errs.ValidationError); ok {
+				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditMerchant(m, newCreateMerchantFormData(m, &valerr)))
+				return
+			}
+			respondWithInternalServerError(w, r)
 			return
 		}
 
 		respondWithTemplate(w, r, http.StatusOK, views.Merchant(m))
+	}
+}
+
+func newCreateMerchantFormData(merchant *merchant.Merchant, valerr *errs.ValidationError) *views.CreateMerchantFormData {
+	return &views.CreateMerchantFormData{
+		Name: views.FormInputData{Value: merchant.Name, Error: valerr.Errors.MsgFor("Name")},
+		Logo: views.FormInputData{Value: merchant.Logo, Error: valerr.Errors.MsgFor("Logo")},
 	}
 }

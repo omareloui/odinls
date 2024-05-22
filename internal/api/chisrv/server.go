@@ -34,6 +34,20 @@ func (a *APIAdapter) Run() {
 	a.router.Post("/register", a.handler.AlreadyAuthedGuard(a.handler.PostRegister))
 	a.router.Post("/logout", a.handler.AuthGuard(a.handler.Logout))
 
+	a.router.Get("/users", a.handler.AuthGuard(a.handler.GetUsers))
+	a.router.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.AuthGuard(a.handler.GetUser(id))(w, r)
+	})
+	a.router.Get("/users/{id}/edit", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.AuthGuard(a.handler.GetEditUser(id))(w, r)
+	})
+	a.router.Patch("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.AuthGuard(a.handler.EditUser(id))(w, r)
+	})
+
 	a.router.Get("/merchants", a.handler.AuthGuard(a.handler.GetMerchants))
 	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.PostMerchant))
 
@@ -45,7 +59,7 @@ func (a *APIAdapter) Run() {
 		id := chi.URLParam(r, "id")
 		a.handler.EditMerchant(id)(w, r)
 	}))
-	a.router.Get("/merchants/edit/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+	a.router.Get("/merchants/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.GetEditMerchant(id)(w, r)
 	}))
