@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
@@ -19,10 +20,16 @@ type CookiePair struct {
 }
 
 type JwtAccessClaims struct {
-	ID       string
-	Email    string
-	Username string
-	Name     string
+	ID            string
+	Email         string
+	Username      string
+	Name          string
+	Role          *role.Role
+	CraftsmanInfo *user.Craftsman
+}
+
+func (jwt *JwtAccessClaims) IsCraftsman() bool {
+	return jwt.CraftsmanInfo != nil && jwt.CraftsmanInfo.MerchantID != ""
 }
 
 func (jwt *JwtAccessClaims) String() string {
