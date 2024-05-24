@@ -57,7 +57,7 @@ templ Merchant(merchant *merchant.Merchant) {
 }
 
 templ EditMerchant(merchant *merchant.Merchant, data *CreateMerchantFormData) {
-	<form hx-patch={ fmt.Sprintf("/merchants/%s", merchant.ID) } hx-swap="outerHTML" hx-target="this">
+	<form hx-put={ fmt.Sprintf("/merchants/%s", merchant.ID) } hx-swap="outerHTML" hx-target="this">
 		<p>ID: { merchant.ID }</p>
 		@input("Name", "text", "name", "e.g. Odin Leahter Store", data.Name)
 		@input("Logo", "url", "logo", "e.g. https://odinleahter.store/logo.png", data.Logo)

@@ -43,7 +43,7 @@ func (a *APIAdapter) Run() {
 		id := chi.URLParam(r, "id")
 		a.handler.AuthGuard(a.handler.GetEditUser(id))(w, r)
 	})
-	a.router.Patch("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+	a.router.Put("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.AuthGuard(a.handler.EditUser(id))(w, r)
 	})
@@ -51,13 +51,13 @@ func (a *APIAdapter) Run() {
 	a.router.Get("/roles", a.handler.AuthGuard(a.handler.GetRoles))
 
 	a.router.Get("/merchants", a.handler.AuthGuard(a.handler.GetMerchants))
-	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.PostMerchant))
+	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.CreateMerchant))
 
 	a.router.Get("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.GetMerchant(id)(w, r)
 	}))
-	a.router.Patch("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+	a.router.Put("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.EditMerchant(id)(w, r)
 	}))

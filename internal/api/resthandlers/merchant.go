@@ -38,7 +38,7 @@ func (h *handler) GetMerchant(id string) http.HandlerFunc {
 	}
 }
 
-func (h *handler) PostMerchant(w http.ResponseWriter, r *http.Request) {
+func (h *handler) CreateMerchant(w http.ResponseWriter, r *http.Request) {
 	merchantform := &merchant.Merchant{
 		Name: r.FormValue("name"),
 		Logo: r.FormValue("logo"),

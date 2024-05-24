@@ -30,13 +30,14 @@ type Handler interface {
 	GetEditUser(id string) http.HandlerFunc
 	EditUser(id string) http.HandlerFunc
 
+	GetRoles(w http.ResponseWriter, r *http.Request)
+
 	GetMerchants(w http.ResponseWriter, r *http.Request)
-	PostMerchant(w http.ResponseWriter, r *http.Request)
+	CreateMerchant(w http.ResponseWriter, r *http.Request)
 	GetMerchant(id string) http.HandlerFunc
 	GetEditMerchant(id string) http.HandlerFunc
 	EditMerchant(id string) http.HandlerFunc
 
-	GetRoles(w http.ResponseWriter, r *http.Request)
 }
 
 type handler struct {

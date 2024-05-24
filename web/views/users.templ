@@ -63,7 +63,7 @@ templ User(user *user.User) {
 }
 
 templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData) {
-	<form hx-patch={ fmt.Sprintf("/users/%s", user.ID) } hx-swap="outerHTML" hx-target="this">
+	<form hx-put={ fmt.Sprintf("/users/%s", user.ID) } hx-swap="outerHTML" hx-target="this">
 		<p>ID: { user.ID }</p>
 		<div class="grid grid-cols-2 gap-2">
 			@input("First Name", "text", "first_name", "e.g. Omar", data.Name.First)

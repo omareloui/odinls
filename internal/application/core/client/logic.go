@@ -82,7 +82,6 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id 
 		return s.validator.ParseError(err)
 	}
 
-	// TODO(refactor): change all patch request to put
 	// TODO(refactor): make sure to update the updated from the SERVICE level in all services
 
 	client.CreatedAt = time.Time{}
