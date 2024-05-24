@@ -47,6 +47,11 @@ func (a *APIAdapter) Run() {
 		id := chi.URLParam(r, "id")
 		a.handler.AuthGuard(a.handler.EditUser(id))(w, r)
 	})
+	a.router.Patch("/users/{id}/unset-craftsman", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.AuthGuard(a.handler.UnsetCraftsman(id))(w, r)
+	})
+	a.router.Get("/users/craftsman-form", a.handler.AuthGuard(a.handler.GetCraftsmanForm))
 
 	a.router.Get("/roles", a.handler.AuthGuard(a.handler.GetRoles))
 

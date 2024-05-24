@@ -22,11 +22,13 @@ func (r *repository) GetUsers(options ...user.RetrieveOptsFunc) ([]user.User, er
 
 	filter := bson.M{}
 
-	if !opts.PopulateRole {
+	if !opts.PopulateRole && !opts.PopulateMerchant {
 		cursor, err = r.usersColl.Find(ctx, filter)
 	} else {
-		cursor, err = r.usersColl.Aggregate(ctx, bson.A{
-			bson.M{
+		pipeline := []interface{}{}
+
+		if opts.PopulateRole {
+			pipeline = append(pipeline, bson.M{
 				"$lookup": bson.M{
 					"from":         rolesCollectionName,
 					"localField":   "role",
@@ -34,8 +36,23 @@ func (r *repository) GetUsers(options ...user.RetrieveOptsFunc) ([]user.User, er
 					"as":           "populatedRole",
 				},
 			},
-			bson.M{"$unwind": "$populatedRole"},
-		})
+				bson.M{"$unwind": "$populatedRole"},
+			)
+		}
+		if opts.PopulateMerchant {
+			pipeline = append(pipeline, bson.M{
+				"$lookup": bson.M{
+					"from":         merchantsCollectionName,
+					"localField":   "merchant",
+					"foreignField": "_id",
+					"as":           "populatedMerchant",
+				},
+			},
+				bson.M{"$unwind": "$populatedMerchant"},
+			)
+		}
+
+		cursor, err = r.usersColl.Aggregate(ctx, pipeline)
 	}
 
 	if err != nil {
@@ -76,6 +93,9 @@ func (r *repository) FindUser(id string, options ...user.RetrieveOptsFunc) (*use
 	if opts.PopulateRole {
 		r.populateRoleForUser(u)
 	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForUser(u)
+	}
 
 	return u, nil
 }
@@ -104,6 +124,9 @@ func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User, options .
 
 	if opts.PopulateRole {
 		r.populateRoleForUser(u)
+	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForUser(u)
 	}
 
 	return u, nil
@@ -134,11 +157,14 @@ func (r *repository) FindUserByEmailOrUsername(emailOrUsername string, options .
 	if opts.PopulateRole {
 		r.populateRoleForUser(u)
 	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForUser(u)
+	}
 
 	return u, nil
 }
 
-func (r *repository) CreateUser(usr *user.User, options ...user.RetrieveOptsFunc) error {
+func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) error {
 	opts := user.ParseRetrieveOpts(options...)
 
 	ctx, cancel := r.newCtx()
@@ -147,10 +173,10 @@ func (r *repository) CreateUser(usr *user.User, options ...user.RetrieveOptsFunc
 	// TODO(security): make sure to prevent to create multiple emails with +
 	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
 
-	res, err := r.usersColl.InsertOne(ctx, usr)
+	res, err := r.usersColl.InsertOne(ctx, u)
 
 	if err == nil {
-		usr.ID = res.InsertedID.(primitive.ObjectID).Hex()
+		u.ID = res.InsertedID.(primitive.ObjectID).Hex()
 	}
 
 	if ok := mongo.IsDuplicateKeyError(err); ok {
@@ -165,13 +191,16 @@ func (r *repository) CreateUser(usr *user.User, options ...user.RetrieveOptsFunc
 	}
 
 	if opts.PopulateRole {
-		r.populateRoleForUser(usr)
+		r.populateRoleForUser(u)
+	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForUser(u)
 	}
 
 	return err
 }
 
-func (r *repository) UpdateUserByID(id string, usr *user.User, options ...user.RetrieveOptsFunc) error {
+func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.RetrieveOptsFunc) error {
 	opts := user.ParseRetrieveOpts(options...)
 
 	ctx, cancel := r.newCtx()
@@ -182,23 +211,32 @@ func (r *repository) UpdateUserByID(id string, usr *user.User, options ...user.R
 		return errs.ErrInvalidID
 	}
 
-	roleId, err := primitive.ObjectIDFromHex(usr.RoleID)
+	roleId, err := primitive.ObjectIDFromHex(u.RoleID)
 	if err != nil {
 		return errs.ErrInvalidID
 	}
 
 	filter := bson.D{{Key: "_id", Value: objId}}
-	update := bson.D{
-		{
-			Key: "$set",
-			Value: bson.M{
-				"name":       usr.Name,
-				"email":      usr.Email,
-				"username":   usr.Username,
-				"role":       roleId,
-				"updated_at": time.Now(),
-			},
+	update := bson.M{
+		"$set": bson.M{
+			"name":       u.Name,
+			"email":      u.Email,
+			"username":   u.Username,
+			"role":       roleId,
+			"updated_at": time.Now(),
 		},
+	}
+
+	if u.Craftsman != nil {
+		merId, err := primitive.ObjectIDFromHex(u.Craftsman.MerchantID)
+		if err != nil {
+			return errs.ErrInvalidID
+		}
+
+		(update["$set"]).(bson.M)["craftsman"] = map[string]interface{}{
+			"merchant":    merId,
+			"hourly_rate": u.Craftsman.HourlyRate,
+		}
 	}
 
 	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
@@ -210,10 +248,49 @@ func (r *repository) UpdateUserByID(id string, usr *user.User, options ...user.R
 	}
 
 	if opts.PopulateRole {
-		r.populateRoleForUser(usr)
+		r.populateRoleForUser(u)
+	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForUser(u)
 	}
 
 	return nil
+}
+
+func (r *repository) UnsetCraftsmanByID(id string) error {
+	ctx, cancel := r.newCtx()
+	defer cancel()
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errs.ErrInvalidID
+	}
+
+	filter := bson.D{{Key: "_id", Value: objId}}
+	update := bson.M{
+		"$unset": bson.M{"craftsman": ""},
+	}
+
+	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if updated.ModifiedCount == 0 {
+		return user.ErrUserNotFound
+	}
+
+	return nil
+}
+
+func (r *repository) populateMerchantForUser(u *user.User) {
+	if u.Craftsman == nil || u.Craftsman.MerchantID == "" {
+		return
+	}
+
+	merchant, err := r.FindMerchant(u.RoleID)
+	if err == nil {
+		u.Craftsman.Merchant = merchant
+	}
 }
 
 func (r *repository) populateRoleForUser(u *user.User) {

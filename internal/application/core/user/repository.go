@@ -7,4 +7,5 @@ type UserRepository interface {
 	FindUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error)
 	CreateUser(user *User, opts ...RetrieveOptsFunc) error
 	UpdateUserByID(id string, user *User, opts ...RetrieveOptsFunc) error
+	UnsetCraftsmanByID(id string) error
 }

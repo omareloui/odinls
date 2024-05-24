@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/interfaces"
 	"github.com/omareloui/odinls/internal/sanitizer"
@@ -19,16 +20,18 @@ var (
 )
 
 type userService struct {
-	userRepository UserRepository
-	roleService    role.RoleService
-	validator      interfaces.Validator
+	userRepository  UserRepository
+	roleService     role.RoleService
+	merchantService merchant.MerchantService
+	validator       interfaces.Validator
 }
 
-func NewUserService(userRepository UserRepository, roleService role.RoleService, validator interfaces.Validator) UserService {
+func NewUserService(userRepository UserRepository, merchantService merchant.MerchantService, roleService role.RoleService, validator interfaces.Validator) UserService {
 	return &userService{
-		userRepository: userRepository,
-		roleService:    roleService,
-		validator:      validator,
+		userRepository:  userRepository,
+		roleService:     roleService,
+		merchantService: merchantService,
+		validator:       validator,
 	}
 }
 
@@ -79,29 +82,17 @@ func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
 }
 
 func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsFunc) error {
-	type updateUser struct {
-		Name     Name   `validate:"required"`
-		Username string `validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
-		Email    string `validate:"required,email,not_blank"`
-		RoleID   string `validate:"required,mongodb"`
-		Phone    string
-	}
-
 	sanitizeUser(usr)
 
-	u := &updateUser{
-		Name:     usr.Name,
-		Username: usr.Username,
-		Email:    usr.Email,
-		Phone:    usr.Phone,
-		RoleID:   usr.RoleID,
+	if err := s.validator.Validate(usr); err != nil {
+		valerr := s.validator.ParseError(err)
+		delete(valerr.Errors, "Password")
+		if len(valerr.Errors) > 0 {
+			return valerr
+		}
 	}
 
-	if err := s.validator.Validate(u); err != nil {
-		return s.validator.ParseError(err)
-	}
-
-	sameEmailUsr, err := s.userRepository.FindUserByEmailOrUsername(u.Email)
+	sameEmailUsr, err := s.userRepository.FindUserByEmailOrUsername(usr.Email)
 	if err != nil && !errors.Is(err, ErrUserNotFound) {
 		return err
 	}
@@ -109,7 +100,7 @@ func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsF
 		return ErrEmailAlreadyExists
 	}
 
-	sameUsernameUsr, err := s.userRepository.FindUserByEmailOrUsername(u.Username)
+	sameUsernameUsr, err := s.userRepository.FindUserByEmailOrUsername(usr.Username)
 	if err != nil && !errors.Is(err, ErrUserNotFound) {
 		return err
 	}
@@ -117,16 +108,21 @@ func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsF
 		return ErrUsernameAlreadyExists
 	}
 
-	existingRole, err := s.roleService.FindRole(u.RoleID)
-	if err != nil {
+	if _, err = s.roleService.FindRole(usr.RoleID); err != nil {
 		return err
 	}
 
-	if existingRole == nil {
-		return role.ErrInvalidRole
+	if usr.Craftsman != nil {
+		if _, err = s.merchantService.FindMerchant(usr.Craftsman.MerchantID); err != nil {
+			return err
+		}
 	}
 
 	return s.userRepository.UpdateUserByID(id, usr, opts...)
+}
+
+func (s *userService) UnsetCraftsmanByID(id string) error {
+	return s.userRepository.UnsetCraftsmanByID(id)
 }
 
 func sanitizeUser(usr *User) {

@@ -2,7 +2,6 @@ package jwtadapter
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -68,10 +67,9 @@ func newAccessClaimsFromMapClaims(claims *jwt.MapClaims) *JwtAccessClaims {
 		}
 	}
 	if ci, ok := (*claims)["craftsmanInfo"].(map[string]interface{}); ok {
-		hourlyRate, _ := strconv.ParseFloat(ci["hourly_rate"].(string), 64)
 		c.CraftsmanInfo = user.Craftsman{
 			MerchantID: ci["merchant_id"].(string),
-			HourlyRate: hourlyRate,
+			HourlyRate: ci["hourly_rate"].(float64),
 		}
 	}
 

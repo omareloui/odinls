@@ -18,7 +18,7 @@ type User struct {
 	Username        string    `json:"username" bson:"username" validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
 	Email           string    `json:"email" bson:"email" validate:"required,email,not_blank"`
 	Password        string    `json:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
-	ConfirmPassword string    `json:"-" bson:"-" validate:"required,min=8,eqfield=Password,not_blank"`
+	ConfirmPassword string    `json:"-" bson:"-" validate:"eqfield=Password"`
 	Phone           string    `json:"phone" bson:"phone,omitempty"`
 	RoleID          string    `json:"role_id" bson:"role,omitempty" validate:"required,mongodb"`
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
@@ -36,6 +36,6 @@ type Craftsman struct {
 	Merchant *merchant.Merchant `json:"merchant" bson:"populatedMerchant"`
 }
 
-func (u *User) IsCraftsman() bool {
-	return u.Craftsman != nil
+func (u User) IsCraftsman() bool {
+	return u.Craftsman != nil && u.Craftsman.MerchantID != ""
 }

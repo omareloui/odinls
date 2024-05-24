@@ -3,10 +3,12 @@ package views
 import (
 	"fmt"
 	"time"
+	"strconv"
 
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/application/core/role"
+	"github.com/omareloui/odinls/internal/application/core/merchant"
 )
 
 type NameFormData struct {
@@ -15,10 +17,17 @@ type NameFormData struct {
 }
 
 type CreateUserFormData struct {
-	Name     NameFormData
-	Email    FormInputData
-	Username FormInputData
-	Role     FormInputData
+	Name       NameFormData
+	Email      FormInputData
+	Username   FormInputData
+	Role       FormInputData
+	HourlyRate FormInputData
+	MerchantID FormInputData
+}
+
+type EditUserOpts struct {
+	WithCraftsmanInfo bool
+	Merchants         []merchant.Merchant
 }
 
 templ UserPage(accessClaims *jwtadapter.JwtAccessClaims, users []user.User) {
@@ -52,18 +61,41 @@ templ User(user *user.User) {
 		} else {
 			<p>RoleID: { user.RoleID }</p>
 		}
+		if user.Craftsman != nil {
+			<p>Hourly Rate: { strconv.FormatFloat(user.Craftsman.HourlyRate, 'f', -1, 64) }EGP</p>
+			if user.Craftsman.Merchant != nil {
+				<p>Merchant: { user.Craftsman.Merchant.Name }</p>
+			} else {
+				<p>MerchantID: { user.Craftsman.MerchantID }</p>
+			}
+		}
 		<p>Created At: { user.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { user.UpdatedAt.Format(time.RFC1123) }</p>
-		<button
-			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
-			hx-get={ fmt.Sprintf("/users/%s/edit", user.ID) }
-			hx-swap="outerHTML"
-		>Edit</button>
+		<div>
+			if user.IsCraftsman() {
+				<button
+					class="px-5 py-2.5 my-2 mr-3 text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+					hx-patch={ fmt.Sprintf("/users/%s/unset-craftsman", user.ID) }
+					hx-confirm="Are you sure you want to unset this user as craftsman?"
+					hx-swap="outerHTML"
+				>Unset Craftsman</button>
+			}
+			<button
+				class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+				hx-get={ fmt.Sprintf("/users/%s/edit", user.ID) }
+				hx-swap="outerHTML"
+			>Edit</button>
+		</div>
 	</div>
 }
 
-templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData) {
-	<form hx-put={ fmt.Sprintf("/users/%s", user.ID) } hx-swap="outerHTML" hx-target="this">
+templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData, opts ...*EditUserOpts) {
+	<form
+		hx-put={ fmt.Sprintf("/users/%s", user.ID) }
+		hx-swap="outerHTML"
+		hx-target="this"
+		class="grid gap-2"
+	>
 		<p>ID: { user.ID }</p>
 		<div class="grid grid-cols-2 gap-2">
 			@input("First Name", "text", "first_name", "e.g. Omar", data.Name.First)
@@ -71,22 +103,18 @@ templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData) {
 		</div>
 		@input("Username", "text", "username", "e.g. omareloui", data.Username)
 		@input("Email", "email", "email", "e.g. contact@omareloui.com", data.Email)
-		<label for="role" class="mb-1 block text-sm font-medium text-gray-900">Role</label>
-		<select
-			id="role"
-			name="role"
-			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
-			required
-		>
-			<option value="" disabled selected>Select a role</option>
-			for _, r := range roles {
-				if r.ID == user.RoleID {
-					<option value={ r.ID } selected>{ r.Name }</option>
-				} else {
-					<option value={ r.ID }>{ r.Name }</option>
-				}
-			}
-		</select>
+		@selectInput("Role", "role", "Select a role", getRolesMap(roles), data.Role)
+		if opts != nil && opts[0] != nil && opts[0].WithCraftsmanInfo {
+			@CraftsmanForm(opts[0].Merchants, data)
+		} else {
+			<button
+				type="button"
+				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full my-2"
+				hx-get="/users/craftsman-form"
+				hx-target="this"
+				hx-swap="outerHTML"
+			>Make Craftsman</button>
+		}
 		<div class="flex gap-2 mt-2 ">
 			<button
 				type="submit"
@@ -107,4 +135,25 @@ templ UserOOB(user *user.User) {
 	<div id="usersList" hx-swap-oob="beforeend">
 		@User(user)
 	</div>
+}
+
+templ CraftsmanForm(merchants []merchant.Merchant, data *CreateUserFormData) {
+	@input("Hourly Rate", "number", "hourly_rate", "e.g. 45", data.HourlyRate)
+	@selectInput("Merchant", "merchant", "Select the craftsman merchant", getMerchantsMap(merchants), data.MerchantID)
+}
+
+func getRolesMap(roles []role.Role) map[string]string {
+	m := make(map[string]string)
+	for _, r := range roles {
+		m[r.ID] = r.Name
+	}
+	return m
+}
+
+func getMerchantsMap(merchants []merchant.Merchant) map[string]string {
+	ma := make(map[string]string)
+	for _, m := range merchants {
+		ma[m.ID] = m.Name
+	}
+	return ma
 }

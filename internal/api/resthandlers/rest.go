@@ -29,6 +29,8 @@ type Handler interface {
 	GetUser(id string) http.HandlerFunc
 	GetEditUser(id string) http.HandlerFunc
 	EditUser(id string) http.HandlerFunc
+	UnsetCraftsman(id string) http.HandlerFunc
+	GetCraftsmanForm(w http.ResponseWriter, r *http.Request)
 
 	GetRoles(w http.ResponseWriter, r *http.Request)
 

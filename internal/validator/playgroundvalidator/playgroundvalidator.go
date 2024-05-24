@@ -29,8 +29,8 @@ func (v *playgroundValidator) ParseError(error any) errs.ValidationError {
 
 func NewValidator() *playgroundValidator {
 	val := validator.New(validator.WithRequiredStructEnabled())
-	val.RegisterValidation("not_blank", validators.NotBlank)
-	val.RegisterValidation("alphanum_with_underscore", IsAlphaNumWithUnderScore)
+	_ = val.RegisterValidation("not_blank", validators.NotBlank)
+	_ = val.RegisterValidation("alphanum_with_underscore", IsAlphaNumWithUnderScore)
 	return &playgroundValidator{validator: val}
 }
 

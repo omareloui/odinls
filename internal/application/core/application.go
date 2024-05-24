@@ -18,11 +18,12 @@ type Application struct {
 
 func NewApplication(repo repository.Repository, validator interfaces.Validator) *Application {
 	roleService := role.NewRoleService(repo, validator)
+	merchantService := merchant.NewMerchantService(repo, validator)
 
 	return &Application{
-		UserService:     user.NewUserService(repo, roleService, validator),
+		UserService:     user.NewUserService(repo, merchantService, roleService, validator),
 		RoleService:     roleService,
-		MerchantService: merchant.NewMerchantService(repo, validator),
+		MerchantService: merchantService,
 		ClientService:   client.NewClientService(repo, validator),
 	}
 }

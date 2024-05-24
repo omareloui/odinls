@@ -23,17 +23,42 @@ templ input(label, kind, name, placeholder string, data FormInputData) {
 			class="input-text-field"
 			value={ data.Value }
 		/>
-		if data.Error != "" {
-			<div class="flex flex-column gap-1 text-red-400 mt-1 ml-2 items-center text-sm">
-				@errIcon("18px")
-				<span>{ data.Error }</span>
-			</div>
-		}
+		@errorMessage(data.Error)
 	</div>
 }
 
+templ selectInput(label, name, placeholder string, options map[string]string, data FormInputData) {
+	<div>
+		<label for={ name } class="input-label">{ label }</label>
+		<select
+			id={ name }
+			name={ name }
+			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+		>
+			<option value="" disabled selected>{ placeholder }</option>
+			for k, v := range options {
+				if k == data.Value {
+					<option value={ k } selected>{ v }</option>
+				} else {
+					<option value={ k }>{ v }</option>
+				}
+			}
+		</select>
+		@errorMessage(data.Error)
+	</div>
+}
+
+templ errorMessage(message string) {
+	if message != "" {
+		<div class="flex flex-column gap-1 text-red-400 mt-1 ml-2 items-center text-sm">
+			@errIcon("18px")
+			<span>{ message }</span>
+		</div>
+	}
+}
+
 templ form(title, postTo, submitStr string) {
-	<form class="grid gap-6 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML" hx-target="this">
+	<form class="grid gap-2 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML" hx-target="this">
 		if title != "" {
 			<h2 class="text-xl font-bold mt-2">{ title }</h2>
 		}
