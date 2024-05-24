@@ -52,7 +52,7 @@ func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id str
 }
 
 func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client *Client, opts ...RetrieveOptsFunc) error {
-	if claims == nil || !claims.Role.IsAdmin() {
+	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return errs.ErrForbidden
 	}
 
@@ -96,7 +96,7 @@ func sanitizeClient(c *Client) {
 	sanitizeMap(&c.ContactInfo.Emails)
 	sanitizeMap(&c.ContactInfo.Links)
 	sanitizeMap(&c.ContactInfo.Locations)
-	sanitizeMap(&c.ContactInfo.PhoneNumber)
+	sanitizeMap(&c.ContactInfo.PhoneNumbers)
 }
 
 func sanitizeMap(m *map[string]string) {

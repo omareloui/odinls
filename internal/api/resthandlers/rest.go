@@ -38,6 +38,11 @@ type Handler interface {
 	GetEditMerchant(id string) http.HandlerFunc
 	EditMerchant(id string) http.HandlerFunc
 
+	GetClients(w http.ResponseWriter, r *http.Request)
+	CreateClient(w http.ResponseWriter, r *http.Request)
+	GetClient(id string) http.HandlerFunc
+	GetEditClient(id string) http.HandlerFunc
+	EditClient(id string) http.HandlerFunc
 }
 
 type handler struct {
@@ -64,6 +69,10 @@ func respondWithInternalServerError(w http.ResponseWriter, r *http.Request) {
 
 func respondWithUnauthorized(w http.ResponseWriter, r *http.Request) {
 	respondWithErrorPage(w, r, http.StatusUnauthorized)
+}
+
+func respondWithForbidden(w http.ResponseWriter, r *http.Request) {
+	respondWithErrorPage(w, r, http.StatusForbidden)
 }
 
 func respondWithNotFound(w http.ResponseWriter, r *http.Request) {

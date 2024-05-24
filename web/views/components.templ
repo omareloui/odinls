@@ -14,13 +14,13 @@ type FormInputData struct {
 
 templ input(label, kind, name, placeholder string, data FormInputData) {
 	<div>
-		<label for={ name } class="mb-1 block text-sm font-medium text-gray-900">{ label }</label>
+		<label for={ name } class="input-label">{ label }</label>
 		<input
 			id={ name }
 			type={ kind }
 			name={ name }
 			placeholder={ placeholder }
-			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+			class="input-text-field"
 			value={ data.Value }
 		/>
 		if data.Error != "" {

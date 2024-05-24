@@ -22,8 +22,8 @@ type Client struct {
 }
 
 type ContactInfo struct {
-	PhoneNumber map[string]string `json:"phone_number" bson:"phone_number" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,min=3,max=255,not_blank"`
-	Emails      map[string]string `json:"emails" bson:"emails" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,email"`
-	Links       map[string]string `json:"links" bson:"links" validate:"dive,keys,required,min=3,max=255,not_blank,min=3,max=255,endkeys,required,http_url"`
-	Locations   map[string]string `json:"locations" bson:"locations" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required"`
+	PhoneNumbers map[string]string `json:"phone_number" bson:"phone_number" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,min=3,max=255,not_blank"`
+	Emails       map[string]string `json:"emails" bson:"emails" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,email"`
+	Links        map[string]string `json:"links" bson:"links" validate:"dive,keys,required,min=3,max=255,not_blank,min=3,max=255,endkeys,required,http_url"`
+	Locations    map[string]string `json:"locations" bson:"locations" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required"`
 }

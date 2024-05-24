@@ -23,9 +23,9 @@ func (r *repository) GetClients(options ...client.RetrieveOptsFunc) ([]client.Cl
 	var err error
 
 	if !opts.PopulateMerchant {
-		cursor, err = r.usersColl.Find(ctx, filter)
+		cursor, err = r.clientsColl.Find(ctx, filter)
 	} else {
-		cursor, err = r.usersColl.Aggregate(ctx, bson.A{
+		cursor, err = r.clientsColl.Aggregate(ctx, bson.A{
 			bson.M{
 				"$lookup": bson.M{
 					"from":         merchantsCollectionName,
@@ -69,9 +69,9 @@ func (r *repository) GetClientsByMerchantID(merchantId string, options ...client
 	var cursor *mongo.Cursor
 
 	if !opts.PopulateMerchant {
-		cursor, err = r.usersColl.Find(ctx, filter)
+		cursor, err = r.clientsColl.Find(ctx, filter)
 	} else {
-		cursor, err = r.usersColl.Aggregate(ctx, bson.A{
+		cursor, err = r.clientsColl.Aggregate(ctx, bson.A{
 			bson.M{
 				"$lookup": bson.M{
 					"from":         merchantsCollectionName,

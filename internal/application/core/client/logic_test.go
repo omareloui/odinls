@@ -57,10 +57,10 @@ func TestGetClients(t *testing.T) {
 
 	t.Run("with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: &role.Role{
+			Role: role.Role{
 				Name: role.OPAdmin.String(),
 			},
-			CraftsmanInfo: &user.Craftsman{
+			CraftsmanInfo: user.Craftsman{
 				MerchantID: "1234",
 			},
 		}
@@ -73,7 +73,7 @@ func TestGetClients(t *testing.T) {
 
 	t.Run("without permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: &role.Role{
+			Role: role.Role{
 				Name: role.Admin.String(),
 			},
 		}
@@ -105,10 +105,10 @@ func TestGetCurrentMerchantClients(t *testing.T) {
 
 	t.Run("is craftsman and with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: &role.Role{
+			Role: role.Role{
 				Name: role.Moderator.String(),
 			},
-			CraftsmanInfo: &user.Craftsman{
+			CraftsmanInfo: user.Craftsman{
 				MerchantID: merId,
 			},
 		}
@@ -121,10 +121,10 @@ func TestGetCurrentMerchantClients(t *testing.T) {
 
 	t.Run("is craftsman and without permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: &role.Role{
+			Role: role.Role{
 				Name: role.NoAuthority.String(),
 			},
-			CraftsmanInfo: &user.Craftsman{
+			CraftsmanInfo: user.Craftsman{
 				MerchantID: merId,
 			},
 		}
@@ -137,7 +137,7 @@ func TestGetCurrentMerchantClients(t *testing.T) {
 
 	t.Run("not craftsman and with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: &role.Role{
+			Role: role.Role{
 				Name: role.NoAuthority.String(),
 			},
 		}
@@ -170,7 +170,7 @@ func TestGetClientByID(t *testing.T) {
 
 	t.Run("is craftsman", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			CraftsmanInfo: &user.Craftsman{
+			CraftsmanInfo: user.Craftsman{
 				MerchantID: merId,
 			},
 		}
@@ -209,10 +209,10 @@ func TestCreateClient(t *testing.T) {
 		Name:  "mock client name",
 		Notes: "",
 		ContactInfo: client.ContactInfo{
-			PhoneNumber: map[string]string{},
-			Emails:      map[string]string{},
-			Links:       map[string]string{},
-			Locations:   map[string]string{},
+			PhoneNumbers: map[string]string{},
+			Emails:       map[string]string{},
+			Links:        map[string]string{},
+			Locations:    map[string]string{},
 		},
 		WholesaleAsDefault: false,
 	}
@@ -225,8 +225,8 @@ func TestCreateClient(t *testing.T) {
 	t.Run("permissions", func(t *testing.T) {
 		t.Run("with permissions", func(t *testing.T) {
 			claims := jwtadapter.JwtAccessClaims{
-				Role:          &role.Role{Name: role.Admin.String()},
-				CraftsmanInfo: &user.Craftsman{MerchantID: merId},
+				Role:          role.Role{Name: role.Admin.String()},
+				CraftsmanInfo: user.Craftsman{MerchantID: merId},
 			}
 
 			cli2 := cli
@@ -240,7 +240,7 @@ func TestCreateClient(t *testing.T) {
 
 		t.Run("without permissions", func(t *testing.T) {
 			claims := jwtadapter.JwtAccessClaims{
-				Role: &role.Role{Name: role.Moderator.String()},
+				Role: role.Role{Name: role.Moderator.String()},
 			}
 
 			cli2 := cli
@@ -259,8 +259,8 @@ func TestCreateClient(t *testing.T) {
 
 	t.Run("validation and sanitization", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role:          &role.Role{Name: role.Admin.String()},
-			CraftsmanInfo: &user.Craftsman{MerchantID: merId},
+			Role:          role.Role{Name: role.Admin.String()},
+			CraftsmanInfo: user.Craftsman{MerchantID: merId},
 		}
 
 		t.Run("valid inputs", func(t *testing.T) {
@@ -305,7 +305,7 @@ func TestCreateClient(t *testing.T) {
 					"home": "             ",
 					"    ": "va",
 				},
-				PhoneNumber: map[string]string{
+				PhoneNumbers: map[string]string{
 					"key":  "val",
 					"key2": "01111",
 				},
@@ -337,8 +337,8 @@ func TestCreateClient(t *testing.T) {
 			sanitizedLinkKey := "facebook"
 			sanitizedLinkValue := "https://fb.com"
 			cli2.ContactInfo = client.ContactInfo{
-				PhoneNumber: map[string]string{notSanitizedPhoneKey: notSanitizedPhoneValue},
-				Links:       map[string]string{notSanitizedLinkKey: notSanitizedLinkValue},
+				PhoneNumbers: map[string]string{notSanitizedPhoneKey: notSanitizedPhoneValue},
+				Links:        map[string]string{notSanitizedLinkKey: notSanitizedLinkValue},
 			}
 
 			err := s.CreateClient(&claims, &cli2)
@@ -346,12 +346,12 @@ func TestCreateClient(t *testing.T) {
 
 			assert.Nil(t, err)
 
-			_, ok := cli2.ContactInfo.PhoneNumber[notSanitizedPhoneKey]
+			_, ok := cli2.ContactInfo.PhoneNumbers[notSanitizedPhoneKey]
 			assert.False(t, ok)
 			_, ok = cli2.ContactInfo.Links[notSanitizedLinkKey]
 			assert.False(t, ok)
 
-			assert.Equal(t, cli2.ContactInfo.PhoneNumber[sanitizedPhoneKey], sanitizedPhoneValue)
+			assert.Equal(t, cli2.ContactInfo.PhoneNumbers[sanitizedPhoneKey], sanitizedPhoneValue)
 			assert.Equal(t, cli2.ContactInfo.Links[sanitizedLinkKey], sanitizedLinkValue)
 		})
 
@@ -387,10 +387,10 @@ func TestUpdateClient(t *testing.T) {
 		Name:  "mock client name",
 		Notes: "nothing",
 		ContactInfo: client.ContactInfo{
-			PhoneNumber: map[string]string{},
-			Emails:      map[string]string{},
-			Links:       map[string]string{},
-			Locations:   map[string]string{},
+			PhoneNumbers: map[string]string{},
+			Emails:       map[string]string{},
+			Links:        map[string]string{},
+			Locations:    map[string]string{},
 		},
 		WholesaleAsDefault: false,
 	}
@@ -402,8 +402,8 @@ func TestUpdateClient(t *testing.T) {
 
 	t.Run("with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role:          &role.Role{Name: role.Admin.String()},
-			CraftsmanInfo: &user.Craftsman{MerchantID: merId},
+			Role:          role.Role{Name: role.Admin.String()},
+			CraftsmanInfo: user.Craftsman{MerchantID: merId},
 		}
 
 		cli2 := cli
@@ -420,7 +420,7 @@ func TestUpdateClient(t *testing.T) {
 
 	t.Run("without permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: &role.Role{Name: role.Moderator.String()},
+			Role: role.Role{Name: role.Moderator.String()},
 		}
 
 		cli2 := cli

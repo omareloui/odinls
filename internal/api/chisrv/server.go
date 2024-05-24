@@ -66,6 +66,21 @@ func (a *APIAdapter) Run() {
 		a.handler.GetEditMerchant(id)(w, r)
 	}))
 
+	a.router.Get("/clients", a.handler.AuthGuard(a.handler.GetClients))
+	a.router.Post("/clients", a.handler.AuthGuard(a.handler.CreateClient))
+	a.router.Get("/clients/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.GetClient(id)(w, r)
+	}))
+	a.router.Get("/clients/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.GetEditClient(id)(w, r)
+	}))
+	a.router.Put("/clients/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.EditClient(id)(w, r)
+	}))
+
 	a.router.Get("/unauthorized", a.handler.Unauthorized)
 
 	static(a.router, []string{"styles", "js"}, "./web/public")

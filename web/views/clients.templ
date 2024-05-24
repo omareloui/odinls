@@ -1,0 +1,102 @@
+package views
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/client"
+)
+
+type CreateClientFormData struct {
+	Name               FormInputData
+	Notes              FormInputData
+	WholesaleAsDefualt FormInputData
+	Phone              FormInputData
+	Link               FormInputData
+	Email              FormInputData
+	Location           FormInputData
+}
+
+templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, formdata *CreateClientFormData) {
+	@baseLayout(access, "Clients | Odin LS") {
+		@container() {
+			@CreateClientForm(formdata)
+			<h2 class="text-3xl font-bold mb-3">Clients</h2>
+			@ClientsList(clients)
+		}
+	}
+}
+
+templ CreateClientForm(formdata *CreateClientFormData) {
+	@form("Create Client", "/clients", "Create Client") {
+		@input("Name", "text", "name", "e.g. John Doe", formdata.Name)
+		@input("Email", "email", "email", "e.g. johndoe@example.com", formdata.Email)
+		@input("Link", "url", "link", "e.g. https://fb.com/username", formdata.Email)
+		@input("Location", "text", "location", "Enter location to deliver to here...", formdata.Email)
+		<div>
+			<label for="notes" class="input-label">Notes</label>
+			<textarea
+				id="notes"
+				name="notes"
+				class="input-text-field"
+				placeholder="Enter notes here..."
+			></textarea>
+		</div>
+		<div>
+			<input id="wholesale_as_default" type="checkbox" name="wholesale_as_default"/>
+			<label for="wholesale_as_default">Wholesale as a default</label>
+		</div>
+	}
+}
+
+templ ClientsList(clients []client.Client) {
+	<div id="clientsList" class="grid no-entries">
+		for i, m := range clients {
+			if i > 0 {
+				<br/>
+			}
+			@Client(&m)
+		}
+	</div>
+}
+
+templ Client(client *client.Client) {
+	<div hx-target="this">
+		<p>ID: { client.ID }</p>
+		<p>Name: { client.Name }</p>
+		<p>Created At: { client.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { client.UpdatedAt.Format(time.RFC1123) }</p>
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/clients/%s/edit", client.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
+}
+
+templ EditClient(client *client.Client, data *CreateClientFormData) {
+	<form hx-put={ fmt.Sprintf("/clients/%s", client.ID) } hx-swap="outerHTML" hx-target="this">
+		<p>ID: { client.ID }</p>
+		@input("Name", "text", "name", "e.g. Odin Leahter Store", data.Name)
+		<div class="flex gap-2 mt-2 ">
+			<button
+				type="submit"
+				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+			>
+				Update
+			</button>
+			<button
+				type="button"
+				class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+				hx-get={ fmt.Sprintf("/clients/%s", client.ID) }
+			>Cancel</button>
+		</div>
+	</form>
+}
+
+templ ClientOOB(client *client.Client) {
+	<div id="clientsList" hx-swap-oob="beforeend">
+		@Client(client)
+	</div>
+}
