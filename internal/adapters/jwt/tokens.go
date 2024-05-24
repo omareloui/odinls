@@ -2,6 +2,7 @@ package jwtadapter
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -56,11 +57,22 @@ func newAccessClaimsFromMapClaims(claims *jwt.MapClaims) *JwtAccessClaims {
 		Username: (*claims)["username"].(string),
 	}
 
-	if role, ok := (*claims)["role"].(role.Role); ok {
-		c.Role = role
+	if r, ok := (*claims)["role"].(map[string]interface{}); ok {
+		createdAt, _ := time.Parse(time.RFC3339, r["created_at"].(string))
+		updatedAt, _ := time.Parse(time.RFC3339, r["updated_at"].(string))
+		c.Role = role.Role{
+			ID:        r["id"].(string),
+			Name:      r["name"].(string),
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		}
 	}
-	if craftsmanInfo, ok := (*claims)["craftsmanInfo"].(user.Craftsman); ok {
-		c.CraftsmanInfo = craftsmanInfo
+	if ci, ok := (*claims)["craftsmanInfo"].(map[string]interface{}); ok {
+		hourlyRate, _ := strconv.ParseFloat(ci["hourly_rate"].(string), 64)
+		c.CraftsmanInfo = user.Craftsman{
+			MerchantID: ci["merchant_id"].(string),
+			HourlyRate: hourlyRate,
+		}
 	}
 
 	return c
@@ -74,15 +86,23 @@ func newRefreshMapClaims(usr *user.User, exp time.Time) *jwt.MapClaims {
 }
 
 func newAccessMapClaims(usr *user.User, exp time.Time) *jwt.MapClaims {
-	return &jwt.MapClaims{
-		"id":            usr.ID,
-		"email":         usr.Email,
-		"username":      usr.Username,
-		"name":          fmt.Sprintf("%s %s", usr.Name.First, usr.Name.Last),
-		"role":          usr.Role,
-		"craftsmanInfo": usr.Craftsman,
-		"exp":           exp.Unix(),
+	claims := jwt.MapClaims{
+		"id":       usr.ID,
+		"email":    usr.Email,
+		"username": usr.Username,
+		"name":     fmt.Sprintf("%s %s", usr.Name.First, usr.Name.Last),
+		"exp":      exp.Unix(),
 	}
+
+	if usr.Craftsman != nil {
+		claims["craftsmanInfo"] = *usr.Craftsman
+	}
+
+	if usr.Role != nil {
+		claims["role"] = *usr.Role
+	}
+
+	return &claims
 }
 
 func newTokenPair(access, refresh string, accessExp, refreshExp time.Time) *TokenPair {
