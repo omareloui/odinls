@@ -1,11 +1,7 @@
 package jwtadapter
 
-// TODO(refactor): remove unused methods
-
 import (
 	"errors"
-	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,18 +11,13 @@ import (
 type TokenType int
 
 const (
-	AccessTokenCookieName  = "access_token"
-	RefreshTokenCookieName = "refresh_token"
+	accessToken TokenType = iota
+	refreshToken
 )
 
 const (
-	AccessToken TokenType = iota
-	RefreshToken
-)
-
-const (
-	RefreshExpiration = time.Hour * 24 * 30
-	AccessExpiration  = time.Minute * 15
+	refreshExpiration = time.Hour * 24 * 30
+	accessExpiration  = time.Minute * 15
 )
 
 var (
@@ -36,51 +27,33 @@ var (
 )
 
 type JwtAdapter interface {
-	GenPair(usr *user.User) (*TokenPair, error)
-	ParsePair(accessToken, refreshToken string) (*JwtClaimsPair, error)
-	GenTokenPairInCookie(usr *user.User) (*CookiePair, error)
+	NewPair(usr *user.User) (*TokenPair, error)
 	ParseAccessClaims(token string) (*JwtAccessClaims, error)
 	ParseRefreshClaims(token string) (*JwtRefreshClaims, error)
-	// TODO(refactor): make the cookies in its own adapter? or remove it all.
-	NewCookie(tokenType TokenType, token string, expr time.Time) *http.Cookie
 }
 
 type JwtV5Adapter struct {
 	secret        []byte
 	signingMethod jwt.SigningMethod
-	validator     *jwt.Validator
 }
 
 func NewJWTV5Adapter(secret []byte) *JwtV5Adapter {
 	return &JwtV5Adapter{
 		secret:        secret,
 		signingMethod: jwt.SigningMethodHS256,
-		validator:     jwt.NewValidator(jwt.WithExpirationRequired()),
 	}
 }
 
-func (a *JwtV5Adapter) GenPair(usr *user.User) (*TokenPair, error) {
-	access, err := a.genAccessToken(usr)
+func (a *JwtV5Adapter) NewPair(usr *user.User) (*TokenPair, error) {
+	refresh, refreshExp, err := a.newToken(refreshToken, usr)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := a.genRefreshToken(usr)
+	access, accessExp, err := a.newToken(accessToken, usr)
 	if err != nil {
 		return nil, err
 	}
-	return newTokenPair(access, refresh), nil
-}
-
-func (a *JwtV5Adapter) ParsePair(accessToken, refreshToken string) (*JwtClaimsPair, error) {
-	accessClaims, err := a.ParseAccessClaims(accessToken)
-	if err != nil {
-		return nil, err
-	}
-	refreshClaims, err := a.ParseRefreshClaims(refreshToken)
-	if err != nil {
-		return nil, err
-	}
-	return &JwtClaimsPair{Access: *accessClaims, Refresh: *refreshClaims}, nil
+	return newTokenPair(access, refresh, accessExp, refreshExp), nil
 }
 
 func (a *JwtV5Adapter) ParseAccessClaims(token string) (*JwtAccessClaims, error) {
@@ -88,7 +61,7 @@ func (a *JwtV5Adapter) ParseAccessClaims(token string) (*JwtAccessClaims, error)
 	if err != nil {
 		return nil, err
 	}
-	return NewAccessClaimsFromClaims(claims), nil
+	return newAccessClaimsFromMapClaims(claims), nil
 }
 
 func (a *JwtV5Adapter) ParseRefreshClaims(token string) (*JwtRefreshClaims, error) {
@@ -96,54 +69,7 @@ func (a *JwtV5Adapter) ParseRefreshClaims(token string) (*JwtRefreshClaims, erro
 	if err != nil {
 		return nil, err
 	}
-	return NewRefreshClaimsFromClaims(claims), nil
-}
-
-func (a *JwtV5Adapter) NewCookie(tokenType TokenType, token string, expr time.Time) *http.Cookie {
-	tokenName := AccessTokenCookieName
-
-	if tokenType == RefreshToken {
-		tokenName = RefreshTokenCookieName
-	}
-
-	return &http.Cookie{
-		Name:     tokenName,
-		Value:    token,
-		HttpOnly: true,
-		Expires:  expr,
-		Path:     "/",
-	}
-}
-
-func (a *JwtV5Adapter) GenTokenPairInCookie(usr *user.User) (*CookiePair, error) {
-	accessExp := time.Now().Add(AccessExpiration)
-	refreshExp := time.Now().Add(RefreshExpiration)
-
-	accessClaims := jwt.MapClaims{
-		"id":       usr.ID,
-		"email":    usr.Email,
-		"username": usr.Username,
-		"name":     fmt.Sprintf("%s %s", usr.Name.First, usr.Name.Last),
-		"exp":      accessExp.Unix(),
-	}
-	refreshClaims := jwt.MapClaims{
-		"id":  usr.ID,
-		"exp": refreshExp.Unix(),
-	}
-
-	accessToken, err := a.genToken(accessClaims)
-	if err != nil {
-		return nil, err
-	}
-	refreshToken, err := a.genToken(refreshClaims)
-	if err != nil {
-		return nil, err
-	}
-
-	accessCookie := a.NewCookie(AccessToken, accessToken, accessExp)
-	refreshCookie := a.NewCookie(RefreshToken, refreshToken, refreshExp)
-
-	return &CookiePair{Access: accessCookie, Refresh: refreshCookie}, nil
+	return newRefreshClaimsFromMapClaims(claims), nil
 }
 
 func (a *JwtV5Adapter) parse(tokenStr string) (*jwt.MapClaims, error) {
@@ -168,26 +94,24 @@ func (a *JwtV5Adapter) parse(tokenStr string) (*jwt.MapClaims, error) {
 	return &claims, nil
 }
 
-func (a *JwtV5Adapter) genAccessToken(usr *user.User) (string, error) {
-	claims := jwt.MapClaims{
-		"id":       usr.ID,
-		"email":    usr.Email,
-		"username": usr.Username,
-		"name":     fmt.Sprintf("%s %s", usr.Name.First, usr.Name.Last),
-		"exp":      time.Now().Add(AccessExpiration).Unix(),
-	}
-	return a.genToken(claims)
-}
+func (a *JwtV5Adapter) newToken(kind TokenType, usr *user.User) (string, time.Time, error) {
+	var exp time.Time
+	var claims *jwt.MapClaims
 
-func (a *JwtV5Adapter) genRefreshToken(usr *user.User) (string, error) {
-	claims := jwt.MapClaims{
-		"id":  usr.ID,
-		"exp": time.Now().Add(RefreshExpiration).Unix(),
+	if kind == refreshToken {
+		exp = time.Now().Add(refreshExpiration)
+		claims = newRefreshMapClaims(usr, exp)
+	} else {
+		exp = time.Now().Add(accessExpiration)
+		claims = newAccessMapClaims(usr, exp)
 	}
-	return a.genToken(claims)
-}
 
-func (a *JwtV5Adapter) genToken(claims jwt.Claims) (string, error) {
 	token := jwt.NewWithClaims(a.signingMethod, claims)
-	return token.SignedString(a.secret)
+
+	tokenStr, err := token.SignedString(a.secret)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	return tokenStr, exp, nil
 }

@@ -33,24 +33,25 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 	</html>
 }
 
-templ navbar(accessClaims *jwtadapter.JwtAccessClaims) {
+templ navbar(access *jwtadapter.JwtAccessClaims) {
 	<nav class="flex gap-6 items-start my-4">
-		if accessClaims != nil {
+		if access != nil {
 			<div class="text font-bold text-green-500">
-				<p>{ accessClaims.Username }</p>
+				<p>{ access.Username }</p>
 			</div>
 		}
 		<div hx-boost="true" class="flex gap-6 justify-between w-full">
 			<div class="flex gap-6 items-start">
 				@link("/", "/")
-				if accessClaims != nil {
+				if access!= nil {
 					@link("/users", "/users")
 					@link("/roles", "/roles")
 					@link("/merchants", "/merchants")
+					@link("/clients", "/clients")
 				}
 			</div>
 			<div class="flex gap-6 items-start">
-				if accessClaims == nil {
+				if access== nil {
 					@link("/login", "/login")
 					@link("/register", "/register")
 				} else {

@@ -5,12 +5,16 @@ import (
 	"net/http"
 	"time"
 
-	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/web/views"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type cookiePair struct {
+	Access  *http.Cookie
+	Refresh *http.Cookie
+}
 
 func newLoginFormData(usr *user.User, valerr *errs.ValidationError) *views.LoginFormData {
 	return &views.LoginFormData{
@@ -39,7 +43,7 @@ func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
-	usrform := &user.User{
+	usr := &user.User{
 		Name:            user.Name{First: r.FormValue("first_name"), Last: r.FormValue("last_name")},
 		Username:        r.FormValue("username"),
 		Email:           r.FormValue("email"),
@@ -47,9 +51,9 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 		ConfirmPassword: r.FormValue("cpassword"),
 	}
 
-	err := h.app.UserService.CreateUser(usrform)
+	err := h.app.UserService.CreateUser(usr, user.WithPopulatedRole)
 	if err == nil {
-		cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usrform)
+		cookiesPair, err := h.newCookiesPairFromUser(usr)
 		if err != nil {
 			respondWithInternalServerError(w, r)
 			return
@@ -63,7 +67,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if valerr, ok := err.(errs.ValidationError); ok {
-		e := newRegisterFormData(usrform, &valerr)
+		e := newRegisterFormData(usr, &valerr)
 		respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.RegisterForm(e))
 		return
 	}
@@ -72,7 +76,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 	usernameExists := errors.Is(err, user.ErrUsernameAlreadyExists)
 
 	if emailExists || usernameExists {
-		e := newRegisterFormData(usrform, &errs.ValidationError{})
+		e := newRegisterFormData(usr, &errs.ValidationError{})
 		if emailExists {
 			e.Email.Error = "Email already exists, try another one"
 		}
@@ -93,7 +97,7 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		Password: r.FormValue("password"),
 	}
 
-	usr, err := h.app.UserService.FindUserByEmailOrUsername(emailOrUsername)
+	usr, err := h.app.UserService.FindUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole)
 	if err != nil {
 		e := newLoginFormData(usrform, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"
@@ -109,20 +113,21 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
+	cookiesPair, err := h.newCookiesPairFromUser(usr)
 	if err != nil {
 		respondWithInternalServerError(w, r)
 		return
 	}
-	http.SetCookie(w, cookiesPair.Access)
+
 	http.SetCookie(w, cookiesPair.Refresh)
+	http.SetCookie(w, cookiesPair.Access)
 
 	hxRespondWithRedirect(w, "/")
 }
 
 func (h *handler) Logout(w http.ResponseWriter, r *http.Request) {
-	emptyAccessCookie := h.jwtAdapter.NewCookie(jwtadapter.AccessToken, "", time.Unix(0, 0))
-	emptyRefreshCookie := h.jwtAdapter.NewCookie(jwtadapter.RefreshToken, "", time.Unix(0, 0))
+	emptyRefreshCookie := newCookie(refreshTokenCookieName, "", time.Unix(0, 0))
+	emptyAccessCookie := newCookie(accessTokenCookieName, "", time.Unix(0, 0))
 
 	http.SetCookie(w, emptyAccessCookie)
 	http.SetCookie(w, emptyRefreshCookie)
@@ -130,43 +135,24 @@ func (h *handler) Logout(w http.ResponseWriter, r *http.Request) {
 	hxRespondWithRedirect(w, "/")
 }
 
-func (h *handler) refreshTokens(w http.ResponseWriter, r *http.Request) *jwtadapter.CookiePair {
-	cookie, err := r.Cookie(jwtadapter.RefreshTokenCookieName)
-	if err != nil || cookie.Value == "" {
-		return nil
-	}
-
-	parsed, err := h.jwtAdapter.ParseRefreshClaims(cookie.Value)
+func (h *handler) newCookiesPairFromUser(usr *user.User) (*cookiePair, error) {
+	tokens, err := h.jwtAdapter.NewPair(usr)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	usr, err := h.app.UserService.FindUser(parsed.ID)
-	if err != nil {
-		return nil
-	}
+	refreshCookie := newCookie(refreshTokenCookieName, tokens.Refresh.Encoded, tokens.Refresh.Expiration)
+	accessCookie := newCookie(accessTokenCookieName, tokens.Access.Encoded, tokens.Access.Expiration)
 
-	cookiesPair, err := h.jwtAdapter.GenTokenPairInCookie(usr)
-	if err != nil {
-		return nil
-	}
-
-	http.SetCookie(w, cookiesPair.Access)
-	http.SetCookie(w, cookiesPair.Refresh)
-
-	return cookiesPair
+	return &cookiePair{Refresh: refreshCookie, Access: accessCookie}, nil
 }
 
-func (h *handler) getMe(r *http.Request) (*user.User, error) {
-	access, err := h.getAuthFromContext(r)
-	if errors.Is(err, ErrNoAccessCookie) {
-		return nil, err
+func newCookie(name, value string, exp time.Time) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		HttpOnly: true,
+		Expires:  exp,
+		Path:     "/",
 	}
-
-	me, err := h.app.UserService.FindUser(access.ID)
-	if errors.Is(err, user.ErrUserNotFound) {
-		return nil, err
-	}
-
-	return me, nil
 }

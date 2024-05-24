@@ -6,9 +6,15 @@ import (
 	"net/http"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
 type jwtContextKeyType string
+
+const (
+	accessTokenCookieName  = "access_token"
+	refreshTokenCookieName = "refresh_token"
+)
 
 const (
 	authContextKey    jwtContextKeyType = "auth"
@@ -24,7 +30,7 @@ func (h *handler) AttachAuthenticatedUserMiddleware(next http.Handler) http.Hand
 }
 
 func (h *handler) getAuthedContext(w http.ResponseWriter, r *http.Request) context.Context {
-	accessCookie, err := r.Cookie(jwtadapter.AccessTokenCookieName)
+	accessCookie, err := r.Cookie(accessTokenCookieName)
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) && hasRefreshToken(r) {
 			return h.refreshTokensAndGetContext(w, r)
@@ -44,13 +50,30 @@ func (h *handler) getAuthedContext(w http.ResponseWriter, r *http.Request) conte
 }
 
 func (h *handler) refreshTokensAndGetContext(w http.ResponseWriter, r *http.Request) context.Context {
-	cookies := h.refreshTokens(w, r)
-
-	if cookies == nil {
-		return r.Context()
+	cookie, err := r.Cookie(refreshTokenCookieName)
+	if err != nil || cookie.Value == "" {
+		return nil
 	}
 
-	access, err := h.jwtAdapter.ParseAccessClaims(cookies.Access.Value)
+	parsed, err := h.jwtAdapter.ParseRefreshClaims(cookie.Value)
+	if err != nil {
+		return nil
+	}
+
+	usr, err := h.app.UserService.FindUser(parsed.ID, user.WithPopulatedRole)
+	if err != nil {
+		return nil
+	}
+
+	cookiesPair, err := h.newCookiesPairFromUser(usr)
+	if err != nil {
+		return nil
+	}
+
+	http.SetCookie(w, cookiesPair.Refresh)
+	http.SetCookie(w, cookiesPair.Access)
+
+	access, err := h.jwtAdapter.ParseAccessClaims(cookiesPair.Access.Value)
 	if err != nil {
 		return r.Context()
 	}
@@ -59,7 +82,7 @@ func (h *handler) refreshTokensAndGetContext(w http.ResponseWriter, r *http.Requ
 }
 
 func hasRefreshToken(r *http.Request) bool {
-	_, err := r.Cookie(jwtadapter.RefreshTokenCookieName)
+	_, err := r.Cookie(refreshTokenCookieName)
 	return err == nil
 }
 
