@@ -159,11 +159,9 @@ func (r *repository) CreateClient(cli *client.Client, options ...client.Retrieve
 
 	if ok := mongo.IsDuplicateKeyError(err); ok {
 		if se := mongo.ServerError(nil); errors.As(err, &se) {
-			log.Fatalln("error from database:", se)
-			// TODO: check the message
-			// if se.HasErrorMessage("{ name: ") {
-			// 	return client.ErrClientExistsForMerchant
-			// }
+			if se.HasErrorMessage(" name: ") && se.HasErrorMessage(" merchant: ") {
+				return client.ErrClientExistsForMerchant
+			}
 		}
 	}
 

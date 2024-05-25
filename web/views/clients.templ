@@ -31,9 +31,10 @@ templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, f
 templ CreateClientForm(formdata *CreateClientFormData) {
 	@form("Create Client", "/clients", "Create Client") {
 		@input("Name", "text", "name", "e.g. John Doe", formdata.Name)
+		@input("Phone Number", "text", "phone", "e.g. +201000000000", formdata.Phone)
 		@input("Email", "email", "email", "e.g. johndoe@example.com", formdata.Email)
-		@input("Link", "url", "link", "e.g. https://fb.com/username", formdata.Email)
-		@input("Location", "text", "location", "Enter location to deliver to here...", formdata.Email)
+		@input("Link", "url", "link", "e.g. https://fb.com/username", formdata.Link)
+		@input("Location", "text", "location", "Enter location to deliver to here...", formdata.Location)
 		<div>
 			<label for="notes" class="input-label">Notes</label>
 			<textarea
@@ -65,8 +66,37 @@ templ Client(client *client.Client) {
 	<div hx-target="this">
 		<p>ID: { client.ID }</p>
 		<p>Name: { client.Name }</p>
+		<p>MerchantID: { client.MerchantID }</p>
+		if client.WholesaleAsDefault {
+			<p>Sell as Wholesale by Default: <span class="font-bold">YES</span></p>
+		} else {
+			<p>Sell as Wholesale by Default: no</p>
+		}
 		<p>Created At: { client.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { client.UpdatedAt.Format(time.RFC1123) }</p>
+		if client.HasContactInfo() {
+			<h3 class="text-lg font-bold">Contact info</h3>
+			if client.ContactInfo.PhoneNumbers != nil {
+				for k,v := range client.ContactInfo.PhoneNumbers {
+					<p><span class="font-bold">Phone Number:</span> { k } :: { v }</p>
+				}
+			}
+			if client.ContactInfo.Emails != nil {
+				for k,v := range client.ContactInfo.Emails {
+					<p><span class="font-bold">Email:</span> { k } :: { v }</p>
+				}
+			}
+			if client.ContactInfo.Links != nil {
+				for k,v := range client.ContactInfo.Links {
+					<p><span class="font-bold">Link:</span> { k } :: { v }</p>
+				}
+			}
+			if client.ContactInfo.Locations != nil {
+				for k,v := range client.ContactInfo.Locations {
+					<p><span class="font-bold">Location:</span> { k } :: { v }</p>
+				}
+			}
+		}
 		<button
 			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
 			hx-get={ fmt.Sprintf("/clients/%s/edit", client.ID) }
