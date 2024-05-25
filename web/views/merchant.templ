@@ -25,8 +25,8 @@ templ MerchantPage(accessClaims *jwtadapter.JwtAccessClaims, merchants []merchan
 
 templ CreateMerchantForm(formdata *CreateMerchantFormData) {
 	@form("Create Merchant", "/merchants", "Create Merchant") {
-		@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", formdata.Name)
-		@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", formdata.Logo)
+		@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", "", formdata.Name)
+		@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", "", formdata.Logo)
 	}
 }
 
@@ -59,8 +59,8 @@ templ Merchant(merchant *merchant.Merchant) {
 templ EditMerchant(merchant *merchant.Merchant, data *CreateMerchantFormData) {
 	<form hx-put={ fmt.Sprintf("/merchants/%s", merchant.ID) } hx-swap="outerHTML" hx-target="this">
 		<p>ID: { merchant.ID }</p>
-		@input("Name", "text", "name", "e.g. Odin Leahter Store", data.Name)
-		@input("Logo", "url", "logo", "e.g. https://odinleahter.store/logo.png", data.Logo)
+		@input("Name", "text", "name", "e.g. Odin Leahter Store", merchant.ID, data.Name)
+		@input("Logo", "url", "logo", "e.g. https://odinleahter.store/logo.png", merchant.ID, data.Logo)
 		<div class="flex gap-2 mt-2 ">
 			<button
 				type="submit"

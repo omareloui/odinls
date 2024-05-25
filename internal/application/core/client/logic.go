@@ -48,7 +48,7 @@ func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id str
 		return nil, errs.ErrForbidden
 	}
 
-	return s.repo.GetClientByID(claims.CraftsmanInfo.MerchantID, opts...)
+	return s.repo.GetClientByID(id, opts...)
 }
 
 func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client *Client, opts ...RetrieveOptsFunc) error {

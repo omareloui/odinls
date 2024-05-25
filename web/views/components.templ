@@ -12,11 +12,11 @@ type FormInputData struct {
 	Error string
 }
 
-templ input(label, kind, name, placeholder string, data FormInputData) {
+templ input(label, kind, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
-		<label for={ name } class="input-label">{ label }</label>
+		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
 		<input
-			id={ name }
+			id={ join(name, idSuffix) }
 			type={ kind }
 			name={ name }
 			placeholder={ placeholder }
@@ -27,11 +27,35 @@ templ input(label, kind, name, placeholder string, data FormInputData) {
 	</div>
 }
 
-templ selectInput(label, name, placeholder string, options map[string]string, data FormInputData) {
+templ textarea(label, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
-		<label for={ name } class="input-label">{ label }</label>
+		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
+		<textarea
+			id={ join(name, idSuffix) }
+			name={ name }
+			placeholder={ placeholder }
+			class="input-text-field"
+		>{ data.Value }</textarea>
+		@errorMessage(data.Error)
+	</div>
+}
+
+templ checkbox(label, name, idSuffix string, data FormInputData) {
+	<div>
+		if data.Value == "on" {
+			<input id={ join(name, idSuffix) } type="checkbox" name={ name } checked/>
+		} else {
+			<input id={ join(name, idSuffix) } type="checkbox" name={ name }/>
+		}
+		<label for={ join(name, idSuffix) } class="cursor-pointer">{ label }</label>
+	</div>
+}
+
+templ selectInput(label, name, placeholder, idSuffix string, options map[string]string, data FormInputData) {
+	<div>
+		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
 		<select
-			id={ name }
+			id={ join(name, idSuffix) }
 			name={ name }
 			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
 		>

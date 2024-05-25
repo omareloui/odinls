@@ -24,8 +24,8 @@ templ Login(formdata *LoginFormData) {
 
 templ LoginForm(formdata *LoginFormData) {
 	@form("Login", "/login", "Login") {
-		@input("Username or Email", "text", "email_or_username", "e.g. omareloui", formdata.Email)
-		@input("Password", "password", "password", "********", formdata.Password)
+		@input("Username or Email", "text", "email_or_username", "e.g. omareloui", "", formdata.Email)
+		@input("Password", "password", "password", "********", "", formdata.Password)
 	}
 }
 
@@ -40,12 +40,12 @@ templ Register(formdata *RegisterFormData) {
 templ RegisterForm(formdata *RegisterFormData) {
 	@form("Register", "/register", "Register") {
 		<div class="grid grid-cols-2 gap-2">
-			@input("First Name", "text", "first_name", "e.g. Omar", formdata.FirstName)
-			@input("Last Name", "text", "last_name", "e.g. Eloui", formdata.LastName)
+			@input("First Name", "text", "first_name", "e.g. Omar", "", formdata.FirstName)
+			@input("Last Name", "text", "last_name", "e.g. Eloui", "", formdata.LastName)
 		</div>
-		@input("Username", "text", "username", "e.g. omareloui", formdata.Username)
-		@input("Email", "email", "email", "e.g. contact@omareloui.com", formdata.Email)
-		@input("Password", "password", "password", "********", formdata.Password)
-		@input("Confirm Password", "password", "cpassword", "********", formdata.ConfirmPassword)
+		@input("Username", "text", "username", "e.g. omareloui", "", formdata.Username)
+		@input("Email", "email", "email", "e.g. contact@omareloui.com", "", formdata.Email)
+		@input("Password", "password", "password", "********", "", formdata.Password)
+		@input("Confirm Password", "password", "cpassword", "********", "", formdata.ConfirmPassword)
 	}
 }

@@ -83,21 +83,64 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetClient(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := h.getAuthFromContext(r)
+		c, err := h.app.ClientService.GetClientByID(claims, id)
+		if err != nil {
+			if ok := errors.Is(err, client.ErrClientNotFound); ok {
+				w.WriteHeader(http.StatusNotFound)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+			if errors.Is(errs.ErrForbidden, err) {
+				respondWithForbidden(w, r)
+				return
+			}
+			respondWithInternalServerError(w, r)
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK, views.Client(c))
+	}
 }
 
 func (h *handler) GetEditClient(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := h.getAuthFromContext(r)
+		c, err := h.app.ClientService.GetClientByID(claims, id)
+		if err != nil {
+			if ok := errors.Is(err, client.ErrClientNotFound); ok {
+				w.WriteHeader(http.StatusNotFound)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+			if errors.Is(errs.ErrForbidden, err) {
+				respondWithForbidden(w, r)
+				return
+			}
+			respondWithInternalServerError(w, r)
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK, views.EditClient(c, newCreateClientFormData(c, &errs.ValidationError{})))
+	}
 }
 
 func (h *handler) EditClient(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+	}
 }
 
 func newCreateClientFormData(client *client.Client, valerr *errs.ValidationError) *views.CreateClientFormData {
 	formData := &views.CreateClientFormData{
 		Name:  views.FormInputData{Value: client.Name, Error: valerr.Errors.MsgFor("Name")},
 		Notes: views.FormInputData{Value: client.Notes, Error: valerr.Errors.MsgFor("Notes")},
+	}
+
+	if client.WholesaleAsDefault {
+		formData.WholesaleAsDefault = views.FormInputData{Value: "on", Error: valerr.Errors.MsgFor("WholesaleAsDefault")}
+	} else {
+		formData.WholesaleAsDefault = views.FormInputData{Value: "", Error: valerr.Errors.MsgFor("WholesaleAsDefault")}
 	}
 
 	if client.ContactInfo.PhoneNumbers != nil && len(client.ContactInfo.PhoneNumbers) > 0 {

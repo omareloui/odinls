@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"errors"
-	"log"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/errs"
@@ -206,11 +205,9 @@ func (r *repository) UpdateClientByID(id string, cli *client.Client, options ...
 
 	if ok := mongo.IsDuplicateKeyError(err); ok {
 		if se := mongo.ServerError(nil); errors.As(err, &se) {
-			log.Fatalln("error from database:", se)
-			// TODO: check the message
-			// if se.HasErrorMessage("{ name: ") {
-			// 	return client.ErrClientExistsForMerchant
-			// }
+			if se.HasErrorMessage(" name: ") && se.HasErrorMessage(" merchant: ") {
+				return client.ErrClientExistsForMerchant
+			}
 		}
 	}
 

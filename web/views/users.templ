@@ -98,12 +98,12 @@ templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData, opt
 	>
 		<p>ID: { user.ID }</p>
 		<div class="grid grid-cols-2 gap-2">
-			@input("First Name", "text", "first_name", "e.g. Omar", data.Name.First)
-			@input("Last Name", "text", "last_name", "e.g. Eloui", data.Name.Last)
+			@input("First Name", "text", "first_name", "e.g. Omar", "", data.Name.First)
+			@input("Last Name", "text", "last_name", "e.g. Eloui", "", data.Name.Last)
 		</div>
-		@input("Username", "text", "username", "e.g. omareloui", data.Username)
-		@input("Email", "email", "email", "e.g. contact@omareloui.com", data.Email)
-		@selectInput("Role", "role", "Select a role", getRolesMap(roles), data.Role)
+		@input("Username", "text", "username", "e.g. omareloui", "", data.Username)
+		@input("Email", "email", "email", "e.g. contact@omareloui.com", "", data.Email)
+		@selectInput("Role", "role", "Select a role", "", getRolesMap(roles), data.Role)
 		if opts != nil && opts[0] != nil && opts[0].WithCraftsmanInfo {
 			@CraftsmanForm(opts[0].Merchants, data)
 		} else {
@@ -138,8 +138,8 @@ templ UserOOB(user *user.User) {
 }
 
 templ CraftsmanForm(merchants []merchant.Merchant, data *CreateUserFormData) {
-	@input("Hourly Rate", "number", "hourly_rate", "e.g. 45", data.HourlyRate)
-	@selectInput("Merchant", "merchant", "Select the craftsman merchant", getMerchantsMap(merchants), data.MerchantID)
+	@input("Hourly Rate", "number", "hourly_rate", "e.g. 45", "", data.HourlyRate)
+	@selectInput("Merchant", "merchant", "Select the craftsman merchant", "", getMerchantsMap(merchants), data.MerchantID)
 }
 
 func getRolesMap(roles []role.Role) map[string]string {

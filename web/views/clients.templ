@@ -11,7 +11,7 @@ import (
 type CreateClientFormData struct {
 	Name               FormInputData
 	Notes              FormInputData
-	WholesaleAsDefualt FormInputData
+	WholesaleAsDefault FormInputData
 	Phone              FormInputData
 	Link               FormInputData
 	Email              FormInputData
@@ -30,24 +30,13 @@ templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, f
 
 templ CreateClientForm(formdata *CreateClientFormData) {
 	@form("Create Client", "/clients", "Create Client") {
-		@input("Name", "text", "name", "e.g. John Doe", formdata.Name)
-		@input("Phone Number", "text", "phone", "e.g. +201000000000", formdata.Phone)
-		@input("Email", "email", "email", "e.g. johndoe@example.com", formdata.Email)
-		@input("Link", "url", "link", "e.g. https://fb.com/username", formdata.Link)
-		@input("Location", "text", "location", "Enter location to deliver to here...", formdata.Location)
-		<div>
-			<label for="notes" class="input-label">Notes</label>
-			<textarea
-				id="notes"
-				name="notes"
-				class="input-text-field"
-				placeholder="Enter notes here..."
-			></textarea>
-		</div>
-		<div>
-			<input id="wholesale_as_default" type="checkbox" name="wholesale_as_default"/>
-			<label for="wholesale_as_default">Wholesale as a default</label>
-		</div>
+		@input("Name", "text", "name", "e.g. John Doe", "", formdata.Name)
+		@input("Phone Number", "text", "phone", "e.g. +201000000000", "", formdata.Phone)
+		@input("Email", "email", "email", "e.g. johndoe@example.com", "", formdata.Email)
+		@input("Link", "url", "link", "e.g. https://fb.com/username", "", formdata.Link)
+		@input("Location", "text", "location", "Enter location to deliver to here...", "", formdata.Location)
+		@textarea("Notes", "notes", "Enter notes here...", "", formdata.Notes)
+		@checkbox("Wholesale by default", "wholesale_as_default", "", formdata.WholesaleAsDefault)
 	}
 }
 
@@ -71,6 +60,9 @@ templ Client(client *client.Client) {
 			<p>Sell as Wholesale by Default: <span class="font-bold">YES</span></p>
 		} else {
 			<p>Sell as Wholesale by Default: no</p>
+		}
+		if client.Notes != "" {
+			<p><span class="font-bold">Notes:</span> { client.Notes }</p>
 		}
 		<p>Created At: { client.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { client.UpdatedAt.Format(time.RFC1123) }</p>
@@ -108,7 +100,13 @@ templ Client(client *client.Client) {
 templ EditClient(client *client.Client, data *CreateClientFormData) {
 	<form hx-put={ fmt.Sprintf("/clients/%s", client.ID) } hx-swap="outerHTML" hx-target="this">
 		<p>ID: { client.ID }</p>
-		@input("Name", "text", "name", "e.g. Odin Leahter Store", data.Name)
+		@input("Name", "text", "name", "e.g. John Doe", client.ID, data.Name)
+		@input("Phone Number", "text", "phone", "e.g. +201000000000", client.ID, data.Phone)
+		@input("Email", "email", "email", "e.g. johndoe@example.com", client.ID, data.Email)
+		@input("Link", "url", "link", "e.g. https://fb.com/username", client.ID, data.Link)
+		@input("Location", "text", "location", "Enter location to deliver to here...", client.ID, data.Location)
+		@textarea("Notes", "notes", "Enter notes here...", client.ID, data.Notes)
+		@checkbox("Wholesale by default", "wholesale_as_default", client.ID, data.WholesaleAsDefault)
 		<div class="flex gap-2 mt-2 ">
 			<button
 				type="submit"
