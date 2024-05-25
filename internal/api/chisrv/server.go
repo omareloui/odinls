@@ -81,7 +81,7 @@ func (a *APIAdapter) Run() {
 		id := chi.URLParam(r, "id")
 		a.handler.GetEditClient(id)(w, r)
 	}))
-	a.router.Put("/clients/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+	a.router.Put("/clients/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		a.handler.EditClient(id)(w, r)
 	}))

@@ -128,6 +128,62 @@ func (h *handler) GetEditClient(id string) http.HandlerFunc {
 
 func (h *handler) EditClient(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := h.getAuthFromContext(r)
+
+		cli := &client.Client{
+			ID:                 id,
+			Name:               r.FormValue("name"),
+			Notes:              r.FormValue("notes"),
+			WholesaleAsDefault: r.FormValue("wholesale_as_default") == "on",
+		}
+
+		if phone := r.FormValue("phone"); phone != "" {
+			cli.ContactInfo.PhoneNumbers = make(map[string]string)
+			cli.ContactInfo.PhoneNumbers["default"] = phone
+		}
+		if email := r.FormValue("email"); email != "" {
+			cli.ContactInfo.Emails = make(map[string]string)
+			cli.ContactInfo.Emails["default"] = email
+		}
+		if link := r.FormValue("link"); link != "" {
+			cli.ContactInfo.Links = make(map[string]string)
+			cli.ContactInfo.Links["default"] = link
+		}
+		if location := r.FormValue("location"); location != "" {
+			cli.ContactInfo.Locations = make(map[string]string)
+			cli.ContactInfo.Locations["default"] = location
+		}
+
+		err := h.app.ClientService.UpdateClientByID(claims, id, cli)
+		// TODO(refactor): make this error handling a generic helper function
+		if err != nil {
+			if errors.Is(errs.ErrForbidden, err) {
+				respondWithForbidden(w, r)
+				return
+			}
+			if errors.Is(errs.ErrInvalidID, err) {
+				w.WriteHeader(http.StatusUnprocessableEntity)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+			if valerr, ok := err.(errs.ValidationError); ok {
+				// TODO(refactor): make sure every instence of "formdata" is wrote like this:
+				formdata := newCreateClientFormData(cli, &valerr)
+				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditClient(cli, formdata))
+				return
+			}
+			if errors.Is(client.ErrClientExistsForMerchant, err) {
+				formdata := newCreateClientFormData(cli, &errs.ValidationError{})
+				formdata.Name.Error = "You already have a client with this name"
+				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditClient(cli, formdata))
+				return
+			}
+			respondWithInternalServerError(w, r)
+			return
+		}
+
+		_ = renderToBody(w, r, views.ClientOOB(cli))
+		respondWithTemplate(w, r, http.StatusOK, views.Client(cli))
 	}
 }
 

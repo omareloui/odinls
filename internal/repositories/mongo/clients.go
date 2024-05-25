@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/errs"
@@ -173,11 +174,7 @@ func (r *repository) UpdateClientByID(id string, cli *client.Client, options ...
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	mrId, err := primitive.ObjectIDFromHex(cli.MerchantID)
-	if err != nil {
-		return errs.ErrInvalidID
-	}
-
+	fmt.Println(id)
 	objId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errs.ErrInvalidID
@@ -186,13 +183,14 @@ func (r *repository) UpdateClientByID(id string, cli *client.Client, options ...
 	filter := bson.M{"_id": objId}
 
 	res := r.clientsColl.FindOneAndUpdate(ctx, filter, bson.M{
-		"merchant":             mrId,
-		"name":                 cli.Name,
-		"notes":                cli.Notes,
-		"contact_info":         cli.ContactInfo,
-		"wholesale_as_default": cli.WholesaleAsDefault,
-		"created_at":           cli.CreatedAt,
-		"updated_at":           cli.UpdatedAt,
+		"$set": bson.M{
+			"name":                 cli.Name,
+			"notes":                cli.Notes,
+			"contact_info":         cli.ContactInfo,
+			"wholesale_as_default": cli.WholesaleAsDefault,
+			"created_at":           cli.CreatedAt,
+			"updated_at":           cli.UpdatedAt,
+		},
 	})
 
 	err = res.Err()
