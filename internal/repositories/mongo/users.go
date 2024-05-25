@@ -269,6 +269,7 @@ func (r *repository) UnsetCraftsmanByID(id string) error {
 	filter := bson.D{{Key: "_id", Value: objId}}
 	update := bson.M{
 		"$unset": bson.M{"craftsman": ""},
+		"$set":   bson.M{"updated_at": time.Now()},
 	}
 
 	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
@@ -287,7 +288,7 @@ func (r *repository) populateMerchantForUser(u *user.User) {
 		return
 	}
 
-	merchant, err := r.FindMerchant(u.RoleID)
+	merchant, err := r.FindMerchant(u.Craftsman.MerchantID)
 	if err == nil {
 		u.Craftsman.Merchant = merchant
 	}

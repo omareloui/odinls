@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
@@ -70,6 +71,17 @@ func newAccessClaimsFromMapClaims(claims *jwt.MapClaims) *JwtAccessClaims {
 		c.CraftsmanInfo = user.Craftsman{
 			MerchantID: ci["merchant_id"].(string),
 			HourlyRate: ci["hourly_rate"].(float64),
+		}
+		if m, ok := ci["merchant"].(map[string]interface{}); ok {
+			createdAt, _ := time.Parse(time.RFC3339, m["created_at"].(string))
+			updatedAt, _ := time.Parse(time.RFC3339, m["updated_at"].(string))
+			c.CraftsmanInfo.Merchant = &merchant.Merchant{
+				ID:        m["id"].(string),
+				Name:      m["name"].(string),
+				Logo:      m["logo"].(string),
+				CreatedAt: createdAt,
+				UpdatedAt: updatedAt,
+			}
 		}
 	}
 

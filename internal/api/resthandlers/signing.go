@@ -51,7 +51,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) {
 		ConfirmPassword: r.FormValue("cpassword"),
 	}
 
-	err := h.app.UserService.CreateUser(usr, user.WithPopulatedRole)
+	err := h.app.UserService.CreateUser(usr, user.WithPopulatedRole, user.WithPopulatedMerchant)
 	if err == nil {
 		cookiesPair, err := h.newCookiesPairFromUser(usr)
 		if err != nil {
@@ -97,7 +97,7 @@ func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		Password: r.FormValue("password"),
 	}
 
-	usr, err := h.app.UserService.FindUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole)
+	usr, err := h.app.UserService.FindUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole, user.WithPopulatedMerchant)
 	if err != nil {
 		e := newLoginFormData(usrform, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"
