@@ -93,20 +93,8 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id 
 func sanitizeClient(c *Client) {
 	c.Name = sanitizer.TrimString(c.Name)
 	c.Notes = sanitizer.TrimString(c.Notes)
-	sanitizeMap(&c.ContactInfo.Emails)
-	sanitizeMap(&c.ContactInfo.Links)
-	sanitizeMap(&c.ContactInfo.Locations)
-	sanitizeMap(&c.ContactInfo.PhoneNumbers)
-}
-
-func sanitizeMap(m *map[string]string) {
-	if m == nil {
-		return
-	}
-	old := *m
-	newm := map[string]string{}
-	for key, val := range old {
-		newm[sanitizer.TrimString(key)] = sanitizer.TrimString(val)
-	}
-	*m = newm
+	sanitizer.SanitizeStringMap(&c.ContactInfo.Emails)
+	sanitizer.SanitizeStringMap(&c.ContactInfo.Links)
+	sanitizer.SanitizeStringMap(&c.ContactInfo.Locations)
+	sanitizer.SanitizeStringMap(&c.ContactInfo.PhoneNumbers)
 }

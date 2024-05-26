@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/omareloui/odinls/internal/application/core/client"
+	"github.com/omareloui/odinls/internal/application/core/counter"
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
@@ -14,6 +15,7 @@ type Application struct {
 	MerchantService merchant.MerchantService
 	RoleService     role.RoleService
 	ClientService   client.ClientService
+	CounterService  counter.CounterService
 }
 
 func NewApplication(repo repository.Repository, validator interfaces.Validator) *Application {
@@ -25,5 +27,6 @@ func NewApplication(repo repository.Repository, validator interfaces.Validator) 
 		RoleService:     roleService,
 		MerchantService: merchantService,
 		ClientService:   client.NewClientService(repo, validator),
+		CounterService:  counter.NewCounterService(repo, validator),
 	}
 }

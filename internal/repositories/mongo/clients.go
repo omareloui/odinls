@@ -72,6 +72,7 @@ func (r *repository) GetClientsByMerchantID(merchantId string, options ...client
 		cursor, err = r.clientsColl.Find(ctx, filter)
 	} else {
 		cursor, err = r.clientsColl.Aggregate(ctx, bson.A{
+			bson.M{"$match": filter},
 			bson.M{
 				"$lookup": bson.M{
 					"from":         merchantsCollectionName,
@@ -85,9 +86,6 @@ func (r *repository) GetClientsByMerchantID(merchantId string, options ...client
 	}
 
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, client.ErrClientNotFound
-		}
 		return nil, err
 	}
 
