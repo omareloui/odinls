@@ -45,6 +45,10 @@ type Handler interface {
 	GetClient(id string) http.HandlerFunc
 	GetEditClient(id string) http.HandlerFunc
 	EditClient(id string) http.HandlerFunc
+
+	GetProducts(w http.ResponseWriter, r *http.Request)
+
+	GetOrders(w http.ResponseWriter, r *http.Request)
 }
 
 type handler struct {

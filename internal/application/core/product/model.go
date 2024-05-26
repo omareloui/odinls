@@ -45,7 +45,7 @@ type Product struct {
 	ID          string
 	MerchantID  string
 	CraftsmanID string
-	Number      int
+	Number      uint
 
 	Name        string
 	Description string
@@ -55,12 +55,12 @@ type Product struct {
 }
 
 func (p *Product) Ref() string {
-	return fmt.Sprintf("%s%s", p.Category, strconv.Itoa(p.Number))
+	return fmt.Sprintf("%s%s", p.Category, strconv.Itoa(int(p.Number)))
 }
 
 type ProductVariant struct {
 	ID                string
-	Suffix            string // TODO(research): replace this with a auto generated field
+	Suffix            uint8
 	Name              string
 	Description       string
 	Price             float64
@@ -71,5 +71,5 @@ type ProductVariant struct {
 }
 
 func (p *ProductVariant) Ref() string {
-	return fmt.Sprintf("%s-%s", p.ProductRef, p.Suffix)
+	return fmt.Sprintf("%s-%s", p.ProductRef, strconv.Itoa(int(p.Suffix)))
 }

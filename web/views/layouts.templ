@@ -43,20 +43,22 @@ templ navbar(access *jwtadapter.JwtAccessClaims) {
 		}
 		<div hx-boost="true" class="flex gap-6 justify-between w-full">
 			<div class="flex gap-6 items-start">
-				@link("/", "/")
+				@navlink("/")
 				if access!= nil {
-					@link("/users", "/users")
-					@link("/roles", "/roles")
-					@link("/merchants", "/merchants")
-					@link("/clients", "/clients")
+					@navlink("/users")
+					@navlink("/roles")
+					@navlink("/merchants")
+					@navlink("/clients")
+					@navlink("/products")
+					@navlink("/orders")
 				}
 			</div>
 			<div class="flex gap-6 items-start">
 				if access== nil {
-					@link("/login", "/login")
-					@link("/register", "/register")
+					@navlink("/login")
+					@navlink("/register")
 				} else {
-					<button hx-post="/logout" class="text font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">
+					<button hx-post="/logout" class="text-sm font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">
 						/logout
 					</button>
 				}

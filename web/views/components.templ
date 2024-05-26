@@ -107,3 +107,8 @@ templ link(href templ.SafeURL, text string) {
 		{ text }
 	</a>
 }
+
+// TODO(research): update the hx values to SafeURL?
+templ navlink(href templ.SafeURL) {
+	<a href={ href } class="text-sm font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">{ string(href) }</a>
+}

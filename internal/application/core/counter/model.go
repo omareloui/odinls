@@ -1,8 +1,8 @@
-package domain
+package counter
 
 type Counter struct {
-	ID            ID
-	Merchant      ID
+	ID            string
+	MerchantID    string
 	OrderNumber   int16
 	ProductsCodes string
 }

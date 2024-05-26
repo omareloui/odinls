@@ -86,6 +86,10 @@ func (a *APIAdapter) Run() {
 		a.handler.EditClient(id)(w, r)
 	}))
 
+	a.router.Get("/products", a.handler.AuthGuard(a.handler.GetProducts))
+
+	a.router.Get("/orders", a.handler.AuthGuard(a.handler.GetOrders))
+
 	a.router.Get("/unauthorized", a.handler.Unauthorized)
 
 	static(a.router, []string{"styles", "js"}, "./web/public")

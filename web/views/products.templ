@@ -1,0 +1,12 @@
+package views
+
+import "github.com/omareloui/odinls/internal/adapters/jwt"
+
+templ ProductsPage(claims *jwtadapter.JwtAccessClaims) {
+	@baseLayout(claims, "Products | Odin LS") {
+		@container() {
+			<h2 class="text-3xl font-bold mb-3">Products</h2>
+			<p>WIP!!</p>
+		}
+	}
+}
