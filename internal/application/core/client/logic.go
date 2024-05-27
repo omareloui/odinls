@@ -83,6 +83,7 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id 
 	}
 
 	// TODO(refactor): make sure to update the updated from the SERVICE level in all services
+	// TODO(refactor): DON'T as this is a database responsiblity, move everything there.
 
 	client.CreatedAt = time.Time{}
 	client.UpdatedAt = time.Now()

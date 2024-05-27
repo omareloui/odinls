@@ -1,12 +1,5 @@
 package views
 
-templ errIcon(size string) {
-	<svg width={ size } height={ size } viewBox="0 0 24 24" class="fill-red-400">
-		<path d="M0 0h24v24H0z" fill="none"></path>
-		<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z"></path>
-	</svg>
-}
-
 type FormInputData struct {
 	Value string
 	Error string
@@ -82,18 +75,44 @@ templ errorMessage(message string) {
 }
 
 templ form(title, postTo, submitStr string) {
-	<form class="grid gap-2 p-6 mb-6 bg-gray-100 rounded-lg" hx-post={ postTo } hx-swap="outerHTML" hx-target="this">
-		if title != "" {
-			<h2 class="text-xl font-bold mt-2">{ title }</h2>
-		}
-		{ children... }
-		<button
-			type="submit"
-			class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+	<div x-data="{ open: false }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg">
+		<div class="flex flex-column justify-between items-center" x-show="!open">
+			<h2 class="text-xl font-bold">{ title }</h2>
+			<button
+				@click="open = true"
+				class="form-visibility-button bg-gray-300"
+				aria-label="expand form"
+				type="button"
+			>
+				@downIcon("20px")
+			</button>
+		</div>
+		<form
+			class="grid gap-2 mb-6 bg-gray-100 rounded-lg"
+			hx-post={ postTo }
+			hx-swap="outerHTML"
+			hx-target="this"
+			x-show="open"
 		>
-			{ submitStr }
-		</button>
-	</form>
+			<div class="flex flex-column justify-between items-center">
+				<h2 class="text-xl font-bold">{ title }</h2>
+				<button
+					@click="open = false"
+					class="form-visibility-button bg-red-500 text-white"
+					type="button"
+				>
+					@closeIcon("15px")
+				</button>
+			</div>
+			{ children... }
+			<button
+				type="submit"
+				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+			>
+				{ submitStr }
+			</button>
+		</form>
+	</div>
 }
 
 templ container() {
