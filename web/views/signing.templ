@@ -23,7 +23,7 @@ templ Login(formdata *LoginFormData) {
 }
 
 templ LoginForm(formdata *LoginFormData) {
-	@form("Login", "/login", "Login") {
+	@creationForm("Login", "/login", "Login") {
 		@input("Username or Email", "text", "email_or_username", "e.g. omareloui", "", formdata.Email)
 		@input("Password", "password", "password", "********", "", formdata.Password)
 	}
@@ -38,7 +38,7 @@ templ Register(formdata *RegisterFormData) {
 }
 
 templ RegisterForm(formdata *RegisterFormData) {
-	@form("Register", "/register", "Register") {
+	@creationForm("Register", "/register", "Register") {
 		<div class="grid grid-cols-2 gap-2">
 			@input("First Name", "text", "first_name", "e.g. Omar", "", formdata.FirstName)
 			@input("Last Name", "text", "last_name", "e.g. Eloui", "", formdata.LastName)

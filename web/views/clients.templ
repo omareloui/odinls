@@ -29,14 +29,8 @@ templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, f
 }
 
 templ CreateClientForm(formdata *CreateClientFormData) {
-	@form("Create Client", "/clients", "Create Client") {
-		@input("Name", "text", "name", "e.g. John Doe", "", formdata.Name)
-		@input("Phone Number", "text", "phone", "e.g. +201000000000", "", formdata.Phone)
-		@input("Email", "email", "email", "e.g. johndoe@example.com", "", formdata.Email)
-		@input("Link", "url", "link", "e.g. https://fb.com/username", "", formdata.Link)
-		@input("Location", "text", "location", "Enter location to deliver to here...", "", formdata.Location)
-		@textarea("Notes", "notes", "Enter notes here...", "", formdata.Notes)
-		@checkbox("Wholesale by default", "wholesale_as_default", "", formdata.WholesaleAsDefault)
+	@creationForm("Create Client", "/clients", "Create Client") {
+		@clientFormBody(&client.Client{}, formdata)
 	}
 }
 
@@ -97,16 +91,10 @@ templ Client(client *client.Client) {
 	</div>
 }
 
-templ EditClient(client *client.Client, data *CreateClientFormData) {
-	<form hx-put={ fmt.Sprintf("/clients/%s", client.ID) } hx-swap="outerHTML" hx-target="this">
-		<p>ID: { client.ID }</p>
-		@input("Name", "text", "name", "e.g. John Doe", client.ID, data.Name)
-		@input("Phone Number", "text", "phone", "e.g. +201000000000", client.ID, data.Phone)
-		@input("Email", "email", "email", "e.g. johndoe@example.com", client.ID, data.Email)
-		@input("Link", "url", "link", "e.g. https://fb.com/username", client.ID, data.Link)
-		@input("Location", "text", "location", "Enter location to deliver to here...", client.ID, data.Location)
-		@textarea("Notes", "notes", "Enter notes here...", client.ID, data.Notes)
-		@checkbox("Wholesale by default", "wholesale_as_default", client.ID, data.WholesaleAsDefault)
+templ EditClient(cli *client.Client, formdata *CreateClientFormData) {
+	@form("put", fmt.Sprintf("/clients/%s", cli.ID)) {
+		<p>ID: { cli.ID }</p>
+		@clientFormBody(cli, formdata)
 		<div class="flex gap-2 mt-2 ">
 			<button
 				type="submit"
@@ -117,14 +105,24 @@ templ EditClient(client *client.Client, data *CreateClientFormData) {
 			<button
 				type="button"
 				class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-				hx-get={ fmt.Sprintf("/clients/%s", client.ID) }
+				hx-get={ fmt.Sprintf("/clients/%s", cli.ID) }
 			>Cancel</button>
 		</div>
-	</form>
+	}
 }
 
-templ ClientOOB(client *client.Client) {
+templ ClientOOB(cli *client.Client) {
 	<div id="clientsList" hx-swap-oob="beforeend">
-		@Client(client)
+		@Client(cli)
 	</div>
+}
+
+templ clientFormBody(cli *client.Client, formdata *CreateClientFormData) {
+	@input("Name", "text", "name", "e.g. John Doe", cli.ID, formdata.Name)
+	@input("Phone Number", "text", "phone", "e.g. +201000000000", cli.ID, formdata.Phone)
+	@input("Email", "email", "email", "e.g. johndoe@example.com", cli.ID, formdata.Email)
+	@input("Link", "url", "link", "e.g. https://fb.com/username", cli.ID, formdata.Link)
+	@input("Location", "text", "location", "Enter location to deliver to here...", cli.ID, formdata.Location)
+	@textarea("Notes", "notes", "Enter notes here...", cli.ID, formdata.Notes)
+	@checkbox("Wholesale by default", "wholesale_as_default", cli.ID, formdata.WholesaleAsDefault)
 }

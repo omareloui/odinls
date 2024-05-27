@@ -1,5 +1,7 @@
 package views
 
+import "fmt"
+
 type FormInputData struct {
 	Value string
 	Error string
@@ -74,7 +76,7 @@ templ errorMessage(message string) {
 	}
 }
 
-templ form(title, postTo, submitStr string) {
+templ creationForm(title, postTo, submitStr string) {
 	<div x-data="{ open: false }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg">
 		<div class="flex flex-column justify-between items-center" x-show="!open">
 			<h2 class="text-xl font-bold">{ title }</h2>
@@ -87,13 +89,7 @@ templ form(title, postTo, submitStr string) {
 				@downIcon("20px")
 			</button>
 		</div>
-		<form
-			class="grid gap-2 mb-6 bg-gray-100 rounded-lg"
-			hx-post={ postTo }
-			hx-swap="outerHTML"
-			hx-target="this"
-			x-show="open"
-		>
+		@form("post", postTo, templ.Attributes{"x-show": "open"}) {
 			<div class="flex flex-column justify-between items-center">
 				<h2 class="text-xl font-bold">{ title }</h2>
 				<button
@@ -111,8 +107,22 @@ templ form(title, postTo, submitStr string) {
 			>
 				{ submitStr }
 			</button>
-		</form>
+		}
 	</div>
+}
+
+templ form(action, path string, attrs ...templ.Attributes) {
+	<form
+		class="grid gap-2"
+		{ templ.Attributes{fmt.Sprintf("hx-%s", action): string(templ.SafeURL(path))}... }
+		hx-swap="outerHTML"
+		hx-target="this"
+		if attrs != nil {
+			{ attrs[0]... }
+		}
+	>
+		{ children... }
+	</form>
 }
 
 templ container() {
