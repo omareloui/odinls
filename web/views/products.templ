@@ -1,12 +1,112 @@
 package views
 
-import "github.com/omareloui/odinls/internal/adapters/jwt"
+import (
+	"fmt"
+	"time"
 
-templ ProductsPage(claims *jwtadapter.JwtAccessClaims) {
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/product"
+)
+
+type ProductForm struct {
+	Name        FormInputData
+	Description FormInputData
+	Category    FormInputData
+	Variants    []ProductVariantForm
+}
+
+type ProductVariantForm struct {
+	Suffix            FormInputData `json:"suffix"`
+	Name              FormInputData `json:"name"`
+	Description       FormInputData `json:"description"`
+	Price             FormInputData `json:"price"`
+	WholesalePrice    FormInputData `json:"wholesale_price"`
+	TimeToCraftInMins FormInputData `json:"time_to_craft_in_mins"`
+}
+
+type ProductVariantFormOpts struct {
+	DontIncludeRemoveButton bool
+	DontIncludeAddButton    bool
+}
+
+templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) {
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Products</h2>
-			<p>WIP!!</p>
+			@productForm(&ProductForm{Variants: []ProductVariantForm{{}}})
 		}
 	}
+}
+
+templ productForm(formdata *ProductForm) {
+	@creationForm("Create Product", "/products", "Create Product") {
+		@ProductFormBody(&product.Product{}, formdata)
+	}
+}
+
+templ ProductFormBody(prod *product.Product, formdata *ProductForm) {
+	@input("Name", "text", "name", "e.g. Minimalist Wallet", prod.ID, formdata.Name)
+	@textarea("Description", "description", "Write a description for this product...", prod.ID, formdata.Description)
+	@selectInput("Category", "category", "Select a category", prod.ID, *getProductCategoriesMap(), formdata.Description)
+	<div
+		x-data={ fmt.Sprintf(`{
+				variants: %s.map((v) => {v.id = randnum(1000000000, 9999999999); return v}),
+				addNew() {const obj = %s; obj.id = randnum(1000000000, 9999999999); this.variants.push(obj)},
+				rm(idx) {this.variants.splice(idx,1)},
+				get hideRemoveBtn() {return this.variants.length < 2}
+			}`,
+			toJSON(formdata.Variants),
+			toJSON(ProductVariantForm{})) }
+		class="grid gap-2"
+	>
+		<template x-for="(variant, idx) in variants">
+			@ProductVariantFormBody()
+		</template>
+		<button
+			type="button"
+			class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
+			@click="addNew"
+		>Add New Variant</button>
+	</div>
+}
+
+templ ProductVariantFormBody() {
+	<div class="product-variant-form grid gap-2">
+		<h2 class="text-lg my-2">Variant #<span class="font-bold" x-text="idx + 1"></span></h2>
+		@alpineInput("Name", "text", "`variant_name-${idx}`", "e.g. Black", "variant.id", "variant.name")
+		@alpineInput("Suffix", "text", "`variant_suffix-${idx}`", "e.g. blk", "variant.id", "variant.suffix")
+		@alpineTextarea("Description", "`description-${idx}`", "Write a description of this variant...", "variant.id", "variant.description")
+		@alpineInput("Commercial Price", "number", "`variant_price-${idx}`", "e.g. 200EGP", "variant.id", "variant.price")
+		@alpineInput("Wholesale Price", "number", "`wholesale_price-${idx}`", "e.g. 180EGP", "variant.id", "variant.wholesale_price")
+		@alpineInput("Time to Craft (in minutes)", "number", "`time_to_craft_in_mins-${idx}`", "e.g. 120", "variant.id", "variant.time_to_craft_in_mins")
+		<button
+			type="button"
+			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
+			x-show="!hideRemoveBtn"
+			@click="rm(idx)"
+		>Remove Variant</button>
+	</div>
+}
+
+templ Product(product *product.Product) {
+	<div hx-target="this">
+		<p>ID: { product.ID }</p>
+		<p>Name: { product.Name }</p>
+		<p>MerchantID: { product.MerchantID }</p>
+		<p>Created At: { product.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { product.UpdatedAt.Format(time.RFC1123) }</p>
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/products/%s/edit", product.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
+}
+
+func getProductCategoriesMap() *map[string]string {
+	m := make(map[string]string)
+	for _, cat := range product.CategoriesEnums() {
+		m[cat.Code()] = cat.String()
+	}
+	return &m
 }

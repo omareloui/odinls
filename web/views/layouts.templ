@@ -30,6 +30,9 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 						ev.detail.isError = false;
 					}
 				})
+				function randnum(min = 1, max = 1000000000) {
+					return Math.floor(Math.random() * (max - min + 1)) + min
+				}
 			</script>
 		</body>
 	</html>

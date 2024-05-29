@@ -3,7 +3,7 @@ module github.com/omareloui/odinls
 go 1.22.1
 
 require (
-	github.com/a-h/templ v0.2.680
+	github.com/a-h/templ v0.2.707
 	github.com/go-chi/chi v1.5.5
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/golang-jwt/jwt/v5 v5.2.1

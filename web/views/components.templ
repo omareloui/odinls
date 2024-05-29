@@ -1,15 +1,16 @@
 package views
 
 import "fmt"
+import "regexp"
 
 type FormInputData struct {
-	Value string
-	Error string
+	Value string `json:"value"`
+	Error string `json:"error"`
 }
 
 templ input(label, kind, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
-		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
+		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<input
 			id={ join(name, idSuffix) }
 			type={ kind }
@@ -22,9 +23,24 @@ templ input(label, kind, name, placeholder, idSuffix string, data FormInputData)
 	</div>
 }
 
+templ alpineInput(label, kind, nameKey, placeholder, idSuffixKey, dataKey string) {
+	<div>
+		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
+		<input
+			:id={ alpineJoin(nameKey, idSuffixKey) }
+			type={ kind }
+			:name={ nameKey }
+			placeholder={ placeholder }
+			class="input-text-field"
+			x-model={ dataKey + ".value" }
+		/>
+		@alipneErrMessage(dataKey + ".error")
+	</div>
+}
+
 templ textarea(label, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
-		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
+		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<textarea
 			id={ join(name, idSuffix) }
 			name={ name }
@@ -32,6 +48,20 @@ templ textarea(label, name, placeholder, idSuffix string, data FormInputData) {
 			class="input-text-field"
 		>{ data.Value }</textarea>
 		@errorMessage(data.Error)
+	</div>
+}
+
+templ alpineTextarea(label, nameKey, placeholder, idSuffixKey, dataKey string) {
+	<div>
+		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
+		<textarea
+			:id={ alpineJoin(nameKey, idSuffixKey) }
+			:name={ nameKey }
+			placeholder={ placeholder }
+			class="input-text-field"
+			x-model={ dataKey + ".value" }
+		></textarea>
+		@alipneErrMessage(dataKey + ".error")
 	</div>
 }
 
@@ -69,41 +99,47 @@ templ selectInput(label, name, placeholder, idSuffix string, options map[string]
 
 templ errorMessage(message string) {
 	if message != "" {
-		<div class="flex flex-column gap-1 text-red-400 mt-1 ml-2 items-center text-sm">
+		<div class="form-error-message">
 			@errIcon("18px")
 			<span>{ message }</span>
 		</div>
 	}
 }
 
+templ alipneErrMessage(msgKey string) {
+	<div class="form-error-message" x-show={ fmt.Sprintf(`%s && %s !== ''`, msgKey, msgKey) }>
+		@errIcon("18px")
+		<span x-text={ msgKey }></span>
+	</div>
+}
+
 templ creationForm(title, postTo, submitStr string) {
-	<div x-data="{ open: false }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg">
-		<div class="flex flex-column justify-between items-center" x-show="!open">
+	<div x-data="{ open: true }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg">
+		<div class="flex flex-column justify-between items-center">
 			<h2 class="text-xl font-bold">{ title }</h2>
 			<button
 				@click="open = true"
+				x-show="!open"
 				class="form-visibility-button bg-gray-300"
 				aria-label="expand form"
 				type="button"
 			>
 				@downIcon("20px")
 			</button>
+			<button
+				@click="open = false"
+				x-show="open"
+				class="form-visibility-button bg-red-500 text-white"
+				type="button"
+			>
+				@closeIcon("15px")
+			</button>
 		</div>
 		@form("post", postTo, templ.Attributes{"x-show": "open"}) {
-			<div class="flex flex-column justify-between items-center">
-				<h2 class="text-xl font-bold">{ title }</h2>
-				<button
-					@click="open = false"
-					class="form-visibility-button bg-red-500 text-white"
-					type="button"
-				>
-					@closeIcon("15px")
-				</button>
-			</div>
 			{ children... }
 			<button
 				type="submit"
-				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-lg w-full sm:w-auto px-5 py-2.5 text-center"
 			>
 				{ submitStr }
 			</button>
@@ -140,4 +176,11 @@ templ link(href templ.SafeURL, text string) {
 // TODO(research): update the hx values to SafeURL?
 templ navlink(href templ.SafeURL) {
 	<a href={ href } class="text-sm font-bold text-blue-500 rounded-sm focus:ring focus:ring-blue-300 focus:outline-none">{ string(href) }</a>
+}
+
+func alpineJoin(prefixKey, suffixKey string) string {
+	re := regexp.MustCompile("`")
+	pre := re.ReplaceAllString(prefixKey, "")
+	suf := re.ReplaceAllString(suffixKey, "")
+	return fmt.Sprintf("`%s-${%s}`", pre, suf)
 }

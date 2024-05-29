@@ -5,7 +5,6 @@ import (
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/errs"
-	"github.com/omareloui/odinls/internal/interfaces"
 )
 
 var (
@@ -14,14 +13,12 @@ var (
 )
 
 type counterService struct {
-	repo      CounterRepository
-	validator interfaces.Validator
+	repo CounterRepository
 }
 
-func NewCounterService(repo CounterRepository, validator interfaces.Validator) *counterService {
+func NewCounterService(repo CounterRepository) *counterService {
 	return &counterService{
-		repo:      repo,
-		validator: validator,
+		repo: repo,
 	}
 }
 
