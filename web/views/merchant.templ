@@ -16,15 +16,15 @@ type CreateMerchantFormData struct {
 templ MerchantPage(accessClaims *jwtadapter.JwtAccessClaims, merchants []merchant.Merchant, formdata *CreateMerchantFormData) {
 	@baseLayout(accessClaims, "Merchants | Odin LS") {
 		@container() {
-			@CreateMerchantForm(formdata)
+			@CreateMerchantForm(formdata, true)
 			<h2 class="text-3xl font-bold mb-3">Merchants</h2>
 			@MerchantsList(merchants)
 		}
 	}
 }
 
-templ CreateMerchantForm(formdata *CreateMerchantFormData) {
-	@creationForm("Create Merchant", "/merchants", "Create Merchant") {
+templ CreateMerchantForm(formdata *CreateMerchantFormData, close ...bool) {
+	@creationForm("Create Merchant", "/merchants", "Create Merchant", close...) {
 		@merchantFormBody(&merchant.Merchant{}, formdata)
 	}
 }

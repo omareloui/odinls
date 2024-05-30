@@ -113,15 +113,18 @@ templ alipneErrMessage(msgKey string) {
 	</div>
 }
 
-templ creationForm(title, postTo, submitStr string) {
-	<div x-data="{ open: false }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg" hx-target="this">
+templ creationForm(title, postTo, submitStr string, close ...bool) {
+	<div
+		x-data={ fmt.Sprintf("{open: %v, toggle() {this.open = !this.open}}", close == nil || !close[0]) }
+		class="px-6 py-3 mb-6 bg-gray-100 rounded-lg"
+		hx-target="this"
+	>
 		<div
 			class="flex flex-column justify-between items-center"
-			@click="open = !open"
+			@click="toggle"
 		>
 			<h2 class="text-xl font-bold">{ title }</h2>
 			<button
-				@click="open = true"
 				x-show="!open"
 				class="form-visibility-button bg-gray-300"
 				aria-label="expand form"
@@ -130,9 +133,9 @@ templ creationForm(title, postTo, submitStr string) {
 				@downIcon("20px")
 			</button>
 			<button
-				@click="open = false"
 				x-show="open"
 				class="form-visibility-button bg-red-500 text-white"
+				aria-label="collapse form"
 				type="button"
 			>
 				@closeIcon("15px")

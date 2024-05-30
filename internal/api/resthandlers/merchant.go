@@ -47,11 +47,13 @@ func (h *handler) CreateMerchant(w http.ResponseWriter, r *http.Request) {
 	err := h.app.MerchantService.CreateMerchant(merchantform)
 
 	if err == nil {
-		if err := renderToBody(w, r, views.MerchantOOB(merchantform)); err != nil {
-			respondWithInternalServerError(w, r)
-			return
-		}
+		_ = renderToBody(w, r, views.MerchantOOB(merchantform))
 		respondWithTemplate(w, r, http.StatusCreated, views.CreateMerchantForm(newCreateMerchantFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+		return
+	}
+
+	if errors.Is(errs.ErrForbidden, err) {
+		respondWithForbidden(w, r)
 		return
 	}
 

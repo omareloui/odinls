@@ -36,14 +36,14 @@ templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) 
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Products</h2>
-			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate())
+			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate(), true)
 			@ProductsList(prods, claims.HourlyRate())
 		}
 	}
 }
 
-templ CreateProductForm(prod *product.Product, formdata *ProductFormData, hourlyRate float64) {
-	@creationForm("Create Product", "/products", "Create Product") {
+templ CreateProductForm(prod *product.Product, formdata *ProductFormData, hourlyRate float64, close ...bool) {
+	@creationForm("Create Product", "/products", "Create Product", close...) {
 		@productFormBody(prod, formdata, hourlyRate)
 	}
 }

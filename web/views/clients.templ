@@ -21,15 +21,15 @@ type CreateClientFormData struct {
 templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, formdata *CreateClientFormData) {
 	@baseLayout(access, "Clients | Odin LS") {
 		@container() {
-			@CreateClientForm(formdata)
+			@CreateClientForm(formdata, true)
 			<h2 class="text-3xl font-bold mb-3">Clients</h2>
 			@ClientsList(clients)
 		}
 	}
 }
 
-templ CreateClientForm(formdata *CreateClientFormData) {
-	@creationForm("Create Client", "/clients", "Create Client") {
+templ CreateClientForm(formdata *CreateClientFormData, close ...bool) {
+	@creationForm("Create Client", "/clients", "Create Client", close...) {
 		@clientFormBody(&client.Client{}, formdata)
 	}
 }
@@ -95,19 +95,7 @@ templ EditClient(cli *client.Client, formdata *CreateClientFormData) {
 	@form("put", fmt.Sprintf("/clients/%s", cli.ID), templ.Attributes{"hx-target": "this"}) {
 		<p>ID: { cli.ID }</p>
 		@clientFormBody(cli, formdata)
-		<div class="flex gap-2 mt-2 ">
-			<button
-				type="submit"
-				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-			>
-				Update
-			</button>
-			<button
-				type="button"
-				class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-				hx-get={ fmt.Sprintf("/clients/%s", cli.ID) }
-			>Cancel</button>
-		</div>
+		@editFormButtons(fmt.Sprintf("/clients/%s", cli.ID))
 	}
 }
 
