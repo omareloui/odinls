@@ -36,38 +36,46 @@ templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) 
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Products</h2>
-			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}})
-			@ProductsList(prods)
+			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate())
+			@ProductsList(prods, claims.HourlyRate())
 		}
 	}
 }
 
-templ CreateProductForm(prod *product.Product, formdata *ProductFormData) {
+templ CreateProductForm(prod *product.Product, formdata *ProductFormData, hourlyRate float64) {
 	@creationForm("Create Product", "/products", "Create Product") {
-		@ProductFormBody(prod, formdata)
+		@productFormBody(prod, formdata, hourlyRate)
 	}
 }
 
-templ ProductFormBody(prod *product.Product, formdata *ProductFormData) {
+templ EditProduct(prod *product.Product, formdata *ProductFormData, hourlyRate float64) {
+	@form("put", fmt.Sprintf("/products/%s", prod.ID), templ.Attributes{"hx-target": "this"}) {
+		<p>ID: { prod.ID }</p>
+		@productFormBody(prod, formdata, hourlyRate)
+		@editFormButtons(fmt.Sprintf("/products/%s", prod.ID))
+	}
+}
+
+templ productFormBody(prod *product.Product, formdata *ProductFormData, hourlyRate float64) {
 	@input("Name", "text", "name", "e.g. Minimalist Wallet", prod.ID, formdata.Name)
 	@textarea("Description", "description", "Write a description for this product...", prod.ID, formdata.Description)
 	@selectInput("Category", "category", "Select a category", prod.ID, *getProductCategoriesMap(), formdata.Category)
-	// TODO: get the hourly rate from the user/merchant
 	<div
 		x-data={ fmt.Sprintf(`{
-				hourlyRate: 60,
+				hourlyRate: %.2f,
 				variants: %s.map((v) => {v.id = randnum(1000000000, 9999999999); return v}),
 				addNew() {const obj = %s; obj.id = randnum(1000000000, 9999999999); this.variants.push(obj)},
 				rm(idx) {this.variants.splice(idx,1)},
 				calcEstPrice(variant, profitPercentage) {return Math.floor((((variant.time_to_craft.value / 60 * this.hourlyRate) + (variant.materials_cost.value * 1.05)) * (1 + profitPercentage)) / 5) * 5},
 				get hideRemoveBtn() {return this.variants.length < 2}
 			}`,
+			hourlyRate,
 			toJSON(formdata.Variants),
 			toJSON(ProductVariantFormData{})) }
 		class="grid gap-2"
 	>
 		<template x-for="(variant, idx) in variants">
-			@ProductVariantFormBody()
+			@productVariantFormBody()
 		</template>
 		<button
 			type="button"
@@ -77,7 +85,7 @@ templ ProductFormBody(prod *product.Product, formdata *ProductFormData) {
 	</div>
 }
 
-templ ProductVariantFormBody() {
+templ productVariantFormBody() {
 	<div class="product-variant-form grid gap-2">
 		<h2 class="text-lg my-2">Variant #<span class="font-bold" x-text="idx + 1"></span></h2>
 		@alpineInput("Name", "text", "`variant_name-${idx}`", "e.g. Black", "variant.id", "variant.name")
@@ -100,19 +108,18 @@ templ ProductVariantFormBody() {
 	</div>
 }
 
-templ ProductsList(prods []product.Product) {
+templ ProductsList(prods []product.Product, hourlyRate float64) {
 	<div id="productsList" class="grid no-entries">
 		for i, prod := range prods {
 			if i > 0 {
 				<br/>
 			}
-			@Product(&prod)
+			@Product(&prod, hourlyRate)
 		}
 	</div>
 }
 
-// TODO: pass the hourly rate here
-templ Product(prod *product.Product) {
+templ Product(prod *product.Product, hourlyRate float64) {
 	<div hx-target="this">
 		<p>ID: { prod.ID }</p>
 		<p>MerchantID: { prod.MerchantID }</p>
@@ -128,9 +135,8 @@ templ Product(prod *product.Product) {
 			<p>Description: { variant.Description }</p>
 			<p>Materials Cost: { strconv.FormatFloat(variant.MaterialsCost, 'f', 2, 64) }</p>
 			<p>Time to Craft: { strconv.Itoa(int(variant.TimeToCraft.Hours())) }h { strconv.FormatFloat(variant.TimeToCraft.Minutes() - math.Floor(variant.TimeToCraft.Hours()) * 60, 'f', 0, 64) }m</p>
-			// TODO: pass the hourly rate here
-			<p>Est. Commercial Price: { strconv.FormatFloat(variant.EstPrice(60), 'f', 2, 64) }</p>
-			<p>Est. Wholesale Price: { strconv.FormatFloat(variant.EstWholesalePrice(60), 'f', 2, 64) }</p>
+			<p>Est. Commercial Price: { strconv.FormatFloat(variant.EstPrice(hourlyRate), 'f', 2, 64) }</p>
+			<p>Est. Wholesale Price: { strconv.FormatFloat(variant.EstWholesalePrice(hourlyRate), 'f', 2, 64) }</p>
 			<p>Commercial Price: { strconv.FormatFloat(variant.Price, 'f', 2, 64) }</p>
 			<p>Wholesale Price: { strconv.FormatFloat(variant.WholesalePrice, 'f', 2, 64) }</p>
 			<p>Ref: { variant.Ref() }</p>
@@ -143,9 +149,9 @@ templ Product(prod *product.Product) {
 	</div>
 }
 
-templ ProductOOB(prod *product.Product) {
+templ ProductOOB(prod *product.Product, hourlyRate float64) {
 	<div id="productsList" hx-swap-oob="beforeend">
-		@Product(prod)
+		@Product(prod, hourlyRate)
 	</div>
 }
 

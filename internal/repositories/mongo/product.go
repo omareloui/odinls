@@ -187,38 +187,51 @@ func (r *repository) UpdateProductByID(id string, prod *product.Product, options
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	objId, err := primitive.ObjectIDFromHex(prod.ID)
+	objId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errs.ErrInvalidID
 	}
-	merId, err := primitive.ObjectIDFromHex(prod.MerchantID)
-	if err != nil {
-		return errs.ErrInvalidID
+
+	var merId primitive.ObjectID
+	var crafId primitive.ObjectID
+
+	if prod.MerchantID != "" {
+		merId, err = primitive.ObjectIDFromHex(prod.MerchantID)
+		if err != nil {
+			return errs.ErrInvalidID
+		}
 	}
-	crafId, err := primitive.ObjectIDFromHex(prod.CraftsmanID)
-	if err != nil {
-		return errs.ErrInvalidID
+
+	if prod.CraftsmanID != "" {
+		crafId, err = primitive.ObjectIDFromHex(prod.CraftsmanID)
+		if err != nil {
+			return errs.ErrInvalidID
+		}
 	}
 
 	filter := bson.M{"_id": objId}
 
 	doc := bson.M{
-		"merchant":  merId,
-		"craftsman": crafId,
-		"number":    prod.Number,
-		"name":      prod.Name,
-		"category":  prod.Category,
-
-		"variants": prod.Variants,
-
+		"name":       prod.Name,
+		"number":     prod.Number,
+		"category":   prod.Category,
+		"variants":   prod.Variants,
 		"updated_at": time.Now(),
 	}
 
+	if !crafId.IsZero() {
+		doc["craftsman"] = crafId
+	}
+	if !merId.IsZero() {
+		doc["merchant"] = merId
+	}
 	if prod.Description != "" {
 		doc["description"] = prod.Description
 	}
 
-	res := r.productsColl.FindOneAndUpdate(ctx, filter, doc)
+	update := bson.M{"$set": doc}
+
+	res := r.productsColl.FindOneAndUpdate(ctx, filter, update)
 
 	err = res.Err()
 	if err == nil {

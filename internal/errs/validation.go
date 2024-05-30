@@ -7,7 +7,7 @@ import (
 
 var (
 	ErrInvalidID    = errors.New("invalid id")
-	ErrInvalidFloat = errors.New("invalid number")
+	ErrInvalidFloat = errors.New("invalid float")
 )
 
 type ValidationErrors map[string]ValidationField

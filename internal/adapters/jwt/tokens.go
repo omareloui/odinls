@@ -45,6 +45,10 @@ func (jwt *JwtAccessClaims) IsCraftsman() bool {
 	return jwt.CraftsmanInfo.MerchantID != ""
 }
 
+func (jwt *JwtAccessClaims) HourlyRate() float64 {
+	return jwt.CraftsmanInfo.HourlyRate
+}
+
 func newRefreshClaimsFromMapClaims(claims *jwt.MapClaims) *JwtRefreshClaims {
 	return &JwtRefreshClaims{ID: (*claims)["id"].(string)}
 }

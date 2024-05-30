@@ -78,22 +78,42 @@ func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod 
 	return s.repo.CreateProduct(prod, options...)
 }
 
-func (s *productService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, prod *Product, options ...RetrieveOptsFunc) error {
+func (s *productService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) error {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return errs.ErrForbidden
 	}
 
-	sanitizeProduct(prod)
+	sanitizeProduct(uprod)
 
-	if err := s.validator.Validate(prod); err != nil {
+	if err := s.validator.Validate(uprod); err != nil {
 		return s.validator.ParseError(err)
 	}
 
-	for i := range prod.Variants {
-		prod.Variants[i].ProductRef = prod.Ref()
+	prod, err := s.repo.GetProductByID(id)
+	if err != nil {
+		return err
 	}
 
-	return s.repo.UpdateProductByID(id, prod, options...)
+	if prod.Category != uprod.Category {
+		newnum, err := s.counterService.AddOneToProduct(claims, uprod.Category)
+		if err != nil {
+			return err
+		}
+		uprod.Number = newnum
+	} else {
+		uprod.Number = prod.Number
+	}
+
+	uprod.ID = id
+	uprod.MerchantID = prod.MerchantID
+	uprod.CraftsmanID = prod.CraftsmanID
+	uprod.CreatedAt = prod.CreatedAt
+
+	for i := range uprod.Variants {
+		uprod.Variants[i].ProductRef = uprod.Ref()
+	}
+
+	return s.repo.UpdateProductByID(id, uprod, options...)
 }
 
 func sanitizeProduct(prod *Product) {

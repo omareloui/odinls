@@ -114,8 +114,11 @@ templ alipneErrMessage(msgKey string) {
 }
 
 templ creationForm(title, postTo, submitStr string) {
-	<div x-data="{ open: true }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg" hx-target="this">
-		<div class="flex flex-column justify-between items-center">
+	<div x-data="{ open: false }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg" hx-target="this">
+		<div
+			class="flex flex-column justify-between items-center"
+			@click="open = !open"
+		>
 			<h2 class="text-xl font-bold">{ title }</h2>
 			<button
 				@click="open = true"
@@ -158,6 +161,23 @@ templ form(action, path string, attrs ...templ.Attributes) {
 	>
 		{ children... }
 	</form>
+}
+
+templ editFormButtons(entryGetUrl string) {
+	<div class="flex gap-2 mt-2">
+		<button
+			type="submit"
+			class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center grow"
+		>
+			Update
+		</button>
+		<button
+			type="button"
+			class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-1/6"
+			hx-get={ string(templ.SafeURL(entryGetUrl)) }
+			hx-trigger="click, keyup[key === 'Escape'] from:body"
+		>Cancel</button>
+	</div>
 }
 
 templ container() {

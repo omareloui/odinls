@@ -46,8 +46,12 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	err = h.app.ProductService.CreateProduct(claims, prod)
 	if err != nil {
+		if errors.Is(errs.ErrForbidden, err) {
+			respondWithForbidden(w, r)
+			return
+		}
 		if valerr, ok := err.(errs.ValidationError); ok {
-			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateProductForm(prod, newProductFormData(prod, &valerr)))
+			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateProductForm(prod, newProductFormData(prod, &valerr), claims.HourlyRate()))
 			return
 		}
 
@@ -55,22 +59,83 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = renderToBody(w, r, views.ProductOOB(prod))
-	respondWithTemplate(w, r, http.StatusOK, views.CreateProductForm(&product.Product{}, &views.ProductFormData{Variants: []views.ProductVariantFormData{{}}}))
+	_ = renderToBody(w, r, views.ProductOOB(prod, claims.HourlyRate()))
+	respondWithTemplate(w, r, http.StatusOK, views.CreateProductForm(&product.Product{}, &views.ProductFormData{Variants: []views.ProductVariantFormData{{}}}, claims.HourlyRate()))
 }
 
 func (h *handler) GetProduct(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := h.getAuthFromContext(r)
+		prod, err := h.app.ProductService.GetProductByID(claims, id)
+		if err != nil {
+			if errors.Is(errs.ErrForbidden, err) {
+				respondWithForbidden(w, r)
+				return
+			}
+			if errors.Is(product.ErrProductNotFound, err) {
+				respondWithNotFound(w, r)
+				return
+			}
+			respondWithInternalServerError(w, r)
+			return
+		}
+		respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
 	}
 }
 
 func (h *handler) GetEditProduct(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := h.getAuthFromContext(r)
+		prod, err := h.app.ProductService.GetProductByID(claims, id)
+		if err != nil {
+			if errors.Is(errs.ErrForbidden, err) {
+				respondWithForbidden(w, r)
+				return
+			}
+			if errors.Is(product.ErrProductNotFound, err) {
+				respondWithNotFound(w, r)
+				return
+			}
+			respondWithInternalServerError(w, r)
+			return
+		}
+		respondWithTemplate(w, r, http.StatusOK, views.EditProduct(prod, newProductFormData(prod, &errs.ValidationError{}), claims.HourlyRate()))
 	}
 }
 
 func (h *handler) EditProduct(id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		claims, _ := h.getAuthFromContext(r)
+
+		_ = r.ParseForm()
+		prod, err := populateProductFromForm(r.PostForm)
+		if err != nil {
+			if errors.Is(errs.ErrInvalidFloat, err) {
+				w.WriteHeader(http.StatusUnprocessableEntity)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+			respondWithInternalServerError(w, r)
+			return
+		}
+
+		err = h.app.ProductService.UpdateClientByID(claims, id, prod)
+		if err != nil {
+			if errors.Is(errs.ErrForbidden, err) {
+				respondWithForbidden(w, r)
+				return
+			}
+			if valerr, ok := err.(errs.ValidationError); ok {
+				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditProduct(prod, newProductFormData(prod, &valerr), claims.HourlyRate()))
+				return
+			}
+
+			fmt.Println(err)
+			respondWithInternalServerError(w, r)
+			return
+		}
+
+		respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
 	}
 }
 
