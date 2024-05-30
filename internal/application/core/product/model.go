@@ -103,6 +103,7 @@ func (p *Product) Ref() string {
 }
 
 type ProductVariant struct {
+	ID          string `json:"id" bson:"_id,omitempty"`
 	Suffix      string `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
 	Name        string `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
 	Description string `json:"description" bson:"description,omitempty"`

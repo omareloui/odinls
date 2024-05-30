@@ -138,32 +138,9 @@ func (r *repository) CreateProduct(prod *product.Product, options ...product.Ret
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	merId, err := primitive.ObjectIDFromHex(prod.MerchantID)
+	doc, err := mapProductToMongoDoc(prod)
 	if err != nil {
-		return errs.ErrInvalidID
-	}
-	crafId, err := primitive.ObjectIDFromHex(prod.CraftsmanID)
-	if err != nil {
-		return errs.ErrInvalidID
-	}
-
-	now := time.Now()
-
-	doc := bson.M{
-		"merchant":  merId,
-		"craftsman": crafId,
-		"number":    prod.Number,
-		"name":      prod.Name,
-		"category":  prod.Category,
-
-		"variants": prod.Variants,
-
-		"created_at": now,
-		"updated_at": now,
-	}
-
-	if prod.Description != "" {
-		doc["description"] = prod.Description
+		return err
 	}
 
 	res, err := r.productsColl.InsertOne(ctx, doc)
@@ -192,43 +169,12 @@ func (r *repository) UpdateProductByID(id string, prod *product.Product, options
 		return errs.ErrInvalidID
 	}
 
-	var merId primitive.ObjectID
-	var crafId primitive.ObjectID
-
-	if prod.MerchantID != "" {
-		merId, err = primitive.ObjectIDFromHex(prod.MerchantID)
-		if err != nil {
-			return errs.ErrInvalidID
-		}
-	}
-
-	if prod.CraftsmanID != "" {
-		crafId, err = primitive.ObjectIDFromHex(prod.CraftsmanID)
-		if err != nil {
-			return errs.ErrInvalidID
-		}
+	doc, err := mapProductToMongoDoc(prod)
+	if err != nil {
+		return err
 	}
 
 	filter := bson.M{"_id": objId}
-
-	doc := bson.M{
-		"name":       prod.Name,
-		"number":     prod.Number,
-		"category":   prod.Category,
-		"variants":   prod.Variants,
-		"updated_at": time.Now(),
-	}
-
-	if !crafId.IsZero() {
-		doc["craftsman"] = crafId
-	}
-	if !merId.IsZero() {
-		doc["merchant"] = merId
-	}
-	if prod.Description != "" {
-		doc["description"] = prod.Description
-	}
-
 	update := bson.M{"$set": doc}
 
 	res := r.productsColl.FindOneAndUpdate(ctx, filter, update)
@@ -258,4 +204,75 @@ func (r *repository) populateMerchantForProduct(prod *product.Product) {
 	if err == nil {
 		prod.Merchant = merchant
 	}
+}
+
+func mapProductToMongoDoc(prod *product.Product) (bson.M, error) {
+	var merId primitive.ObjectID
+	var crafId primitive.ObjectID
+
+	var err error
+
+	if prod.MerchantID != "" {
+		merId, err = primitive.ObjectIDFromHex(prod.MerchantID)
+		if err != nil {
+			return nil, errs.ErrInvalidID
+		}
+	}
+
+	if prod.CraftsmanID != "" {
+		crafId, err = primitive.ObjectIDFromHex(prod.CraftsmanID)
+		if err != nil {
+			return nil, errs.ErrInvalidID
+		}
+	}
+
+	variants := make(bson.A, len(prod.Variants))
+
+	now := time.Now()
+
+	doc := bson.M{
+		"number":     prod.Number,
+		"name":       prod.Name,
+		"category":   prod.Category,
+		"variants":   variants,
+		"updated_at": now,
+	}
+
+	if prod.CreatedAt.IsZero() {
+		doc["created_at"] = now
+	}
+	if !crafId.IsZero() {
+		doc["craftsman"] = crafId
+	}
+	if !merId.IsZero() {
+		doc["merchant"] = merId
+	}
+	if prod.Description != "" {
+		doc["description"] = prod.Description
+	}
+
+	for i, variant := range prod.Variants {
+		doc["variants"].(bson.A)[i] = bson.M{
+			"suffix":          variant.Suffix,
+			"name":            variant.Name,
+			"materials_cost":  variant.MaterialsCost,
+			"price":           variant.Price,
+			"wholesale_price": variant.WholesalePrice,
+			"time_to_craft":   variant.TimeToCraft,
+			"product_ref":     variant.ProductRef,
+		}
+		if variant.ID == "" {
+			doc["variants"].(bson.A)[i].(bson.M)["_id"] = primitive.NewObjectID()
+		} else {
+			doc["variants"].(bson.A)[i].(bson.M)["_id"], err = primitive.ObjectIDFromHex(variant.ID)
+			if err != nil {
+				return nil, errs.ErrInvalidID
+			}
+		}
+		if variant.Description != "" {
+			doc["variants"].(bson.A)[i].(bson.M)["description"] = variant.Description
+		}
+	}
+
+	return doc, nil
 }

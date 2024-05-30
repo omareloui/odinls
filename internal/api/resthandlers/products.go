@@ -169,6 +169,8 @@ func populateProductFromForm(form url.Values) (*product.Product, error) {
 		}
 
 		switch key {
+		case "id":
+			prod.Variants[idx].ID = val
 		case "name":
 			prod.Variants[idx].Name = val
 		case "suffix":
@@ -220,6 +222,7 @@ func newProductFormData(prod *product.Product, valerr *errs.ValidationError) *vi
 
 	for i, variant := range prod.Variants {
 		formdata.Variants = append(formdata.Variants, views.ProductVariantFormData{
+			ID:             views.FormInputData{Value: variant.ID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].ID", i))},
 			Name:           views.FormInputData{Value: variant.Name, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Name", i))},
 			Description:    views.FormInputData{Value: variant.Description, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Description", i))},
 			Suffix:         views.FormInputData{Value: variant.Suffix, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Suffix", i))},

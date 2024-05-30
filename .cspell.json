@@ -9,6 +9,7 @@
     "jwtadapter",
     "authed",
     "valerr",
+    "formdata",
     "oneof"
   ]
 }

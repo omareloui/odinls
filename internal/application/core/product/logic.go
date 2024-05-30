@@ -2,6 +2,7 @@ package product
 
 import (
 	"errors"
+	"slices"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/counter"
@@ -111,6 +112,17 @@ func (s *productService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id
 
 	for i := range uprod.Variants {
 		uprod.Variants[i].ProductRef = uprod.Ref()
+	}
+
+	// This keeps the variant even if the new update data doesn't
+	// include the same variant.
+	for _, variant := range prod.Variants {
+		idx := slices.IndexFunc(uprod.Variants, func(uvariant ProductVariant) bool {
+			return variant.ID == uvariant.ID
+		})
+		if idx == -1 {
+			uprod.Variants = append(uprod.Variants, variant)
+		}
 	}
 
 	return s.repo.UpdateProductByID(id, uprod, options...)

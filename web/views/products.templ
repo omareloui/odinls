@@ -18,6 +18,7 @@ type ProductFormData struct {
 }
 
 type ProductVariantFormData struct {
+	ID             FormInputData `json:"id"`
 	Suffix         FormInputData `json:"suffix"`
 	Name           FormInputData `json:"name"`
 	Description    FormInputData `json:"description"`
@@ -56,15 +57,17 @@ templ EditProduct(prod *product.Product, formdata *ProductFormData, hourlyRate f
 	}
 }
 
+// TODO: remove the "remove variant" button on editing the product (if it
+// doesn't have id)
 templ productFormBody(prod *product.Product, formdata *ProductFormData, hourlyRate float64) {
 	@input("Name", "text", "name", "e.g. Minimalist Wallet", prod.ID, formdata.Name)
 	@textarea("Description", "description", "Write a description for this product...", prod.ID, formdata.Description)
 	@selectInput("Category", "category", "Select a category", prod.ID, *getProductCategoriesMap(), formdata.Category)
 	<div
 		x-data={ fmt.Sprintf(`{
-				hourlyRate: %.2f,
-				variants: %s.map((v) => {v.id = randnum(1000000000, 9999999999); return v}),
-				addNew() {const obj = %s; obj.id = randnum(1000000000, 9999999999); this.variants.push(obj)},
+				hourlyRate: %f,
+				variants: %s.map((v) => {v.rand = randnum(1000000000, 9999999999); return v}),
+				addNew() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); this.variants.push(obj)},
 				rm(idx) {this.variants.splice(idx,1)},
 				calcEstPrice(variant, profitPercentage) {return Math.floor((((variant.time_to_craft.value / 60 * this.hourlyRate) + (variant.materials_cost.value * 1.05)) * (1 + profitPercentage)) / 5) * 5},
 				get hideRemoveBtn() {return this.variants.length < 2}
@@ -88,22 +91,23 @@ templ productFormBody(prod *product.Product, formdata *ProductFormData, hourlyRa
 templ productVariantFormBody() {
 	<div class="product-variant-form grid gap-2">
 		<h2 class="text-lg my-2">Variant #<span class="font-bold" x-text="idx + 1"></span></h2>
-		@alpineInput("Name", "text", "`variant_name-${idx}`", "e.g. Black", "variant.id", "variant.name")
-		@alpineInput("Suffix", "text", "`variant_suffix-${idx}`", "e.g. blk", "variant.id", "variant.suffix")
-		@alpineTextarea("Description", "`variant_description-${idx}`", "Write a description of this variant...", "variant.id", "variant.description")
-		@alpineInput("Materials Cost", "number", "`variant_materials_cost-${idx}`", "e.g. 60EGP", "variant.id", "variant.materials_cost")
-		@alpineInput("Time to Craft (in minutes)", "number", "`variant_time_to_craft-${idx}`", "e.g. 120", "variant.id", "variant.time_to_craft")
+		<input type="hidden" :name="`variant_id-${idx}`" :value="variant.id.value"/>
+		@alpineInput("Name", "text", "`variant_name-${idx}`", "e.g. Black", "variant.rand", "variant.name")
+		@alpineInput("Suffix", "text", "`variant_suffix-${idx}`", "e.g. blk", "variant.rand", "variant.suffix")
+		@alpineTextarea("Description", "`variant_description-${idx}`", "Write a description of this variant...", "variant.rand", "variant.description")
+		@alpineInput("Materials Cost", "number", "`variant_materials_cost-${idx}`", "e.g. 60EGP", "variant.rand", "variant.materials_cost")
+		@alpineInput("Time to Craft (in minutes)", "number", "`variant_time_to_craft-${idx}`", "e.g. 120", "variant.rand", "variant.time_to_craft")
 		<div class="text-sm font-light flex gap-2 justify-evenly">
 			<p>Est. price: <span x-text="calcEstPrice(variant, 1)"></span></p>
 			<p>Est. wholesale price: <span x-text="calcEstPrice(variant, 0.4)"></span></p>
 		</div>
-		@alpineInput("Commercial Price", "number", "`variant_price-${idx}`", "e.g. 200EGP", "variant.id", "variant.price")
-		@alpineInput("Wholesale Price", "number", "`variant_wholesale_price-${idx}`", "e.g. 180EGP", "variant.id", "variant.wholesale_price")
+		@alpineInput("Commercial Price", "number", "`variant_price-${idx}`", "e.g. 200EGP", "variant.rand", "variant.price")
+		@alpineInput("Wholesale Price", "number", "`variant_wholesale_price-${idx}`", "e.g. 180EGP", "variant.rand", "variant.wholesale_price")
 		<button
 			type="button"
-			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
-			x-show="!hideRemoveBtn"
 			@click="rm(idx)"
+			x-show="!variant.id.value && !hideRemoveBtn"
+			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
 		>Remove Variant</button>
 	</div>
 }
@@ -132,6 +136,7 @@ templ Product(prod *product.Product, hourlyRate float64) {
 		<h3 class="text-lg font-bold">Variants ({ strconv.Itoa(len(prod.Variants)) })</h3>
 		for _, variant := range prod.Variants {
 			<h4 class="text font-bold">{ variant.Name }</h4>
+			<p>ID: { variant.ID }</p>
 			<p>Description: { variant.Description }</p>
 			<p>Materials Cost: { strconv.FormatFloat(variant.MaterialsCost, 'f', 2, 64) }</p>
 			<p>Time to Craft: { strconv.Itoa(int(variant.TimeToCraft.Hours())) }h { strconv.FormatFloat(variant.TimeToCraft.Minutes() - math.Floor(variant.TimeToCraft.Hours()) * 60, 'f', 0, 64) }m</p>
