@@ -35,7 +35,7 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()
 	prod, err := populateProductFromForm(r.PostForm)
 	if err != nil {
-		if errors.Is(errs.ErrInvalidNumber, err) {
+		if errors.Is(errs.ErrInvalidFloat, err) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			_, _ = w.Write([]byte(err.Error()))
 			return
@@ -94,7 +94,7 @@ func populateProductFromForm(form url.Values) (*product.Product, error) {
 		key := matches[1]
 		idx, err := strconv.Atoi(matches[2])
 		if err != nil {
-			return nil, errs.ErrInvalidNumber
+			return nil, errs.ErrInvalidFloat
 		}
 
 		if len(prod.Variants) < idx+1 {
@@ -114,23 +114,30 @@ func populateProductFromForm(form url.Values) (*product.Product, error) {
 			if val != "" {
 				prod.Variants[idx].Price, err = strconv.ParseFloat(val, 64)
 				if err != nil {
-					return nil, errs.ErrInvalidNumber
+					return nil, errs.ErrInvalidFloat
 				}
 			}
 		case "wholesale_price":
 			if val != "" {
 				prod.Variants[idx].WholesalePrice, err = strconv.ParseFloat(val, 64)
 				if err != nil {
-					return nil, errs.ErrInvalidNumber
+					return nil, errs.ErrInvalidFloat
 				}
 			}
 		case "time_to_craft":
 			if val != "" {
 				mins, err := strconv.Atoi(val)
 				if err != nil {
-					return nil, errs.ErrInvalidNumber
+					return nil, errs.ErrInvalidFloat
 				}
 				prod.Variants[idx].TimeToCraft = time.Duration(mins * int(time.Minute))
+			}
+		case "materials_cost":
+			if val != "" {
+				prod.Variants[idx].MaterialsCost, err = strconv.ParseFloat(val, 64)
+				if err != nil {
+					return nil, errs.ErrInvalidFloat
+				}
 			}
 		}
 	}
@@ -151,9 +158,10 @@ func newProductFormData(prod *product.Product, valerr *errs.ValidationError) *vi
 			Name:           views.FormInputData{Value: variant.Name, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Name", i))},
 			Description:    views.FormInputData{Value: variant.Description, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Description", i))},
 			Suffix:         views.FormInputData{Value: variant.Suffix, Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Suffix", i))},
-			Price:          views.FormInputData{Value: strconv.FormatFloat(variant.Price, 'f', 2, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Price", i))},
-			WholesalePrice: views.FormInputData{Value: strconv.FormatFloat(variant.WholesalePrice, 'f', 2, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].WholesalePrice", i))},
+			MaterialsCost:  views.FormInputData{Value: strconv.FormatFloat(variant.MaterialsCost, 'f', -1, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].MaterialsCost", i))},
 			TimeToCraft:    views.FormInputData{Value: strconv.Itoa(int(variant.TimeToCraft.Minutes())), Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].TimeToCraft", i))},
+			Price:          views.FormInputData{Value: strconv.FormatFloat(variant.Price, 'f', -1, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].Price", i))},
+			WholesalePrice: views.FormInputData{Value: strconv.FormatFloat(variant.WholesalePrice, 'f', -1, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("Variants[%d].WholesalePrice", i))},
 		})
 	}
 

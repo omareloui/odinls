@@ -2,10 +2,17 @@ package product
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/user"
+)
+
+const (
+	incalculableCostsPercentage = 0.05
+	commercialProfitPercentage  = 1
+	wholesaleProfitPercentage   = 0.4
 )
 
 type CategoryEnum uint8
@@ -96,15 +103,36 @@ func (p *Product) Ref() string {
 }
 
 type ProductVariant struct {
-	Suffix         string        `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
-	Name           string        `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
-	Description    string        `json:"description" bson:"description,omitempty"`
-	Price          float64       `json:"price" bson:"price"`
-	WholesalePrice float64       `json:"wholesale_price" bson:"wholesale_price"`
-	TimeToCraft    time.Duration `json:"time_to_craft" bson:"time_to_craft,omitempty"`
-	ProductRef     string        `json:"product_ref" bson:"product_ref,omitempty"`
+	Suffix      string `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
+	Name        string `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
+	Description string `json:"description" bson:"description,omitempty"`
+
+	MaterialsCost  float64 `json:"materials_cost" bson:"materials_cost"`
+	Price          float64 `json:"price" bson:"price"`
+	WholesalePrice float64 `json:"wholesale_price" bson:"wholesale_price"`
+
+	TimeToCraft time.Duration `json:"time_to_craft" bson:"time_to_craft,omitempty"`
+	ProductRef  string        `json:"product_ref" bson:"product_ref,omitempty"`
 }
 
-func (p *ProductVariant) Ref() string {
-	return fmt.Sprintf("%s-%s", p.ProductRef, p.Suffix)
+func (v *ProductVariant) Ref() string {
+	return fmt.Sprintf("%s-%s", v.ProductRef, v.Suffix)
+}
+
+func (v *ProductVariant) TotalCost(hourlyRate float64) float64 {
+	timeCost := hourlyRate * v.TimeToCraft.Hours()
+	materialsCost := v.MaterialsCost * (1 + incalculableCostsPercentage)
+	return materialsCost + timeCost
+}
+
+func (v *ProductVariant) EstPrice(hourlyRate float64) float64 {
+	return v.estPrice(hourlyRate, commercialProfitPercentage)
+}
+
+func (v *ProductVariant) EstWholesalePrice(hourlyRate float64) float64 {
+	return v.estPrice(hourlyRate, wholesaleProfitPercentage)
+}
+
+func (v *ProductVariant) estPrice(hourlyRate, profitPercentage float64) float64 {
+	return math.Floor((v.TotalCost(hourlyRate)*(1+profitPercentage))/5) * 5
 }

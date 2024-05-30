@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	ErrInvalidID     = errors.New("invalid id")
-	ErrInvalidNumber = errors.New("invalid number")
+	ErrInvalidID    = errors.New("invalid id")
+	ErrInvalidFloat = errors.New("invalid number")
 )
 
 type ValidationErrors map[string]ValidationField
