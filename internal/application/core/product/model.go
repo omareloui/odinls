@@ -73,7 +73,7 @@ func CategoriesStrings() []string {
 func CategoriesCodes() []string {
 	catenums := CategoriesEnums()
 	categories := make([]string, len(catenums))
-	for _, catenum := range CategoriesEnums() {
+	for _, catenum := range catenums {
 		categories = append(categories, catenum.Code())
 	}
 	return categories
