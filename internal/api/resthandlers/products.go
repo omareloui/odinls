@@ -17,7 +17,7 @@ import (
 
 func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	claims, _ := h.getAuthFromContext(r)
-	prods, err := h.app.ProductService.GetProducts(claims)
+	prods, err := h.app.ProductService.GetCurrentMerchantProducts(claims)
 	if err != nil {
 		if errors.Is(errs.ErrForbidden, err) {
 			respondWithForbidden(w, r)
@@ -119,7 +119,7 @@ func (h *handler) EditProduct(id string) http.HandlerFunc {
 			return
 		}
 
-		err = h.app.ProductService.UpdateClientByID(claims, id, prod)
+		err = h.app.ProductService.UpdateProductByID(claims, id, prod)
 		if err != nil {
 			if errors.Is(errs.ErrForbidden, err) {
 				respondWithForbidden(w, r)
@@ -130,7 +130,6 @@ func (h *handler) EditProduct(id string) http.HandlerFunc {
 				return
 			}
 
-			fmt.Println(err)
 			respondWithInternalServerError(w, r)
 			return
 		}

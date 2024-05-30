@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/errs"
@@ -172,7 +171,6 @@ func (r *repository) UpdateClientByID(id string, cli *client.Client, options ...
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	fmt.Println(id)
 	objId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errs.ErrInvalidID

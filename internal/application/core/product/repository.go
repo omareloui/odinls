@@ -1,9 +1,9 @@
 package product
 
 type ProductRepository interface {
-	GetProducts(...RetrieveOptsFunc) ([]Product, error)
-	GetProductByID(string, ...RetrieveOptsFunc) (*Product, error)
-	GetProductsByMerchantID(string, ...RetrieveOptsFunc) ([]Product, error)
-	CreateProduct(*Product, ...RetrieveOptsFunc) error
-	UpdateProductByID(string, *Product, ...RetrieveOptsFunc) error
+	GetProducts(opts ...RetrieveOptsFunc) ([]Product, error)
+	GetProductByID(id string, opts ...RetrieveOptsFunc) (*Product, error)
+	GetProductsByMerchantID(id string, opts ...RetrieveOptsFunc) ([]Product, error)
+	CreateProduct(prod *Product, opts ...RetrieveOptsFunc) error
+	UpdateProductByID(id string, prod *Product, opts ...RetrieveOptsFunc) error
 }

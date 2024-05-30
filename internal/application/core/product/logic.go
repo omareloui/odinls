@@ -79,7 +79,7 @@ func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod 
 	return s.repo.CreateProduct(prod, options...)
 }
 
-func (s *productService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) error {
+func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) error {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return errs.ErrForbidden
 	}
