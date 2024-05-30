@@ -56,7 +56,7 @@ templ Merchant(mer *merchant.Merchant) {
 }
 
 templ EditMerchant(mer *merchant.Merchant, formdata *CreateMerchantFormData) {
-	@form("put", fmt.Sprintf("/merchants/%s", mer.ID)) {
+	@form("put", fmt.Sprintf("/merchants/%s", mer.ID), templ.Attributes{"hx-target": "this"}) {
 		<p>ID: { mer.ID }</p>
 		@merchantFormBody(mer, formdata)
 		<div class="flex gap-2 mt-2 ">

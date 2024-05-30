@@ -2,7 +2,6 @@ package product
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/omareloui/odinls/internal/application/core/merchant"
@@ -93,18 +92,17 @@ type Product struct {
 }
 
 func (p *Product) Ref() string {
-	return fmt.Sprintf("%s%s", p.Category, strconv.Itoa(int(p.Number)))
+	return fmt.Sprintf("%s%03d", p.Category, int(p.Number))
 }
 
 type ProductVariant struct {
-	ID                string  `json:"id" bson:"_id,omitempty"`
-	Suffix            string  `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
-	Name              string  `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
-	Description       string  `json:"description" bson:"description,omitempty"`
-	Price             float64 `json:"price" bson:"price"`
-	WholesalePrice    float64 `json:"wholesale_price" bson:"wholesale_price"`
-	TimeToCraftInMins int     `json:"time_to_craft_in_mins" bson:"time_to_craft_in_mins,omitempty"`
-	ProductRef        string  `json:"product_ref" bson:"product_ref,omitempty"`
+	Suffix         string        `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
+	Name           string        `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
+	Description    string        `json:"description" bson:"description,omitempty"`
+	Price          float64       `json:"price" bson:"price"`
+	WholesalePrice float64       `json:"wholesale_price" bson:"wholesale_price"`
+	TimeToCraft    time.Duration `json:"time_to_craft" bson:"time_to_craft,omitempty"`
+	ProductRef     string        `json:"product_ref" bson:"product_ref,omitempty"`
 }
 
 func (p *ProductVariant) Ref() string {

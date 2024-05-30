@@ -87,6 +87,19 @@ func (a *APIAdapter) Run() {
 	}))
 
 	a.router.Get("/products", a.handler.AuthGuard(a.handler.GetProducts))
+	a.router.Post("/products", a.handler.AuthGuard(a.handler.CreateProduct))
+	a.router.Get("/products/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.GetProduct(id)(w, r)
+	}))
+	a.router.Get("/products/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.GetEditProduct(id)(w, r)
+	}))
+	a.router.Put("/products/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		a.handler.EditProduct(id)(w, r)
+	}))
 
 	a.router.Get("/orders", a.handler.AuthGuard(a.handler.GetOrders))
 

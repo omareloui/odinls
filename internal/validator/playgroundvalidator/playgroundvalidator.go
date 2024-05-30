@@ -2,6 +2,7 @@ package playgroundvalidator
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
@@ -17,9 +18,12 @@ func (v *playgroundValidator) Validate(input any) error {
 }
 
 func (v *playgroundValidator) ParseError(error any) errs.ValidationError {
-	valerr := errs.Errors{}
+	valerr := errs.ValidationErrors{}
 	for _, err := range error.(validator.ValidationErrors) {
-		valerr[err.Field()] = errs.ValidationField{
+		namespace := err.Namespace()
+		firstDot := strings.Index(namespace, ".")
+		path := namespace[firstDot+1:]
+		valerr[path] = errs.ValidationField{
 			Tag:   err.ActualTag(),
 			Param: err.Param(),
 		}

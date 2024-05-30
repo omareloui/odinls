@@ -114,7 +114,7 @@ templ alipneErrMessage(msgKey string) {
 }
 
 templ creationForm(title, postTo, submitStr string) {
-	<div x-data="{ open: true }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg">
+	<div x-data="{ open: true }" class="px-6 py-3 mb-6 bg-gray-100 rounded-lg" hx-target="this">
 		<div class="flex flex-column justify-between items-center">
 			<h2 class="text-xl font-bold">{ title }</h2>
 			<button
@@ -152,7 +152,6 @@ templ form(action, path string, attrs ...templ.Attributes) {
 		class="grid gap-2"
 		{ templ.Attributes{fmt.Sprintf("hx-%s", action): string(templ.SafeURL(path))}... }
 		hx-swap="outerHTML"
-		hx-target="this"
 		if attrs != nil {
 			{ attrs[0]... }
 		}

@@ -47,6 +47,10 @@ type Handler interface {
 	EditClient(id string) http.HandlerFunc
 
 	GetProducts(w http.ResponseWriter, r *http.Request)
+	CreateProduct(w http.ResponseWriter, r *http.Request)
+	GetProduct(id string) http.HandlerFunc
+	GetEditProduct(id string) http.HandlerFunc
+	EditProduct(id string) http.HandlerFunc
 
 	GetOrders(w http.ResponseWriter, r *http.Request)
 }

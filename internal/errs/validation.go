@@ -5,11 +5,14 @@ import (
 	"fmt"
 )
 
-var ErrInvalidID = errors.New("ID Invalid")
+var (
+	ErrInvalidID     = errors.New("invalid id")
+	ErrInvalidNumber = errors.New("invalid number")
+)
 
-type Errors map[string]ValidationField
+type ValidationErrors map[string]ValidationField
 
-func (e *Errors) MsgFor(fieldName string) string {
+func (e *ValidationErrors) MsgFor(fieldName string) string {
 	f, ok := (*e)[fieldName]
 	if !ok {
 		return ""
@@ -56,7 +59,7 @@ func (v ValidationField) Msg() string {
 }
 
 type ValidationError struct {
-	Errors Errors
+	Errors ValidationErrors
 }
 
 func (v ValidationError) Error() string {

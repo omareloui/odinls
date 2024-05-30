@@ -28,7 +28,6 @@ func (s *counterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims, cat
 	}
 
 	merId := claims.CraftsmanInfo.MerchantID
-	// TODO: if the cat key doesn't exist add it
 	count, err := s.repo.AddOneToProduct(merId, category)
 	if errors.Is(ErrCounterNotFound, err) {
 		_, err := s.createCounter(claims, category)

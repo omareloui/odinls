@@ -116,12 +116,12 @@ func (r *repository) AddOneToProduct(merchantId, category string) (uint8, error)
 		return 0, err
 	}
 
-	filter := bson.D{{Key: "merchant", Value: merId}}
+	filter := bson.M{"merchant": merId}
 	update := bson.M{
 		"$inc": bson.M{fmt.Sprintf("products_codes.%s", category): amountToIncrement},
 	}
 
-	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
+	updated, err := r.countersColl.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return 0, err
 	}
@@ -151,7 +151,7 @@ func (r *repository) AddOneToOrder(merchantId string) (uint, error) {
 		"$inc": bson.M{"orders_number": amountToIncrement},
 	}
 
-	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
+	updated, err := r.countersColl.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return 0, err
 	}
@@ -161,123 +161,3 @@ func (r *repository) AddOneToOrder(merchantId string) (uint, error) {
 
 	return cntr.OrdersNumber + amountToIncrement, nil
 }
-
-// func (r *repository) GetCounterByID(id string, options ...counter.RetrieveOptsFunc) (*counter.Counter, error) {
-// 	opts := counter.ParseRetrieveOpts(options...)
-
-// 	ctx, cancel := r.newCtx()
-// 	defer cancel()
-
-// 	objId, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return nil, errs.ErrInvalidID
-// 	}
-
-// 	filter := bson.M{"_id": objId}
-
-// 	cli := &counter.Counter{}
-
-// 	err = r.countersColl.FindOne(ctx, filter).Decode(cli)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			return nil, counter.ErrCounterNotFound
-// 		}
-// 		return nil, err
-// 	}
-
-// 	if opts.PopulateMerchant {
-// 		r.populateMerchantForCounter(cli)
-// 	}
-
-// 	return cli, nil
-// }
-
-// func (r *repository) CreateCounter(cli *counter.Counter, options ...counter.RetrieveOptsFunc) error {
-// 	opts := counter.ParseRetrieveOpts(options...)
-
-// 	mrId, err := primitive.ObjectIDFromHex(cli.MerchantID)
-// 	if err != nil {
-// 		return errs.ErrInvalidID
-// 	}
-
-// 	ctx, cancel := r.newCtx()
-// 	defer cancel()
-
-// 	res, err := r.countersColl.InsertOne(ctx, bson.M{
-// 		"merchant":             mrId,
-// 		"name":                 cli.Name,
-// 		"notes":                cli.Notes,
-// 		"contact_info":         cli.ContactInfo,
-// 		"wholesale_as_default": cli.WholesaleAsDefault,
-// 		"created_at":           cli.CreatedAt,
-// 		"updated_at":           cli.UpdatedAt,
-// 	})
-
-// 	if err == nil {
-// 		cli.ID = res.InsertedID.(primitive.ObjectID).Hex()
-// 		if opts.PopulateMerchant {
-// 			r.populateMerchantForCounter(cli)
-// 		}
-// 	}
-
-// 	if ok := mongo.IsDuplicateKeyError(err); ok {
-// 		if se := mongo.ServerError(nil); errors.As(err, &se) {
-// 			if se.HasErrorMessage(" name: ") && se.HasErrorMessage(" merchant: ") {
-// 				return counter.ErrCounterExistsForMerchant
-// 			}
-// 		}
-// 	}
-
-// 	return err
-// }
-
-// func (r *repository) UpdateCounterByID(id string, cli *counter.Counter, options ...counter.RetrieveOptsFunc) error {
-// 	opts := counter.ParseRetrieveOpts(options...)
-
-// 	ctx, cancel := r.newCtx()
-// 	defer cancel()
-
-// 	fmt.Println(id)
-// 	objId, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return errs.ErrInvalidID
-// 	}
-
-// 	filter := bson.M{"_id": objId}
-
-// 	res := r.countersColl.FindOneAndUpdate(ctx, filter, bson.M{
-// 		"$set": bson.M{
-// 			"name":                 cli.Name,
-// 			"notes":                cli.Notes,
-// 			"contact_info":         cli.ContactInfo,
-// 			"wholesale_as_default": cli.WholesaleAsDefault,
-// 			"created_at":           cli.CreatedAt,
-// 			"updated_at":           cli.UpdatedAt,
-// 		},
-// 	})
-
-// 	err = res.Err()
-// 	if err == nil {
-// 		cli.ID = id
-// 		if opts.PopulateMerchant {
-// 			r.populateMerchantForCounter(cli)
-// 		}
-// 	}
-
-// 	if ok := mongo.IsDuplicateKeyError(err); ok {
-// 		if se := mongo.ServerError(nil); errors.As(err, &se) {
-// 			if se.HasErrorMessage(" name: ") && se.HasErrorMessage(" merchant: ") {
-// 				return counter.ErrCounterExistsForMerchant
-// 			}
-// 		}
-// 	}
-
-// 	return err
-// }
-
-// func (r *repository) populateMerchantForCounter(cli *counter.Counter) {
-// 	merchant, err := r.FindMerchant(cli.MerchantID)
-// 	if err == nil {
-// 		cli.Merchant = merchant
-// 	}
-// }

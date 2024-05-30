@@ -3,25 +3,27 @@ package views
 import (
 	"fmt"
 	"time"
+	"strconv"
 
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/product"
+	"math"
 )
 
-type ProductForm struct {
+type ProductFormData struct {
 	Name        FormInputData
 	Description FormInputData
 	Category    FormInputData
-	Variants    []ProductVariantForm
+	Variants    []ProductVariantFormData
 }
 
-type ProductVariantForm struct {
-	Suffix            FormInputData `json:"suffix"`
-	Name              FormInputData `json:"name"`
-	Description       FormInputData `json:"description"`
-	Price             FormInputData `json:"price"`
-	WholesalePrice    FormInputData `json:"wholesale_price"`
-	TimeToCraftInMins FormInputData `json:"time_to_craft_in_mins"`
+type ProductVariantFormData struct {
+	Suffix         FormInputData `json:"suffix"`
+	Name           FormInputData `json:"name"`
+	Description    FormInputData `json:"description"`
+	Price          FormInputData `json:"price"`
+	WholesalePrice FormInputData `json:"wholesale_price"`
+	TimeToCraft    FormInputData `json:"time_to_craft"`
 }
 
 type ProductVariantFormOpts struct {
@@ -33,21 +35,22 @@ templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) 
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Products</h2>
-			@productForm(&ProductForm{Variants: []ProductVariantForm{{}}})
+			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}})
+			@ProductsList(prods)
 		}
 	}
 }
 
-templ productForm(formdata *ProductForm) {
+templ CreateProductForm(prod *product.Product, formdata *ProductFormData) {
 	@creationForm("Create Product", "/products", "Create Product") {
-		@ProductFormBody(&product.Product{}, formdata)
+		@ProductFormBody(prod, formdata)
 	}
 }
 
-templ ProductFormBody(prod *product.Product, formdata *ProductForm) {
+templ ProductFormBody(prod *product.Product, formdata *ProductFormData) {
 	@input("Name", "text", "name", "e.g. Minimalist Wallet", prod.ID, formdata.Name)
 	@textarea("Description", "description", "Write a description for this product...", prod.ID, formdata.Description)
-	@selectInput("Category", "category", "Select a category", prod.ID, *getProductCategoriesMap(), formdata.Description)
+	@selectInput("Category", "category", "Select a category", prod.ID, *getProductCategoriesMap(), formdata.Category)
 	<div
 		x-data={ fmt.Sprintf(`{
 				variants: %s.map((v) => {v.id = randnum(1000000000, 9999999999); return v}),
@@ -56,7 +59,7 @@ templ ProductFormBody(prod *product.Product, formdata *ProductForm) {
 				get hideRemoveBtn() {return this.variants.length < 2}
 			}`,
 			toJSON(formdata.Variants),
-			toJSON(ProductVariantForm{})) }
+			toJSON(ProductVariantFormData{})) }
 		class="grid gap-2"
 	>
 		<template x-for="(variant, idx) in variants">
@@ -75,10 +78,10 @@ templ ProductVariantFormBody() {
 		<h2 class="text-lg my-2">Variant #<span class="font-bold" x-text="idx + 1"></span></h2>
 		@alpineInput("Name", "text", "`variant_name-${idx}`", "e.g. Black", "variant.id", "variant.name")
 		@alpineInput("Suffix", "text", "`variant_suffix-${idx}`", "e.g. blk", "variant.id", "variant.suffix")
-		@alpineTextarea("Description", "`description-${idx}`", "Write a description of this variant...", "variant.id", "variant.description")
+		@alpineTextarea("Description", "`variant_description-${idx}`", "Write a description of this variant...", "variant.id", "variant.description")
 		@alpineInput("Commercial Price", "number", "`variant_price-${idx}`", "e.g. 200EGP", "variant.id", "variant.price")
-		@alpineInput("Wholesale Price", "number", "`wholesale_price-${idx}`", "e.g. 180EGP", "variant.id", "variant.wholesale_price")
-		@alpineInput("Time to Craft (in minutes)", "number", "`time_to_craft_in_mins-${idx}`", "e.g. 120", "variant.id", "variant.time_to_craft_in_mins")
+		@alpineInput("Wholesale Price", "number", "`variant_wholesale_price-${idx}`", "e.g. 180EGP", "variant.id", "variant.wholesale_price")
+		@alpineInput("Time to Craft (in minutes)", "number", "`variant_time_to_craft-${idx}`", "e.g. 120", "variant.id", "variant.time_to_craft")
 		<button
 			type="button"
 			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
@@ -88,18 +91,47 @@ templ ProductVariantFormBody() {
 	</div>
 }
 
-templ Product(product *product.Product) {
+templ ProductsList(prods []product.Product) {
+	<div id="productsList" class="grid no-entries">
+		for i, prod := range prods {
+			if i > 0 {
+				<br/>
+			}
+			@Product(&prod)
+		}
+	</div>
+}
+
+templ Product(prod *product.Product) {
 	<div hx-target="this">
-		<p>ID: { product.ID }</p>
-		<p>Name: { product.Name }</p>
-		<p>MerchantID: { product.MerchantID }</p>
-		<p>Created At: { product.CreatedAt.Format(time.RFC1123) }</p>
-		<p>Updated At: { product.UpdatedAt.Format(time.RFC1123) }</p>
+		<p>ID: { prod.ID }</p>
+		<p>MerchantID: { prod.MerchantID }</p>
+		<p>CraftsmanID: { prod.CraftsmanID }</p>
+		<p>Name: { prod.Name }</p>
+		<p>Description: { prod.Description }</p>
+		<p>Ref: { prod.Ref() }</p>
+		<p>Created At: { prod.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { prod.UpdatedAt.Format(time.RFC1123) }</p>
+		<h3 class="text-lg font-bold">Variants ({ strconv.Itoa(len(prod.Variants)) })</h3>
+		for _, variant := range prod.Variants {
+			<h4 class="text font-bold">{ variant.Name }</h4>
+			<p>Description: { variant.Description }</p>
+			<p>Commercial Price: { strconv.FormatFloat(variant.Price, 'f', 2, 64) }</p>
+			<p>Wholesale Price: { strconv.FormatFloat(variant.WholesalePrice, 'f', 2, 64) }</p>
+			<p>Time to Craft: { strconv.Itoa(int(variant.TimeToCraft.Hours())) }h { strconv.FormatFloat(variant.TimeToCraft.Minutes() - math.Floor(variant.TimeToCraft.Hours()) * 60, 'f', 0, 64) }m</p>
+			<p>Ref: { variant.Ref() }</p>
+		}
 		<button
 			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
-			hx-get={ fmt.Sprintf("/products/%s/edit", product.ID) }
+			hx-get={ fmt.Sprintf("/products/%s/edit", prod.ID) }
 			hx-swap="outerHTML"
 		>Edit</button>
+	</div>
+}
+
+templ ProductOOB(prod *product.Product) {
+	<div id="productsList" hx-swap-oob="beforeend">
+		@Product(prod)
 	</div>
 }
 

@@ -100,7 +100,7 @@ func sanitizeProduct(prod *Product) {
 	prod.Name = sanitizer.TrimString(prod.Name)
 	prod.Description = sanitizer.TrimString(prod.Description)
 	for i := range prod.Variants {
-		prod.Variants[i].Suffix = sanitizer.UpperCase(sanitizer.TrimString(prod.Variants[i].Suffix))
+		prod.Variants[i].Suffix = sanitizer.LowerCase(sanitizer.TrimString(prod.Variants[i].Suffix))
 		prod.Variants[i].Name = sanitizer.TrimString(prod.Variants[i].Name)
 		prod.Variants[i].Description = sanitizer.TrimString(prod.Variants[i].Description)
 		prod.Variants[i].ProductRef = sanitizer.TrimString(prod.Variants[i].ProductRef)
