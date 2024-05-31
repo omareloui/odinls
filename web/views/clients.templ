@@ -8,7 +8,7 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/client"
 )
 
-type CreateClientFormData struct {
+type ClientFormData struct {
 	Name               FormInputData
 	Notes              FormInputData
 	WholesaleAsDefault FormInputData
@@ -18,7 +18,7 @@ type CreateClientFormData struct {
 	Location           FormInputData
 }
 
-templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, formdata *CreateClientFormData) {
+templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, formdata *ClientFormData) {
 	@baseLayout(access, "Clients | Odin LS") {
 		@container() {
 			@CreateClientForm(formdata, true)
@@ -28,7 +28,7 @@ templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, f
 	}
 }
 
-templ CreateClientForm(formdata *CreateClientFormData, close ...bool) {
+templ CreateClientForm(formdata *ClientFormData, close ...bool) {
 	@creationForm("Create Client", "/clients", "Create Client", close...) {
 		@clientFormBody(&client.Client{}, formdata)
 	}
@@ -91,7 +91,7 @@ templ Client(client *client.Client) {
 	</div>
 }
 
-templ EditClient(cli *client.Client, formdata *CreateClientFormData) {
+templ EditClient(cli *client.Client, formdata *ClientFormData) {
 	@form("put", fmt.Sprintf("/clients/%s", cli.ID), templ.Attributes{"hx-target": "this"}) {
 		<p>ID: { cli.ID }</p>
 		@clientFormBody(cli, formdata)
@@ -105,7 +105,7 @@ templ ClientOOB(cli *client.Client) {
 	</div>
 }
 
-templ clientFormBody(cli *client.Client, formdata *CreateClientFormData) {
+templ clientFormBody(cli *client.Client, formdata *ClientFormData) {
 	@input("Name", "text", "name", "e.g. John Doe", cli.ID, formdata.Name)
 	@input("Phone Number", "text", "phone", "e.g. +201000000000", cli.ID, formdata.Phone)
 	@input("Email", "email", "email", "e.g. johndoe@example.com", cli.ID, formdata.Email)

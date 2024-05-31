@@ -8,12 +8,12 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 )
 
-type CreateMerchantFormData struct {
+type MerchantFormData struct {
 	Name FormInputData
 	Logo FormInputData
 }
 
-templ MerchantPage(accessClaims *jwtadapter.JwtAccessClaims, merchants []merchant.Merchant, formdata *CreateMerchantFormData) {
+templ MerchantPage(accessClaims *jwtadapter.JwtAccessClaims, merchants []merchant.Merchant, formdata *MerchantFormData) {
 	@baseLayout(accessClaims, "Merchants | Odin LS") {
 		@container() {
 			@CreateMerchantForm(formdata, true)
@@ -23,7 +23,7 @@ templ MerchantPage(accessClaims *jwtadapter.JwtAccessClaims, merchants []merchan
 	}
 }
 
-templ CreateMerchantForm(formdata *CreateMerchantFormData, close ...bool) {
+templ CreateMerchantForm(formdata *MerchantFormData, close ...bool) {
 	@creationForm("Create Merchant", "/merchants", "Create Merchant", close...) {
 		@merchantFormBody(&merchant.Merchant{}, formdata)
 	}
@@ -55,7 +55,7 @@ templ Merchant(mer *merchant.Merchant) {
 	</div>
 }
 
-templ EditMerchant(mer *merchant.Merchant, formdata *CreateMerchantFormData) {
+templ EditMerchant(mer *merchant.Merchant, formdata *MerchantFormData) {
 	@form("put", fmt.Sprintf("/merchants/%s", mer.ID), templ.Attributes{"hx-target": "this"}) {
 		<p>ID: { mer.ID }</p>
 		@merchantFormBody(mer, formdata)
@@ -69,8 +69,7 @@ templ MerchantOOB(merchant *merchant.Merchant) {
 	</div>
 }
 
-// TODO: remove the word "Create" from this type
-templ merchantFormBody(mer *merchant.Merchant, formdata *CreateMerchantFormData) {
+templ merchantFormBody(mer *merchant.Merchant, formdata *MerchantFormData) {
 	@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", mer.Name, formdata.Name)
 	@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", mer.Logo, formdata.Logo)
 }

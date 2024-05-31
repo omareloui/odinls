@@ -102,10 +102,10 @@ func (h *handler) GetCraftsmanForm(w http.ResponseWriter, r *http.Request) error
 	if err != nil {
 		return err
 	}
-	return respondWithTemplate(w, r, http.StatusOK, views.CraftsmanForm(merchants, &views.CreateUserFormData{}))
+	return respondWithTemplate(w, r, http.StatusOK, views.CraftsmanForm(merchants, &views.UserFormData{}))
 }
 
-func mapUserToFormData(user *user.User, valerr *errs.ValidationError) *views.CreateUserFormData {
+func mapUserToFormData(user *user.User, valerr *errs.ValidationError) *views.UserFormData {
 	var hourlyRateStr string
 	var merId string
 
@@ -116,7 +116,7 @@ func mapUserToFormData(user *user.User, valerr *errs.ValidationError) *views.Cre
 		merId = user.Craftsman.MerchantID
 	}
 
-	return &views.CreateUserFormData{
+	return &views.UserFormData{
 		Name: views.NameFormData{
 			First: views.FormInputData{Value: user.Name.First, Error: valerr.Errors.MsgFor("Name.First")},
 			Last:  views.FormInputData{Value: user.Name.Last, Error: valerr.Errors.MsgFor("Name.Last")},
@@ -159,7 +159,7 @@ func mapEditUserFormToUser(id string, r *http.Request) (*user.User, error) {
 	return usr, nil
 }
 
-func (h *handler) responseWithEditUser(w http.ResponseWriter, r *http.Request, status int, usr *user.User, formdata *views.CreateUserFormData, withCraftsmanInfo bool) error {
+func (h *handler) responseWithEditUser(w http.ResponseWriter, r *http.Request, status int, usr *user.User, formdata *views.UserFormData, withCraftsmanInfo bool) error {
 	opts := &views.EditUserOpts{WithCraftsmanInfo: withCraftsmanInfo}
 	roles, err := h.app.RoleService.GetRoles()
 	if err != nil {

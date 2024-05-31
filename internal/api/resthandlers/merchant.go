@@ -76,8 +76,8 @@ func (h *handler) EditMerchant(id string) HandlerFunc {
 	}
 }
 
-func mapMerchantToFormData(merchant *merchant.Merchant, valerr *errs.ValidationError) *views.CreateMerchantFormData {
-	return &views.CreateMerchantFormData{
+func mapMerchantToFormData(merchant *merchant.Merchant, valerr *errs.ValidationError) *views.MerchantFormData {
+	return &views.MerchantFormData{
 		Name: views.FormInputData{Value: merchant.Name, Error: valerr.Errors.MsgFor("Name")},
 		Logo: views.FormInputData{Value: merchant.Logo, Error: valerr.Errors.MsgFor("Logo")},
 	}

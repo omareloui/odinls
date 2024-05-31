@@ -17,7 +17,7 @@ func (h *handler) GetClients(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return respondWithTemplate(w, r, http.StatusOK, views.ClientsPage(claims, clients, &views.CreateClientFormData{}))
+	return respondWithTemplate(w, r, http.StatusOK, views.ClientsPage(claims, clients, &views.ClientFormData{}))
 }
 
 func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) error {
@@ -41,7 +41,7 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) error {
 	if err := renderToBody(w, r, views.ClientOOB(cli)); err != nil {
 		return err
 	}
-	return respondWithTemplate(w, r, http.StatusOK, views.CreateClientForm(&views.CreateClientFormData{}))
+	return respondWithTemplate(w, r, http.StatusOK, views.CreateClientForm(&views.ClientFormData{}))
 }
 
 func (h *handler) GetClient(id string) HandlerFunc {
@@ -94,8 +94,8 @@ func (h *handler) EditClient(id string) HandlerFunc {
 	}
 }
 
-func mapClientToFormData(client *client.Client, valerr *errs.ValidationError) *views.CreateClientFormData {
-	formData := &views.CreateClientFormData{
+func mapClientToFormData(client *client.Client, valerr *errs.ValidationError) *views.ClientFormData {
+	formData := &views.ClientFormData{
 		Name:  views.FormInputData{Value: client.Name, Error: valerr.Errors.MsgFor("Name")},
 		Notes: views.FormInputData{Value: client.Notes, Error: valerr.Errors.MsgFor("Notes")},
 	}

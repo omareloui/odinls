@@ -10,10 +10,8 @@ import (
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
 // TODO: unify the method names
-// TODO: unify form types in from views
 // TODO: unify the views names
 // TODO: unify the services methods
-// TODO: make all the edit buttons the same
 
 type Handler interface {
 	AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler

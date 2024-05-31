@@ -16,7 +16,7 @@ type NameFormData struct {
 	Last  FormInputData
 }
 
-type CreateUserFormData struct {
+type UserFormData struct {
 	Name       NameFormData
 	Email      FormInputData
 	Username   FormInputData
@@ -89,7 +89,7 @@ templ User(user *user.User) {
 	</div>
 }
 
-templ EditUser(user *user.User, roles []role.Role, data *CreateUserFormData, opts ...*EditUserOpts) {
+templ EditUser(user *user.User, roles []role.Role, data *UserFormData, opts ...*EditUserOpts) {
 	<form
 		hx-put={ fmt.Sprintf("/users/%s", user.ID) }
 		hx-swap="outerHTML"
@@ -125,7 +125,7 @@ templ UserOOB(user *user.User) {
 	</div>
 }
 
-templ CraftsmanForm(merchants []merchant.Merchant, data *CreateUserFormData) {
+templ CraftsmanForm(merchants []merchant.Merchant, data *UserFormData) {
 	@input("Hourly Rate", "number", "hourly_rate", "e.g. 45", "", data.HourlyRate)
 	@selectInput("Merchant", "merchant", "Select the craftsman merchant", "", getMerchantsMap(merchants), data.MerchantID)
 }
