@@ -56,7 +56,11 @@ type TimelineFormData struct {
 templ OrdersPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product, clients []client.Client, ords []order.Order) {
 	@baseLayout(claims, "Orders | Odin LS") {
 		@container() {
-			@CreateOrderForm(&order.Order{}, prods, clients, &OrderFormData{Items: []OrderItemFormData{{}}}, false)
+			@CreateOrderForm(&order.Order{}, prods, clients,
+				&OrderFormData{
+					Items:       []OrderItemFormData{{}},
+					PriceAddons: []PriceAddonFormData{},
+				}, false)
 			<h2 class="text-3xl font-bold mb-3">Orders</h2>
 			@OrdersList(ords)
 		}
@@ -78,9 +82,6 @@ templ EditOrder(ord *order.Order, prods []product.Product, clients []client.Clie
 }
 
 templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.Client, formdata *OrderFormData) {
-	PriceAddons     []PriceAddonFormData     `json:"price_addons"`
-	ReceivedAmounts []ReceivedAmountFormData `json:"received_amounts"`
-
 	@selectInput("Client", "client_id", "Select a client", ord.ID, getClientsMap(clients), formdata.ClientID)
 	@selectInput("Status", "status", "Select a status", ord.ID, getOrderStatusesMap(), formdata.Status)
 	@textarea("Note", "note", "Write a note for this order...", ord.ID, formdata.Note)
@@ -112,7 +113,28 @@ templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.
 			type="button"
 			class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
 			@click="addNew"
-		>Add New Item</button>
+		>Add Item</button>
+	</div>
+	<div
+		class="grid gap-2"
+		x-data={ fmt.Sprintf(`{
+			priceAddons: %s.map((v) => {v.rand = randnum(1000000000, 9999999999); return v}),
+			priceAddonsKinds: %s,
+			addNew() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); this.priceAddons.push(obj)},
+			rm(idx) {this.priceAddons.splice(idx,1)},
+		}`,
+		toJSON(formdata.PriceAddons),
+		toJSON(getPriceAddonsKindOptions()),
+		toJSON(PriceAddonFormData{})) }
+	>
+		<template x-for="(price_addon, idx) in priceAddons">
+			@orderPriceAddonFormBody()
+		</template>
+		<button
+			type="button"
+			class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
+			@click="addNew"
+		>Add Price Addon</button>
 	</div>
 }
 
@@ -138,6 +160,20 @@ templ orderItemFormBody() {
 			x-show="!hideRemoveBtn"
 			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
 		>Remove Item</button>
+	</div>
+}
+
+templ orderPriceAddonFormBody() {
+	<div class="grid gap-2">
+		<h2 class="text-lg my-2">Price Addon #<span class="font-bold" x-text="idx + 1"></span></h2>
+		@alpineInput("Amount", "number", "`addon_amount-${idx}`", "e.g. 400EGP", "price_addon.rand", "price_addon.amount")
+		@alpineSelect("Kind", "`addon_kind-${idx}`", "Select kind...", "price_addon.rand", "priceAddonsKinds", "price_addon.kind")
+		@alpineCheckbox("The amount is a percentage", "`addon_is_percentage-${idx}`", "price_addon.rand", "price_addon.is_percentage")
+		<button
+			type="button"
+			@click="rm(idx)"
+			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
+		>Remove Addon</button>
 	</div>
 }
 
@@ -192,10 +228,11 @@ func getClientsMap(clients []client.Client) map[string]string {
 	return m
 }
 
-func getProductsSelectOptions(prods []product.Product) []SelectOptions {
-	m := make([]SelectOptions, len(prods))
-	for i, prod := range prods {
-		m[i] = SelectOptions{Value: prod.ID, View: prod.Name}
+func getPriceAddonsKindOptions() []SelectOptions {
+	enums := order.PriceAddonKindEnums()
+	m := make([]SelectOptions, len(enums))
+	for i, enum := range enums {
+		m[i] = SelectOptions{Value: enum.String(), View: enum.View()}
 	}
 	return m
 }

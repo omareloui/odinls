@@ -107,7 +107,7 @@ func mapFormToProduct(form url.Values) (*product.Product, error) {
 		Variants:    []product.Variant{},
 	}
 
-	re := regexp.MustCompile(`variant_([\w_]+)-([\w_]+)`)
+	re := regexp.MustCompile(`variant_([\w_]+)-(\d+)`)
 	for k, v := range form {
 		val := v[0]
 		isVariant := strings.Contains(k, "variant_")
@@ -119,7 +119,7 @@ func mapFormToProduct(form url.Values) (*product.Product, error) {
 		key := matches[1]
 		idx, err := strconv.Atoi(matches[2])
 		if err != nil {
-			return nil, errs.ErrInvalidFloat
+			return nil, errs.ErrInvalidNumber
 		}
 
 		if len(prod.Variants) < idx+1 {

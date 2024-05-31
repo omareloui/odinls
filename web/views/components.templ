@@ -81,6 +81,18 @@ templ checkbox(label, name, idSuffix string, data FormInputData) {
 	</div>
 }
 
+templ alpineCheckbox(label, nameKey, idSuffix, dataKey string) {
+	<div>
+		<input
+			:id={ alpineJoin(nameKey, idSuffix) }
+			:name={ nameKey }
+			type="checkbox"
+			x-model={ dataKey + ".value" }
+		/>
+		<label :for={ alpineJoin(nameKey, idSuffix) } class="cursor-pointer">{ label }</label>
+	</div>
+}
+
 templ selectInput(label, name, placeholder, idSuffix string, options map[string]string, data FormInputData) {
 	<div>
 		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
@@ -106,8 +118,8 @@ templ alpineSelect(label, nameKey, placeholder, idSuffixKey, optionsKey, dataKey
 	<div>
 		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
 		<select
-			id={ alpineJoin(nameKey, idSuffixKey) }
-			name={ nameKey }
+			:id={ alpineJoin(nameKey, idSuffixKey) }
+			:name={ nameKey }
 			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
 			x-model={ dataKey + ".value" }
 		>
