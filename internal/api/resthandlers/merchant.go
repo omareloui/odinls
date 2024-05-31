@@ -8,8 +8,6 @@ import (
 	"github.com/omareloui/odinls/web/views"
 )
 
-// TODO(refactor): add a page for the handler to show not found and 500 pages
-
 func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) error {
 	merchants, err := h.app.MerchantService.GetMerchants()
 	if err != nil {

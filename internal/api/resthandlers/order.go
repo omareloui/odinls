@@ -42,7 +42,7 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	fmt.Printf("%+v\n", ord)
+	fmt.Printf("=============> %+v\n", ord)
 
 	return errors.New("just fail")
 }
@@ -117,8 +117,8 @@ func mapFormToOrder(f url.Values) (*order.Order, error) {
 
 	for k, v := range f {
 		val := v[0]
-		isItem := strings.Contains(k, "item_")
-		isAddon := strings.Contains(k, "addon_")
+		isItem := strings.HasPrefix(k, "item_")
+		isAddon := strings.HasPrefix(k, "addon_")
 
 		if !isItem && !isAddon {
 			continue

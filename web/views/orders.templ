@@ -12,6 +12,7 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/product"
 )
 
+// / TODO: on creating an order, make it simpler, remove most of the dates...
 type OrderFormData struct {
 	ClientID FormInputData `json:"client_id"`
 	Status   FormInputData `json:"status"`
@@ -60,7 +61,7 @@ templ OrdersPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product, cl
 				&OrderFormData{
 					Items:       []OrderItemFormData{{}},
 					PriceAddons: []PriceAddonFormData{},
-				}, false)
+				}, true)
 			<h2 class="text-3xl font-bold mb-3">Orders</h2>
 			@OrdersList(ords)
 		}
@@ -85,13 +86,13 @@ templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.
 	@selectInput("Client", "client_id", "Select a client", ord.ID, getClientsMap(clients), formdata.ClientID)
 	@selectInput("Status", "status", "Select a status", ord.ID, getOrderStatusesMap(), formdata.Status)
 	@textarea("Note", "note", "Write a note for this order...", ord.ID, formdata.Note)
-	@input("Custom Price", "number", "custom_price", "e.g. 1300EGP", ord.ID, formdata.CustomPrice)
-	@dateInput("Issuance Date", "issuance_date", "Select a date...", ord.ID, formdata.Timeline.IssuanceDate)
-	@dateInput("Due Date", "due_date", "Select a date...", ord.ID, formdata.Timeline.DueDate)
-	@dateInput("Deadline", "deadline", "Select a date...", ord.ID, formdata.Timeline.Deadline)
-	@dateInput("Done On", "done_on", "Select a date...", ord.ID, formdata.Timeline.DoneOn)
-	@dateInput("Shipped On", "shipped_on", "Select a date...", ord.ID, formdata.Timeline.ShippedOn)
-	@dateInput("Resolved On", "resolved_on", "Select a date...", ord.ID, formdata.Timeline.ResolvedOn)
+	@moneyInput("Custom Price", "custom_price", ord.ID, formdata.CustomPrice)
+	@dateInput("Issuance Date", "issuance_date", ord.ID, formdata.Timeline.IssuanceDate)
+	@dateInput("Due Date", "due_date", ord.ID, formdata.Timeline.DueDate)
+	@dateInput("Deadline", "deadline", ord.ID, formdata.Timeline.Deadline)
+	@dateInput("Done On", "done_on", ord.ID, formdata.Timeline.DoneOn)
+	@dateInput("Shipped On", "shipped_on", ord.ID, formdata.Timeline.ShippedOn)
+	@dateInput("Resolved On", "resolved_on", ord.ID, formdata.Timeline.ResolvedOn)
 	<div
 		class="grid gap-2"
 		x-data={ fmt.Sprintf(`{
@@ -152,7 +153,7 @@ templ orderItemFormBody() {
 		<input type="hidden" :name="`item_id-${idx}`" :value="item.id.value"/>
 		@alpineSelect("Product", "`item_product-${idx}`", "Select a product...", "item.rand", "productsOptions", "item.product_id")
 		@alpineSelect("Variant", "`item_variant-${idx}`", "Select a variant...", "item.rand", "variantsOptions", "item.variant_id")
-		@alpineInput("Custom Price", "number", "`item_custom_price-${idx}`", "e.g. 5000EGP", "item.rand", "item.custom_price")
+		@alpineMoneyInput("Custom Price", "`item_custom_price-${idx}`", "item.rand", "item.custom_price")
 		@alpineInput("Quantity", "number", "`item_quantity-${idx}`", "e.g. 2", "item.rand", "item.quantity")
 		<button
 			type="button"

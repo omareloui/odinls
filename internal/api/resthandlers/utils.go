@@ -3,6 +3,7 @@ package resthandlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -71,6 +72,8 @@ func parseIntIfExists(str string) (int, error) {
 
 func parseFloatIfExists(str string) (float64, error) {
 	if str != "" {
+		str = strings.ReplaceAll(str, ",", "")
+		str = strings.ReplaceAll(str, " ", "")
 		num, err := strconv.ParseFloat(str, 64)
 		if err != nil {
 			return 0, errs.ErrInvalidFloat

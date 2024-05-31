@@ -2,6 +2,7 @@ package views
 
 import "fmt"
 import "regexp"
+import "strings"
 
 type FormInputData struct {
 	Value string `json:"value"`
@@ -38,6 +39,36 @@ templ alpineInput(label, kind, nameKey, placeholder, idSuffixKey, dataKey string
 			placeholder={ placeholder }
 			class="input-text-field"
 			x-model={ dataKey + ".value" }
+		/>
+		@alipneErrMessage(dataKey + ".error")
+	</div>
+}
+
+templ moneyInput(label, name, idSuffix string, data FormInputData) {
+	<div>
+		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
+		<input
+			id={ join(name, idSuffix) }
+			name={ name }
+			class="input-text-field"
+			value={ data.Value }
+			placeholder="1,000.00"
+			x-mask:dynamic="$money($input, '.', ',')"
+		/>
+		@errorMessage(data.Error)
+	</div>
+}
+
+templ alpineMoneyInput(label, nameKey, idSuffixKey, dataKey string) {
+	<div>
+		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
+		<input
+			:id={ alpineJoin(nameKey, idSuffixKey) }
+			:name={ nameKey }
+			class="input-text-field"
+			placeholder="1,000.00"
+			x-model={ dataKey + ".value" }
+			x-mask:dynamic="$money($input, '.', ',')"
 		/>
 		@alipneErrMessage(dataKey + ".error")
 	</div>
@@ -132,14 +163,15 @@ templ alpineSelect(label, nameKey, placeholder, idSuffixKey, optionsKey, dataKey
 	</div>
 }
 
-templ dateInput(label, name, placeholder, idSuffix string, data FormInputData) {
+templ dateInput(label, name, idSuffix string, data FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<input
 			data-datepicker
 			id={ join(name, idSuffix) }
 			class="input-text-field"
-			placeholder={ placeholder }
+			x-mask="9999-99-99"
+			placeholder="yyyy-mm-dd"
 			name={ name }
 			value={ data.Value }
 		/>
@@ -191,7 +223,7 @@ templ creationForm(title, postTo, submitStr string, close ...bool) {
 				@closeIcon("15px")
 			</button>
 		</div>
-		@form("post", postTo, templ.Attributes{"x-show": "open"}) {
+		@form("post", postTo, templ.Attributes{"x-show": "open", "x-collapse.duration.1000ms": true}) {
 			{ children... }
 			<button
 				type="submit"
@@ -251,8 +283,7 @@ templ navlink(href templ.SafeURL) {
 }
 
 func alpineJoin(prefixKey, suffixKey string) string {
-	re := regexp.MustCompile("`")
-	pre := re.ReplaceAllString(prefixKey, "")
-	suf := re.ReplaceAllString(suffixKey, "")
+	pre := strings.ReplaceAll(prefixKey, "`", "")
+	suf := strings.ReplaceAll(suffixKey, "`", "")
 	return fmt.Sprintf("`%s-${%s}`", pre, suf)
 }

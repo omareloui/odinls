@@ -110,7 +110,7 @@ func mapFormToProduct(form url.Values) (*product.Product, error) {
 	re := regexp.MustCompile(`variant_([\w_]+)-(\d+)`)
 	for k, v := range form {
 		val := v[0]
-		isVariant := strings.Contains(k, "variant_")
+		isVariant := strings.HasPrefix(k, "variant_")
 		if !isVariant {
 			continue
 		}
