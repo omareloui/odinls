@@ -7,50 +7,58 @@ import (
 	application "github.com/omareloui/odinls/internal/application/core"
 )
 
-type Handler interface {
-	ErrorHandlerAdapter(handler func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc
+type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
+// TODO: unify the method names
+// TODO: unify form types in from views
+// TODO: unify the views names
+// TODO: unify the services methods
+// TODO: make all the edit buttons the same
+
+type Handler interface {
 	AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler
 
-	AuthGuard(next http.HandlerFunc) http.HandlerFunc
-	AlreadyAuthedGuard(next http.HandlerFunc) http.HandlerFunc
+	ErrorHandler(w http.ResponseWriter, r *http.Request, err error)
 
-	Unauthorized(w http.ResponseWriter, r *http.Request)
+	AuthGuard(next HandlerFunc) HandlerFunc
+	AlreadyAuthedGuard(next HandlerFunc) HandlerFunc
 
-	GetHomepage(w http.ResponseWriter, r *http.Request)
+	Unauthorized(w http.ResponseWriter, r *http.Request) error
 
-	GetLogin(w http.ResponseWriter, r *http.Request)
-	PostLogin(w http.ResponseWriter, r *http.Request)
-	GetRegister(w http.ResponseWriter, r *http.Request)
-	PostRegister(w http.ResponseWriter, r *http.Request)
-	Logout(w http.ResponseWriter, r *http.Request)
+	GetHomepage(w http.ResponseWriter, r *http.Request) error
 
-	GetUsers(w http.ResponseWriter, r *http.Request)
-	GetUser(id string) http.HandlerFunc
-	GetEditUser(id string) http.HandlerFunc
-	EditUser(id string) http.HandlerFunc
-	UnsetCraftsman(id string) http.HandlerFunc
-	GetCraftsmanForm(w http.ResponseWriter, r *http.Request)
+	GetLogin(w http.ResponseWriter, r *http.Request) error
+	PostLogin(w http.ResponseWriter, r *http.Request) error
+	GetRegister(w http.ResponseWriter, r *http.Request) error
+	PostRegister(w http.ResponseWriter, r *http.Request) error
+	Logout(w http.ResponseWriter, r *http.Request) error
 
-	GetRoles(w http.ResponseWriter, r *http.Request)
+	GetUsers(w http.ResponseWriter, r *http.Request) error
+	GetUser(id string) HandlerFunc
+	GetEditUser(id string) HandlerFunc
+	EditUser(id string) HandlerFunc
+	UnsetCraftsman(id string) HandlerFunc
+	GetCraftsmanForm(w http.ResponseWriter, r *http.Request) error
 
-	GetMerchants(w http.ResponseWriter, r *http.Request)
-	CreateMerchant(w http.ResponseWriter, r *http.Request)
-	GetMerchant(id string) http.HandlerFunc
-	GetEditMerchant(id string) http.HandlerFunc
-	EditMerchant(id string) http.HandlerFunc
+	GetRoles(w http.ResponseWriter, r *http.Request) error
 
-	GetClients(w http.ResponseWriter, r *http.Request)
-	CreateClient(w http.ResponseWriter, r *http.Request)
-	GetClient(id string) http.HandlerFunc
-	GetEditClient(id string) http.HandlerFunc
-	EditClient(id string) http.HandlerFunc
+	GetMerchants(w http.ResponseWriter, r *http.Request) error
+	CreateMerchant(w http.ResponseWriter, r *http.Request) error
+	GetMerchant(id string) HandlerFunc
+	GetEditMerchant(id string) HandlerFunc
+	EditMerchant(id string) HandlerFunc
 
-	GetProducts(w http.ResponseWriter, r *http.Request)
-	CreateProduct(w http.ResponseWriter, r *http.Request)
-	GetProduct(id string) http.HandlerFunc
-	GetEditProduct(id string) http.HandlerFunc
-	EditProduct(id string) http.HandlerFunc
+	GetClients(w http.ResponseWriter, r *http.Request) error
+	CreateClient(w http.ResponseWriter, r *http.Request) error
+	GetClient(id string) HandlerFunc
+	GetEditClient(id string) HandlerFunc
+	EditClient(id string) HandlerFunc
+
+	GetProducts(w http.ResponseWriter, r *http.Request) error
+	CreateProduct(w http.ResponseWriter, r *http.Request) error
+	GetProduct(id string) HandlerFunc
+	GetEditProduct(id string) HandlerFunc
+	EditProduct(id string) HandlerFunc
 
 	GetOrders(w http.ResponseWriter, r *http.Request) error
 }

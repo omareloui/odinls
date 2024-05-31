@@ -6,13 +6,12 @@ import (
 	"github.com/omareloui/odinls/web/views"
 )
 
-func (h *handler) GetRoles(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetRoles(w http.ResponseWriter, r *http.Request) error {
 	roles, err := h.app.RoleService.GetRoles()
 	if err != nil {
-		respondWithInternalServerError(w, r)
-		return
+		return err
 	}
 
-	accessClaims, _ := h.getAuthFromContext(r)
-	respondWithTemplate(w, r, http.StatusOK, views.RolesPage(accessClaims, roles))
+	claims, _ := h.getAuthFromContext(r)
+	return respondWithTemplate(w, r, http.StatusOK, views.RolesPage(claims, roles))
 }

@@ -24,7 +24,7 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 			<script>
 				document.body.addEventListener("htmx:beforeSwap", function (ev) {
 					const status = ev.detail.xhr.status
-					const statusesToShowResponseOn = [401, 403, 422]
+					const statusesToShowResponseOn = [401, 403, 409, 422]
 					if (statusesToShowResponseOn.includes(status)) {
 						ev.detail.shouldSwap = true;
 						ev.detail.isError = false;

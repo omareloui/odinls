@@ -9,185 +9,92 @@ import (
 	"github.com/omareloui/odinls/web/views"
 )
 
-func (h *handler) GetClients(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetClients(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
 
 	clients, err := h.app.ClientService.GetClients(claims)
-	if err == nil {
-		respondWithTemplate(w, r, http.StatusOK, views.ClientsPage(claims, clients, &views.CreateClientFormData{}))
-		return
+	if err != nil {
+		return err
 	}
 
-	if errors.Is(client.ErrClientNotFound, err) {
-		respondWithTemplate(w, r, http.StatusOK, views.ClientsPage(claims, []client.Client{}, &views.CreateClientFormData{}))
-		return
-	}
-
-	if errors.Is(errs.ErrForbidden, err) {
-		respondWithForbidden(w, r)
-		return
-	}
-	respondWithInternalServerError(w, r)
+	return respondWithTemplate(w, r, http.StatusOK, views.ClientsPage(claims, clients, &views.CreateClientFormData{}))
 }
 
-func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) {
+func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
 
-	cli := &client.Client{
-		Name:               r.FormValue("name"),
-		Notes:              r.FormValue("notes"),
-		WholesaleAsDefault: r.FormValue("wholesale_as_default") == "on",
-	}
-
-	if phone := r.FormValue("phone"); phone != "" {
-		cli.ContactInfo.PhoneNumbers = make(map[string]string)
-		cli.ContactInfo.PhoneNumbers["default"] = phone
-	}
-	if email := r.FormValue("email"); email != "" {
-		cli.ContactInfo.Emails = make(map[string]string)
-		cli.ContactInfo.Emails["default"] = email
-	}
-	if link := r.FormValue("link"); link != "" {
-		cli.ContactInfo.Links = make(map[string]string)
-		cli.ContactInfo.Links["default"] = link
-	}
-	if location := r.FormValue("location"); location != "" {
-		cli.ContactInfo.Locations = make(map[string]string)
-		cli.ContactInfo.Locations["default"] = location
-	}
-
+	cli := mapFormToClient(r)
 	err := h.app.ClientService.CreateClient(claims, cli)
 	if err != nil {
-		if errors.Is(errs.ErrForbidden, err) {
-			respondWithForbidden(w, r)
-			return
+		if errors.Is(client.ErrClientExistsForMerchant, err) {
+			formdata := mapClientToFormData(cli, &errs.ValidationError{})
+			// TODO(research): make the email unique if it exists, not the name?
+			formdata.Name.Error = "You already have a client with this name"
+			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateClientForm(formdata))
 		}
 		if valerr, ok := err.(errs.ValidationError); ok {
-			e := newCreateClientFormData(cli, &valerr)
-			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateClientForm(e))
-			return
+			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateClientForm(mapClientToFormData(cli, &valerr)))
 		}
-		if errors.Is(client.ErrClientExistsForMerchant, err) {
-			formdata := newCreateClientFormData(cli, &errs.ValidationError{})
-			// TODO(research): make the email unique, not the name?
-			formdata.Name.Error = "You already have a client with this name"
-			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateClientForm(formdata))
-			return
-		}
-		respondWithInternalServerError(w, r)
-		return
+		return err
 	}
 
-	_ = renderToBody(w, r, views.ClientOOB(cli))
-	respondWithTemplate(w, r, http.StatusOK, views.CreateClientForm(&views.CreateClientFormData{}))
+	if err := renderToBody(w, r, views.ClientOOB(cli)); err != nil {
+		return err
+	}
+	return respondWithTemplate(w, r, http.StatusOK, views.CreateClientForm(&views.CreateClientFormData{}))
 }
 
-func (h *handler) GetClient(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetClient(id string) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		claims, _ := h.getAuthFromContext(r)
 		c, err := h.app.ClientService.GetClientByID(claims, id)
 		if err != nil {
-			if ok := errors.Is(err, client.ErrClientNotFound); ok {
-				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-			if errors.Is(errs.ErrForbidden, err) {
-				respondWithForbidden(w, r)
-				return
-			}
-			respondWithInternalServerError(w, r)
-			return
+			return err
 		}
 
-		respondWithTemplate(w, r, http.StatusOK, views.Client(c))
+		return respondWithTemplate(w, r, http.StatusOK, views.Client(c))
 	}
 }
 
-func (h *handler) GetEditClient(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetEditClient(id string) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		claims, _ := h.getAuthFromContext(r)
 		c, err := h.app.ClientService.GetClientByID(claims, id)
 		if err != nil {
-			if ok := errors.Is(err, client.ErrClientNotFound); ok {
-				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-			if errors.Is(errs.ErrForbidden, err) {
-				respondWithForbidden(w, r)
-				return
-			}
-			respondWithInternalServerError(w, r)
-			return
+			return err
 		}
 
-		respondWithTemplate(w, r, http.StatusOK, views.EditClient(c, newCreateClientFormData(c, &errs.ValidationError{})))
+		return respondWithTemplate(w, r, http.StatusOK, views.EditClient(c, mapClientToFormData(c, &errs.ValidationError{})))
 	}
 }
 
-func (h *handler) EditClient(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) EditClient(id string) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		claims, _ := h.getAuthFromContext(r)
 
-		cli := &client.Client{
-			ID:                 id,
-			Name:               r.FormValue("name"),
-			Notes:              r.FormValue("notes"),
-			WholesaleAsDefault: r.FormValue("wholesale_as_default") == "on",
-		}
-
-		if phone := r.FormValue("phone"); phone != "" {
-			cli.ContactInfo.PhoneNumbers = make(map[string]string)
-			cli.ContactInfo.PhoneNumbers["default"] = phone
-		}
-		if email := r.FormValue("email"); email != "" {
-			cli.ContactInfo.Emails = make(map[string]string)
-			cli.ContactInfo.Emails["default"] = email
-		}
-		if link := r.FormValue("link"); link != "" {
-			cli.ContactInfo.Links = make(map[string]string)
-			cli.ContactInfo.Links["default"] = link
-		}
-		if location := r.FormValue("location"); location != "" {
-			cli.ContactInfo.Locations = make(map[string]string)
-			cli.ContactInfo.Locations["default"] = location
-		}
+		cli := mapFormToClient(r)
 
 		err := h.app.ClientService.UpdateClientByID(claims, id, cli)
-		// TODO(refactor): make this error handling a generic helper function
 		if err != nil {
-			if errors.Is(errs.ErrForbidden, err) {
-				respondWithForbidden(w, r)
-				return
-			}
-			if errors.Is(errs.ErrInvalidID, err) {
-				w.WriteHeader(http.StatusUnprocessableEntity)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
 			if valerr, ok := err.(errs.ValidationError); ok {
-				// TODO(refactor): make sure every instence of "formdata" is wrote like this:
-				formdata := newCreateClientFormData(cli, &valerr)
-				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditClient(cli, formdata))
-				return
+				return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditClient(cli, mapClientToFormData(cli, &valerr)))
 			}
 			if errors.Is(client.ErrClientExistsForMerchant, err) {
-				formdata := newCreateClientFormData(cli, &errs.ValidationError{})
+				formdata := mapClientToFormData(cli, &errs.ValidationError{})
 				formdata.Name.Error = "You already have a client with this name"
-				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditClient(cli, formdata))
-				return
+				return respondWithTemplate(w, r, http.StatusConflict, views.EditClient(cli, formdata))
 			}
-			respondWithInternalServerError(w, r)
-			return
+			return err
 		}
 
-		_ = renderToBody(w, r, views.ClientOOB(cli))
-		respondWithTemplate(w, r, http.StatusOK, views.Client(cli))
+		if err := renderToBody(w, r, views.ClientOOB(cli)); err != nil {
+			return err
+		}
+		return respondWithTemplate(w, r, http.StatusOK, views.Client(cli))
 	}
 }
 
-func newCreateClientFormData(client *client.Client, valerr *errs.ValidationError) *views.CreateClientFormData {
+func mapClientToFormData(client *client.Client, valerr *errs.ValidationError) *views.CreateClientFormData {
 	formData := &views.CreateClientFormData{
 		Name:  views.FormInputData{Value: client.Name, Error: valerr.Errors.MsgFor("Name")},
 		Notes: views.FormInputData{Value: client.Notes, Error: valerr.Errors.MsgFor("Notes")},
@@ -213,4 +120,30 @@ func newCreateClientFormData(client *client.Client, valerr *errs.ValidationError
 	}
 
 	return formData
+}
+
+func mapFormToClient(r *http.Request) *client.Client {
+	cli := &client.Client{
+		Name:               r.FormValue("name"),
+		Notes:              r.FormValue("notes"),
+		WholesaleAsDefault: r.FormValue("wholesale_as_default") == "on",
+	}
+
+	if phone := r.FormValue("phone"); phone != "" {
+		cli.ContactInfo.PhoneNumbers = make(map[string]string)
+		cli.ContactInfo.PhoneNumbers["default"] = phone
+	}
+	if email := r.FormValue("email"); email != "" {
+		cli.ContactInfo.Emails = make(map[string]string)
+		cli.ContactInfo.Emails["default"] = email
+	}
+	if link := r.FormValue("link"); link != "" {
+		cli.ContactInfo.Links = make(map[string]string)
+		cli.ContactInfo.Links["default"] = link
+	}
+	if location := r.FormValue("location"); location != "" {
+		cli.ContactInfo.Locations = make(map[string]string)
+		cli.ContactInfo.Locations["default"] = location
+	}
+	return cli
 }

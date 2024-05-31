@@ -26,84 +26,45 @@ func (a *APIAdapter) Run() {
 	a.router.Use(middleware.Logger)
 	a.router.Use(a.handler.AttachAuthenticatedUserMiddleware)
 
-	a.router.Get("/", a.handler.GetHomepage)
+	a.Get("/", a.handler.GetHomepage)
 
-	a.router.Get("/login", a.handler.AlreadyAuthedGuard(a.handler.GetLogin))
-	a.router.Post("/login", a.handler.AlreadyAuthedGuard(a.handler.PostLogin))
-	a.router.Get("/register", a.handler.AlreadyAuthedGuard(a.handler.GetRegister))
-	a.router.Post("/register", a.handler.AlreadyAuthedGuard(a.handler.PostRegister))
-	a.router.Post("/logout", a.handler.AuthGuard(a.handler.Logout))
+	a.Get("/login", a.handler.GetLogin, withHasToNotBeSigned)
+	a.Post("/login", a.handler.PostLogin, withHasToNotBeSigned)
+	a.Get("/register", a.handler.GetRegister, withHasToNotBeSigned)
+	a.Post("/register", a.handler.PostRegister, withHasToNotBeSigned)
+	a.Post("/logout", a.handler.Logout, withHasToNotBeSigned)
 
-	a.router.Get("/users", a.handler.AuthGuard(a.handler.GetUsers))
-	a.router.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.AuthGuard(a.handler.GetUser(id))(w, r)
-	})
-	a.router.Get("/users/{id}/edit", func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.AuthGuard(a.handler.GetEditUser(id))(w, r)
-	})
-	a.router.Put("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.AuthGuard(a.handler.EditUser(id))(w, r)
-	})
-	a.router.Patch("/users/{id}/unset-craftsman", func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.AuthGuard(a.handler.UnsetCraftsman(id))(w, r)
-	})
-	a.router.Get("/users/craftsman-form", a.handler.AuthGuard(a.handler.GetCraftsmanForm))
+	a.Get("/users", a.handler.GetUsers, withProtection)
+	a.Get("/users/{id}", a.passParam("id", a.handler.GetUser))
+	a.Get("/users/{id}/edit", a.passParam("id", a.handler.GetEditUser))
+	a.Put("/users/{id}", a.passParam("id", a.handler.EditUser))
+	a.Patch("/users/{id}/unset-craftsman", a.passParam("id", a.handler.UnsetCraftsman))
+	a.Get("/users/craftsman-form", a.handler.GetCraftsmanForm, withProtection)
 
-	a.router.Get("/roles", a.handler.AuthGuard(a.handler.GetRoles))
+	a.Get("/roles", a.handler.GetRoles, withProtection)
 
-	a.router.Get("/merchants", a.handler.AuthGuard(a.handler.GetMerchants))
-	a.router.Post("/merchants", a.handler.AuthGuard(a.handler.CreateMerchant))
+	a.Get("/merchants", a.handler.GetMerchants, withProtection)
+	a.Post("/merchants", a.handler.CreateMerchant, withProtection)
 
-	a.router.Get("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.GetMerchant(id)(w, r)
-	}))
-	a.router.Put("/merchants/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.EditMerchant(id)(w, r)
-	}))
-	a.router.Get("/merchants/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.GetEditMerchant(id)(w, r)
-	}))
+	a.Get("/merchants/{id}", a.passParam("id", a.handler.GetMerchant), withProtection)
+	a.Put("/merchants/{id}", a.passParam("id", a.handler.EditMerchant), withProtection)
+	a.Get("/merchants/{id}/edit", a.passParam("id", a.handler.GetEditMerchant), withProtection)
 
-	a.router.Get("/clients", a.handler.AuthGuard(a.handler.GetClients))
-	a.router.Post("/clients", a.handler.AuthGuard(a.handler.CreateClient))
-	a.router.Get("/clients/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.GetClient(id)(w, r)
-	}))
-	a.router.Get("/clients/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.GetEditClient(id)(w, r)
-	}))
-	a.router.Put("/clients/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.EditClient(id)(w, r)
-	}))
+	a.Get("/clients", a.handler.GetClients, withProtection)
+	a.Post("/clients", a.handler.CreateClient, withProtection)
+	a.Get("/clients/{id}", a.passParam("id", a.handler.GetClient), withProtection)
+	a.Get("/clients/{id}/edit", a.passParam("id", a.handler.GetEditClient), withProtection)
+	a.Put("/clients/{id}", a.passParam("id", a.handler.EditClient), withProtection)
 
-	a.router.Get("/products", a.handler.AuthGuard(a.handler.GetProducts))
-	a.router.Post("/products", a.handler.AuthGuard(a.handler.CreateProduct))
-	a.router.Get("/products/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.GetProduct(id)(w, r)
-	}))
-	a.router.Get("/products/{id}/edit", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.GetEditProduct(id)(w, r)
-	}))
-	a.router.Put("/products/{id}", a.handler.AuthGuard(func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		a.handler.EditProduct(id)(w, r)
-	}))
+	a.Get("/products", a.handler.GetProducts, withProtection)
+	a.Post("/products", a.handler.CreateProduct, withProtection)
+	a.Get("/products/{id}", a.passParam("id", a.handler.GetProduct), withProtection)
+	a.Get("/products/{id}/edit", a.passParam("id", a.handler.GetEditProduct), withProtection)
+	a.Put("/products/{id}", a.passParam("id", a.handler.EditProduct), withProtection)
 
-	a.router.Get("/orders", a.handler.AuthGuard(a.handler.ErrorHandlerAdapter(a.handler.GetOrders)))
+	a.Get("/orders", a.handler.GetOrders, withProtection)
 
-	a.router.Get("/unauthorized", a.handler.Unauthorized)
+	a.Get("/unauthorized", a.handler.Unauthorized)
 
 	static(a.router, []string{"styles", "js"}, "./web/public")
 

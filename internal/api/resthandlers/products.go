@@ -1,7 +1,6 @@
 package resthandlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,130 +14,92 @@ import (
 	"github.com/omareloui/odinls/web/views"
 )
 
-func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
 	prods, err := h.app.ProductService.GetCurrentMerchantProducts(claims)
 	if err != nil {
-		if errors.Is(errs.ErrForbidden, err) {
-			respondWithForbidden(w, r)
-			return
-		}
-		respondWithInternalServerError(w, r)
-		return
+		return err
 	}
-	respondWithTemplate(w, r, http.StatusOK, views.ProductsPage(claims, prods))
+	return respondWithTemplate(w, r, http.StatusOK, views.ProductsPage(claims, prods))
 }
 
-func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
+func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
 
-	_ = r.ParseForm()
-	prod, err := populateProductFromForm(r.PostForm)
+	err := r.ParseForm()
 	if err != nil {
-		if errors.Is(errs.ErrInvalidFloat, err) {
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		respondWithInternalServerError(w, r)
-		return
+		return err
+	}
+
+	prod, err := mapFormToProduct(r.PostForm)
+	if err != nil {
+		return err
 	}
 
 	err = h.app.ProductService.CreateProduct(claims, prod)
 	if err != nil {
-		if errors.Is(errs.ErrForbidden, err) {
-			respondWithForbidden(w, r)
-			return
-		}
 		if valerr, ok := err.(errs.ValidationError); ok {
-			respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateProductForm(prod, newProductFormData(prod, &valerr), claims.HourlyRate()))
-			return
+			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateProductForm(prod, mapProductToFormData(prod, &valerr), claims.HourlyRate()))
 		}
 
-		respondWithInternalServerError(w, r)
-		return
+		return err
 	}
 
-	_ = renderToBody(w, r, views.ProductOOB(prod, claims.HourlyRate()))
-	respondWithTemplate(w, r, http.StatusOK, views.CreateProductForm(&product.Product{}, &views.ProductFormData{Variants: []views.ProductVariantFormData{{}}}, claims.HourlyRate()))
+	if err := renderToBody(w, r, views.ProductOOB(prod, claims.HourlyRate())); err != nil {
+		return err
+	}
+	return respondWithTemplate(w, r, http.StatusOK, views.CreateProductForm(&product.Product{}, &views.ProductFormData{Variants: []views.ProductVariantFormData{{}}}, claims.HourlyRate()))
 }
 
-func (h *handler) GetProduct(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetProduct(id string) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		claims, _ := h.getAuthFromContext(r)
 		prod, err := h.app.ProductService.GetProductByID(claims, id)
 		if err != nil {
-			if errors.Is(errs.ErrForbidden, err) {
-				respondWithForbidden(w, r)
-				return
-			}
-			if errors.Is(product.ErrProductNotFound, err) {
-				respondWithNotFound(w, r)
-				return
-			}
-			respondWithInternalServerError(w, r)
-			return
+			return err
 		}
-		respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
+		return respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
 	}
 }
 
-func (h *handler) GetEditProduct(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetEditProduct(id string) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		claims, _ := h.getAuthFromContext(r)
 		prod, err := h.app.ProductService.GetProductByID(claims, id)
 		if err != nil {
-			if errors.Is(errs.ErrForbidden, err) {
-				respondWithForbidden(w, r)
-				return
-			}
-			if errors.Is(product.ErrProductNotFound, err) {
-				respondWithNotFound(w, r)
-				return
-			}
-			respondWithInternalServerError(w, r)
-			return
+			return err
 		}
-		respondWithTemplate(w, r, http.StatusOK, views.EditProduct(prod, newProductFormData(prod, &errs.ValidationError{}), claims.HourlyRate()))
+		return respondWithTemplate(w, r, http.StatusOK, views.EditProduct(prod, mapProductToFormData(prod, &errs.ValidationError{}), claims.HourlyRate()))
 	}
 }
 
-func (h *handler) EditProduct(id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) EditProduct(id string) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		claims, _ := h.getAuthFromContext(r)
 
-		_ = r.ParseForm()
-		prod, err := populateProductFromForm(r.PostForm)
+		err := r.ParseForm()
 		if err != nil {
-			if errors.Is(errs.ErrInvalidFloat, err) {
-				w.WriteHeader(http.StatusUnprocessableEntity)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-			respondWithInternalServerError(w, r)
-			return
+			return err
+		}
+
+		prod, err := mapFormToProduct(r.PostForm)
+		if err != nil {
+			return err
 		}
 
 		err = h.app.ProductService.UpdateProductByID(claims, id, prod)
 		if err != nil {
-			if errors.Is(errs.ErrForbidden, err) {
-				respondWithForbidden(w, r)
-				return
-			}
 			if valerr, ok := err.(errs.ValidationError); ok {
-				respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditProduct(prod, newProductFormData(prod, &valerr), claims.HourlyRate()))
-				return
+				return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditProduct(prod, mapProductToFormData(prod, &valerr), claims.HourlyRate()))
 			}
-
-			respondWithInternalServerError(w, r)
-			return
+			return err
 		}
 
-		respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
+		return respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
 	}
 }
 
-func populateProductFromForm(form url.Values) (*product.Product, error) {
+func mapFormToProduct(form url.Values) (*product.Product, error) {
 	prod := &product.Product{
 		Name:        form["name"][0],
 		Description: form["description"][0],
@@ -211,7 +172,7 @@ func populateProductFromForm(form url.Values) (*product.Product, error) {
 	return prod, nil
 }
 
-func newProductFormData(prod *product.Product, valerr *errs.ValidationError) *views.ProductFormData {
+func mapProductToFormData(prod *product.Product, valerr *errs.ValidationError) *views.ProductFormData {
 	formdata := &views.ProductFormData{
 		Name:        views.FormInputData{Value: prod.Name, Error: valerr.Errors.MsgFor("Name")},
 		Description: views.FormInputData{Value: prod.Description, Error: valerr.Errors.MsgFor("Description")},

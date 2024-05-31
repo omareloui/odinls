@@ -4,33 +4,32 @@ import (
 	"net/http"
 )
 
-func (h *handler) AuthGuard(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) AuthGuard(next HandlerFunc) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		access := r.Context().Value(authContextKey)
 
 		if access == nil {
 			if r.Header.Get("Hx-Request") == "true" {
-				hxRespondWithRedirect(w, "/")
-			} else {
-				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return hxRespondWithRedirect(w, "/")
 			}
-			return
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return nil
 		}
-		next(w, r)
+
+		return next(w, r)
 	}
 }
 
-func (h *handler) AlreadyAuthedGuard(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *handler) AlreadyAuthedGuard(next HandlerFunc) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		access := r.Context().Value(authContextKey)
 		if access != nil {
 			if r.Header.Get("Hx-Request") == "true" {
-				hxRespondWithRedirect(w, "/")
-			} else {
-				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return hxRespondWithRedirect(w, "/")
 			}
-			return
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return nil
 		}
-		next(w, r)
+		return next(w, r)
 	}
 }
