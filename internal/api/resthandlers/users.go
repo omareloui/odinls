@@ -48,7 +48,7 @@ func (h *handler) EditUser(id string) HandlerFunc {
 			if errors.Is(errs.ErrInvalidFloat, err) {
 				formdata := mapUserToFormData(usr, &errs.ValidationError{})
 				formdata.HourlyRate.Error = "Invalid number"
-				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, mapUserToFormData(usr, &errs.ValidationError{}), true)
+				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, formdata, true)
 			}
 			return err
 		}
@@ -148,15 +148,12 @@ func mapEditUserFormToUser(id string, r *http.Request) (*user.User, error) {
 
 	isCraftsman := merId != "" || hourlyRate != ""
 	if isCraftsman {
+		usr.Craftsman = &user.Craftsman{MerchantID: merId}
 		hourlyRate, err := strconv.ParseFloat(hourlyRate, 64)
 		if err != nil {
-			return nil, errs.ErrInvalidFloat
+			return usr, errs.ErrInvalidFloat
 		}
-
-		usr.Craftsman = &user.Craftsman{
-			MerchantID: merId,
-			HourlyRate: hourlyRate,
-		}
+		usr.Craftsman.HourlyRate = hourlyRate
 	}
 
 	return usr, nil
