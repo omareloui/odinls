@@ -31,8 +31,8 @@ type ProductVariantFormData struct {
 templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) {
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
-			<h2 class="text-3xl font-bold mb-3">Products</h2>
 			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate(), true)
+			<h2 class="text-3xl font-bold mb-3">Products</h2>
 			@ProductsList(prods, claims.HourlyRate())
 		}
 	}
@@ -82,7 +82,7 @@ templ productFormBody(prod *product.Product, formdata *ProductFormData, hourlyRa
 }
 
 templ productVariantFormBody() {
-	<div class="product-variant-form grid gap-2">
+	<div class="grid gap-2">
 		<h2 class="text-lg my-2">Variant #<span class="font-bold" x-text="idx + 1"></span></h2>
 		<input type="hidden" :name="`variant_id-${idx}`" :value="variant.id.value"/>
 		@alpineInput("Name", "text", "`variant_name-${idx}`", "e.g. Black", "variant.rand", "variant.name")

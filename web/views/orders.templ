@@ -8,21 +8,137 @@ import (
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/order"
 	"strconv"
+	"github.com/omareloui/odinls/internal/application/core/client"
+	"github.com/omareloui/odinls/internal/application/core/product"
 )
 
-type OrderFormData struct{}
+type OrderFormData struct {
+	ClientID FormInputData `json:"client_id"`
+	Status   FormInputData `json:"status"`
 
-templ OrdersPage(claims *jwtadapter.JwtAccessClaims, ords []order.Order) {
+	Timeline    TimelineFormData `json:"timeline"`
+	Note        FormInputData    `json:"note"`
+	CustomPrice FormInputData    `json:"custom_price"`
+
+	Items           []OrderItemFormData      `json:"items"`
+	PriceAddons     []PriceAddonFormData     `json:"price_addons"`
+	ReceivedAmounts []ReceivedAmountFormData `json:"received_amounts"`
+}
+
+type OrderItemFormData struct {
+	ID          FormInputData `json:"id"`
+	Product     FormInputData `json:"product_id"`
+	Variant     FormInputData `json:"variant_id"`
+	CustomPrice FormInputData `json:"custom_price"`
+	Qunatity    FormInputData `json:"quantity"`
+}
+
+type PriceAddonFormData struct {
+	Kind         FormInputData `json:"kind"`
+	Amount       FormInputData `json:"amount"`
+	IsPercentage FormInputData `json:"is_percentage"`
+}
+
+type ReceivedAmountFormData struct {
+	Amount FormInputData `json:"amount"`
+	Date   FormInputData `json:"date"`
+}
+
+type TimelineFormData struct {
+	IssuanceDate FormInputData `json:"issuance_date"`
+	DueDate      FormInputData `json:"due_date"`
+	Deadline     FormInputData `json:"deadline"`
+	DoneOn       FormInputData `json:"done_on"`
+	ShippedOn    FormInputData `json:"shipped_on"`
+	ResolvedOn   FormInputData `json:"resolved_on"`
+}
+
+templ OrdersPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product, clients []client.Client, ords []order.Order) {
 	@baseLayout(claims, "Orders | Odin LS") {
 		@container() {
+			@CreateOrderForm(&order.Order{}, prods, clients, &OrderFormData{Items: []OrderItemFormData{{}}}, false)
 			<h2 class="text-3xl font-bold mb-3">Orders</h2>
-			@CreateOrderForm(&order.Order{}, &OrderFormData{})
 			@OrdersList(ords)
 		}
 	}
 }
 
-templ CreateOrderForm(ord *order.Order, formdata *OrderFormData) {
+templ CreateOrderForm(ord *order.Order, prods []product.Product, clients []client.Client, formdata *OrderFormData, close ...bool) {
+	@creationForm("Create Order", "/orders", "Create Order", close...) {
+		@orderFormBody(ord, prods, clients, formdata)
+	}
+}
+
+templ EditOrder(ord *order.Order, prods []product.Product, clients []client.Client, formdata *OrderFormData) {
+	@form("put", fmt.Sprintf("/orders/%s", ord.ID), templ.Attributes{"hx-target": "this"}) {
+		<p>ID: { ord.ID }</p>
+		@orderFormBody(ord, prods, clients, formdata)
+		@editFormButtons(fmt.Sprintf("/orders/%s", ord.ID))
+	}
+}
+
+templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.Client, formdata *OrderFormData) {
+	PriceAddons     []PriceAddonFormData     `json:"price_addons"`
+	ReceivedAmounts []ReceivedAmountFormData `json:"received_amounts"`
+
+	@selectInput("Client", "client_id", "Select a client", ord.ID, getClientsMap(clients), formdata.ClientID)
+	@selectInput("Status", "status", "Select a status", ord.ID, getOrderStatusesMap(), formdata.Status)
+	@textarea("Note", "note", "Write a note for this order...", ord.ID, formdata.Note)
+	@input("Custom Price", "number", "custom_price", "e.g. 1300EGP", ord.ID, formdata.CustomPrice)
+	@dateInput("Issuance Date", "issuance_date", "Select a date...", ord.ID, formdata.Timeline.IssuanceDate)
+	@dateInput("Due Date", "due_date", "Select a date...", ord.ID, formdata.Timeline.DueDate)
+	@dateInput("Deadline", "deadline", "Select a date...", ord.ID, formdata.Timeline.Deadline)
+	@dateInput("Done On", "done_on", "Select a date...", ord.ID, formdata.Timeline.DoneOn)
+	@dateInput("Shipped On", "shipped_on", "Select a date...", ord.ID, formdata.Timeline.ShippedOn)
+	@dateInput("Resolved On", "resolved_on", "Select a date...", ord.ID, formdata.Timeline.ResolvedOn)
+	<div
+		class="grid gap-2"
+		x-data={ fmt.Sprintf(`{
+			products: %s,
+			productsOptions() { return this.products.map(p => ({value: p.id,view: p.name})) },
+			items: %s.map((v) => {v.rand = randnum(1000000000, 9999999999); return v}),
+			addNew() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); this.items.push(obj)},
+			get hideRemoveBtn() {return this.items.length < 2},
+			rm(idx) {this.items.splice(idx,1)},
+		}`,
+		toJSON(prods),
+		toJSON(formdata.Items),
+		toJSON(OrderItemFormData{})) }
+	>
+		<template x-for="(item, idx) in items">
+			@orderItemFormBody()
+		</template>
+		<button
+			type="button"
+			class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
+			@click="addNew"
+		>Add New Item</button>
+	</div>
+}
+
+templ orderItemFormBody() {
+	<div
+		class="grid gap-2"
+		x-data="{
+			get variantsOptions() {
+				const found = this.products.find(x => x.id === this.item.product_id.value);
+				return found ? found.variants.map(v => ({value: v.id, view: v.name})) : [];
+			}
+		}"
+	>
+		<h2 class="text-lg my-2">Item #<span class="font-bold" x-text="idx + 1"></span></h2>
+		<input type="hidden" :name="`item_id-${idx}`" :value="item.id.value"/>
+		@alpineSelect("Product", "`item_product-${idx}`", "Select a product...", "item.rand", "productsOptions", "item.product_id")
+		@alpineSelect("Variant", "`item_variant-${idx}`", "Select a variant...", "item.rand", "variantsOptions", "item.variant_id")
+		@alpineInput("Custom Price", "number", "`item_custom_price-${idx}`", "e.g. 5000EGP", "item.rand", "item.custom_price")
+		@alpineInput("Quantity", "number", "`item_quantity-${idx}`", "e.g. 2", "item.rand", "item.quantity")
+		<button
+			type="button"
+			@click="rm(idx)"
+			x-show="!hideRemoveBtn"
+			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
+		>Remove Item</button>
+	</div>
 }
 
 templ OrdersList(ords []order.Order) {
@@ -57,4 +173,29 @@ templ Order(ord *order.Order) {
 			hx-swap="outerHTML"
 		>Edit</button>
 	</div>
+}
+
+func getOrderStatusesMap() map[string]string {
+	enums := order.StatusesEnums()
+	m := make(map[string]string, len(enums))
+	for _, enum := range enums {
+		m[enum.String()] = enum.View()
+	}
+	return m
+}
+
+func getClientsMap(clients []client.Client) map[string]string {
+	m := make(map[string]string, len(clients))
+	for _, cli := range clients {
+		m[cli.ID] = cli.Name
+	}
+	return m
+}
+
+func getProductsSelectOptions(prods []product.Product) []SelectOptions {
+	m := make([]SelectOptions, len(prods))
+	for i, prod := range prods {
+		m[i] = SelectOptions{Value: prod.ID, View: prod.Name}
+	}
+	return m
 }

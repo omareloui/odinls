@@ -8,6 +8,11 @@ type FormInputData struct {
 	Error string `json:"error"`
 }
 
+type SelectOptions struct {
+	Value string `json:"value"`
+	View  string `json:"view"`
+}
+
 templ input(label, kind, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
@@ -93,6 +98,39 @@ templ selectInput(label, name, placeholder, idSuffix string, options map[string]
 				}
 			}
 		</select>
+		@errorMessage(data.Error)
+	</div>
+}
+
+templ alpineSelect(label, nameKey, placeholder, idSuffixKey, optionsKey, dataKey string) {
+	<div>
+		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
+		<select
+			id={ alpineJoin(nameKey, idSuffixKey) }
+			name={ nameKey }
+			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+			x-model={ dataKey + ".value" }
+		>
+			<option value="" disabled selected>{ placeholder }</option>
+			<template x-for={ fmt.Sprintf("el in %s", optionsKey) }>
+				<option :value="el.value" x-text="el.view"></option>
+			</template>
+		</select>
+		@alipneErrMessage(dataKey + ".error")
+	</div>
+}
+
+templ dateInput(label, name, placeholder, idSuffix string, data FormInputData) {
+	<div>
+		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
+		<input
+			data-datepicker
+			id={ join(name, idSuffix) }
+			class="input-text-field"
+			placeholder={ placeholder }
+			name={ name }
+			value={ data.Value }
+		/>
 		@errorMessage(data.Error)
 	</div>
 }

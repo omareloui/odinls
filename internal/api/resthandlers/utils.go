@@ -2,6 +2,8 @@ package resthandlers
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/a-h/templ"
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
@@ -54,4 +56,26 @@ func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Compone
 func hxRespondWithRedirect(w http.ResponseWriter, path string) error {
 	w.Header().Set("HX-Location", path)
 	return nil
+}
+
+func parseFloatIfExists(str string) (float64, error) {
+	if str != "" {
+		num, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return 0, errs.ErrInvalidFloat
+		}
+		return num, nil
+	}
+	return 0, nil
+}
+
+func parseDateOnlyIfExists(str string) (time.Time, error) {
+	if str != "" {
+		date, err := time.Parse(time.DateOnly, str)
+		if err != nil {
+			return time.Time{}, errs.ErrInvalidFloat
+		}
+		return date, nil
+	}
+	return time.Time{}, nil
 }

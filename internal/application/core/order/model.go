@@ -9,6 +9,7 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
+// TODO: add a price
 type Order struct {
 	ID     string `json:"id" bson:"_id,omitempty"`
 	Ref    string `json:"ref" bson:"ref"`

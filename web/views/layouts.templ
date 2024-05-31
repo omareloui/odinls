@@ -12,6 +12,7 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 			<link rel="stylesheet" href="/styles/main.css"/>
 			<link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
 			<script src="/js/htmx.lib.js"></script>
+			<script src="/js/litepicker.lib.js"></script>
 			<script src="/js/alpine.lib.js" defer></script>
 		</head>
 		<body>
@@ -30,9 +31,21 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 						ev.detail.isError = false;
 					}
 				})
+
 				function randnum(min = 1, max = 1000000000) {
 					return Math.floor(Math.random() * (max - min + 1)) + min
 				}
+
+				function loadDatePickers () {
+					const els = document.querySelectorAll("input[data-datepicker]")
+					const pickers = []
+					for (const el of els) {
+						const picker = new Litepicker({ element: el });
+						pickers.push(picker)
+					}
+				}
+
+				loadDatePickers()
 			</script>
 		</body>
 	</html>

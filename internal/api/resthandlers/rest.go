@@ -55,6 +55,10 @@ type Handler interface {
 	EditProduct(id string) HandlerFunc
 
 	GetOrders(w http.ResponseWriter, r *http.Request) error
+	CreateOrder(w http.ResponseWriter, r *http.Request) error
+	GetOrder(id string) HandlerFunc
+	GetEditOrder(id string) HandlerFunc
+	EditOrder(id string) HandlerFunc
 }
 
 type handler struct {

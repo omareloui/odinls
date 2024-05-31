@@ -63,6 +63,10 @@ func (a *APIAdapter) Run() {
 	a.Put("/products/{id}", a.passParam("id", a.handler.EditProduct), withProtection)
 
 	a.Get("/orders", a.handler.GetOrders, withProtection)
+	a.Post("/orders", a.handler.CreateOrder, withProtection)
+	a.Get("/orders/{id}", a.passParam("id", a.handler.GetOrder), withProtection)
+	a.Get("/orders/{id}/edit", a.passParam("id", a.handler.GetEditOrder), withProtection)
+	a.Put("/orders/{id}", a.passParam("id", a.handler.EditOrder), withProtection)
 
 	a.Get("/unauthorized", a.handler.Unauthorized)
 
