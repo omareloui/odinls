@@ -59,19 +59,7 @@ templ EditMerchant(mer *merchant.Merchant, formdata *CreateMerchantFormData) {
 	@form("put", fmt.Sprintf("/merchants/%s", mer.ID), templ.Attributes{"hx-target": "this"}) {
 		<p>ID: { mer.ID }</p>
 		@merchantFormBody(mer, formdata)
-		<div class="flex gap-2 mt-2 ">
-			<button
-				type="submit"
-				class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-			>
-				Update
-			</button>
-			<button
-				type="button"
-				class="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-				hx-get={ fmt.Sprintf("/merchants/%s", mer.ID) }
-			>Cancel</button>
-		</div>
+		@editFormButtons(fmt.Sprintf("/merchants/%s", mer.ID))
 	}
 }
 
