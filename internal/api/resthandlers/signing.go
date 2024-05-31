@@ -24,7 +24,7 @@ func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) error {
 	return respondWithTemplate(w, r, http.StatusOK, views.Register(mapRegisterToFormData(&user.User{}, &errs.ValidationError{})))
 }
 
-func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) Register(w http.ResponseWriter, r *http.Request) error {
 	usr := mapFormToUser(r)
 
 	err := h.app.UserService.CreateUser(usr, user.WithPopulatedRole, user.WithPopulatedMerchant)
@@ -61,7 +61,7 @@ func (h *handler) PostRegister(w http.ResponseWriter, r *http.Request) error {
 	return hxRespondWithRedirect(w, "/")
 }
 
-func (h *handler) PostLogin(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
 	var err error
 
 	emailOrUsername := r.FormValue("email_or_username")

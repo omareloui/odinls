@@ -29,9 +29,9 @@ func (a *APIAdapter) Run() {
 	a.Get("/", a.handler.GetHomepage)
 
 	a.Get("/login", a.handler.GetLogin, withHasToNotBeSigned)
-	a.Post("/login", a.handler.PostLogin, withHasToNotBeSigned)
+	a.Post("/login", a.handler.Login, withHasToNotBeSigned)
 	a.Get("/register", a.handler.GetRegister, withHasToNotBeSigned)
-	a.Post("/register", a.handler.PostRegister, withHasToNotBeSigned)
+	a.Post("/register", a.handler.Register, withHasToNotBeSigned)
 	a.Post("/logout", a.handler.Logout, withHasToNotBeSigned)
 
 	a.Get("/users", a.handler.GetUsers, withProtection)

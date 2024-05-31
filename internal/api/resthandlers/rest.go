@@ -9,7 +9,6 @@ import (
 
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
-// TODO: unify the method names
 // TODO: unify the views names
 // TODO: unify the services methods
 
@@ -26,9 +25,9 @@ type Handler interface {
 	GetHomepage(w http.ResponseWriter, r *http.Request) error
 
 	GetLogin(w http.ResponseWriter, r *http.Request) error
-	PostLogin(w http.ResponseWriter, r *http.Request) error
+	Login(w http.ResponseWriter, r *http.Request) error
 	GetRegister(w http.ResponseWriter, r *http.Request) error
-	PostRegister(w http.ResponseWriter, r *http.Request) error
+	Register(w http.ResponseWriter, r *http.Request) error
 	Logout(w http.ResponseWriter, r *http.Request) error
 
 	GetUsers(w http.ResponseWriter, r *http.Request) error
