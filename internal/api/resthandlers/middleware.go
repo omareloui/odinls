@@ -60,7 +60,7 @@ func (h *handler) refreshTokensAndGetContext(w http.ResponseWriter, r *http.Requ
 		return nil
 	}
 
-	usr, err := h.app.UserService.FindUser(parsed.ID, user.WithPopulatedRole, user.WithPopulatedMerchant)
+	usr, err := h.app.UserService.GetUserByID(parsed.ID, user.WithPopulatedRole, user.WithPopulatedMerchant)
 	if err != nil {
 		return nil
 	}

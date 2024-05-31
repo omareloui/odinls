@@ -15,11 +15,15 @@ type merchantService struct {
 	validator          interfaces.Validator
 }
 
+func NewMerchantService(merchantRepository MerchantRepository, validator interfaces.Validator) MerchantService {
+	return &merchantService{merchantRepository: merchantRepository, validator: validator}
+}
+
 func (s *merchantService) GetMerchants() ([]Merchant, error) {
 	return s.merchantRepository.GetMerchants()
 }
 
-func (s *merchantService) FindMerchant(id string) (*Merchant, error) {
+func (s *merchantService) GetMerchantByID(id string) (*Merchant, error) {
 	return s.merchantRepository.FindMerchant(id)
 }
 
@@ -43,10 +47,6 @@ func (s *merchantService) CreateMerchant(merchant *Merchant) error {
 	merchant.CreatedAt = time.Now()
 	merchant.UpdatedAt = time.Now()
 	return s.merchantRepository.CreateMerchant(merchant)
-}
-
-func NewMerchantService(merchantRepository MerchantRepository, validator interfaces.Validator) MerchantService {
-	return &merchantService{merchantRepository: merchantRepository, validator: validator}
 }
 
 func sanitizeMerchant(m *Merchant) {

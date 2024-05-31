@@ -39,18 +39,18 @@ func (s *userService) GetUsers(opts ...RetrieveOptsFunc) ([]User, error) {
 	return s.userRepository.GetUsers(opts...)
 }
 
-func (s *userService) FindUserByEmailOrUsername(emailOrPassword string, opts ...RetrieveOptsFunc) (*User, error) {
+func (s *userService) GetUserByEmailOrUsername(emailOrPassword string, opts ...RetrieveOptsFunc) (*User, error) {
 	return s.userRepository.FindUserByEmailOrUsername(sanitizer.TrimAndLowerCaseString(emailOrPassword), opts...)
 }
 
-func (s *userService) FindUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error) {
+func (s *userService) GetUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error) {
 	return s.userRepository.FindUserByEmailOrUsernameFromUser(&User{
 		Username: sanitizer.TrimAndLowerCaseString(usr.Username),
 		Email:    sanitizer.TrimAndLowerCaseString(usr.Email),
 	}, opts...)
 }
 
-func (s *userService) FindUser(id string, opts ...RetrieveOptsFunc) (*User, error) {
+func (s *userService) GetUserByID(id string, opts ...RetrieveOptsFunc) (*User, error) {
 	return s.userRepository.FindUser(id, opts...)
 }
 
@@ -108,12 +108,12 @@ func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsF
 		return ErrUsernameAlreadyExists
 	}
 
-	if _, err = s.roleService.FindRole(usr.RoleID); err != nil {
+	if _, err = s.roleService.GetRoleByID(usr.RoleID); err != nil {
 		return err
 	}
 
 	if usr.Craftsman != nil {
-		if _, err = s.merchantService.FindMerchant(usr.Craftsman.MerchantID); err != nil {
+		if _, err = s.merchantService.GetMerchantByID(usr.Craftsman.MerchantID); err != nil {
 			return err
 		}
 	}

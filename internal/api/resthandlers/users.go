@@ -22,7 +22,7 @@ func (h *handler) GetUsers(w http.ResponseWriter, r *http.Request) error {
 
 func (h *handler) GetUser(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		usr, err := h.app.UserService.FindUser(id, user.WithPopulatedRole)
+		usr, err := h.app.UserService.GetUserByID(id, user.WithPopulatedRole)
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ func (h *handler) GetUser(id string) HandlerFunc {
 
 func (h *handler) GetEditUser(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		usr, err := h.app.UserService.FindUser(id, user.WithPopulatedRole)
+		usr, err := h.app.UserService.GetUserByID(id, user.WithPopulatedRole)
 		if err != nil {
 			return err
 		}
@@ -88,7 +88,7 @@ func (h *handler) UnsetCraftsman(id string) HandlerFunc {
 			return err
 		}
 
-		user, err := h.app.UserService.FindUser(id, user.WithPopulatedRole)
+		user, err := h.app.UserService.GetUserByID(id, user.WithPopulatedRole)
 		if err != nil {
 			return err
 		}

@@ -30,7 +30,7 @@ func (s *roleService) GetRoles() ([]Role, error) {
 	return s.roleRepository.GetRoles()
 }
 
-func (s *roleService) FindRole(id string) (*Role, error) {
+func (s *roleService) GetRoleByID(id string) (*Role, error) {
 	return s.roleRepository.FindRole(id)
 }
 
@@ -62,7 +62,7 @@ func (s *roleService) SeedRoles() error {
 	return s.roleRepository.SeedRoles(rolestrs)
 }
 
-func (s *roleService) FindRoleByName(role string) (*RoleEnum, error) {
+func (s *roleService) GetRoleByName(role string) (*RoleEnum, error) {
 	var r RoleEnum
 	var err error
 

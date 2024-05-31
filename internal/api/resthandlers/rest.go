@@ -10,7 +10,6 @@ import (
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
 // TODO: unify the views names
-// TODO: unify the services methods
 
 type Handler interface {
 	AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler

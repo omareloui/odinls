@@ -70,7 +70,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
 		Password: r.FormValue("password"),
 	}
 
-	usr, err = h.app.UserService.FindUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole, user.WithPopulatedMerchant)
+	usr, err = h.app.UserService.GetUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole, user.WithPopulatedMerchant)
 	if err != nil {
 		e := mapLoginToFormData(usr, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"

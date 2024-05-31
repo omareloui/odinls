@@ -23,7 +23,7 @@ func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) error {
 
 func (h *handler) GetMerchant(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		mer, err := h.app.MerchantService.FindMerchant(id)
+		mer, err := h.app.MerchantService.GetMerchantByID(id)
 		if err != nil {
 			return err
 		}
@@ -50,7 +50,7 @@ func (h *handler) CreateMerchant(w http.ResponseWriter, r *http.Request) error {
 
 func (h *handler) GetEditMerchant(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		mer, err := h.app.MerchantService.FindMerchant(id)
+		mer, err := h.app.MerchantService.GetMerchantByID(id)
 		if err != nil {
 			return err
 		}
