@@ -101,7 +101,7 @@ func (a *APIAdapter) Run() {
 		a.handler.EditProduct(id)(w, r)
 	}))
 
-	a.router.Get("/orders", a.handler.AuthGuard(a.handler.GetOrders))
+	a.router.Get("/orders", a.handler.AuthGuard(a.handler.ErrorHandlerAdapter(a.handler.GetOrders)))
 
 	a.router.Get("/unauthorized", a.handler.Unauthorized)
 

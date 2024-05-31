@@ -89,7 +89,7 @@ type Product struct {
 	Description string `json:"description" bson:"description,omitempty"`
 	Category    string `json:"category" bson:"category,omitempty" validate:"required,oneof=BKPK BAGS BKMR BRCT CUFS DKPD FLDR HSLD HNDB MASK FNCS TOLS WLET"`
 
-	Variants []ProductVariant `json:"variants" bson:"variants" validate:"required,min=1,dive"`
+	Variants []Variant `json:"variants" bson:"variants" validate:"required,min=1,dive"`
 
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
@@ -102,7 +102,7 @@ func (p *Product) Ref() string {
 	return fmt.Sprintf("%s%03d", p.Category, int(p.Number))
 }
 
-type ProductVariant struct {
+type Variant struct {
 	ID          string `json:"id" bson:"_id,omitempty"`
 	Suffix      string `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
 	Name        string `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
@@ -116,24 +116,24 @@ type ProductVariant struct {
 	ProductRef  string        `json:"product_ref" bson:"product_ref,omitempty"`
 }
 
-func (v *ProductVariant) Ref() string {
+func (v *Variant) Ref() string {
 	return fmt.Sprintf("%s-%s", v.ProductRef, v.Suffix)
 }
 
-func (v *ProductVariant) TotalCost(hourlyRate float64) float64 {
+func (v *Variant) TotalCost(hourlyRate float64) float64 {
 	timeCost := hourlyRate * v.TimeToCraft.Hours()
 	materialsCost := v.MaterialsCost * (1 + incalculableCostsPercentage)
 	return materialsCost + timeCost
 }
 
-func (v *ProductVariant) EstPrice(hourlyRate float64) float64 {
+func (v *Variant) EstPrice(hourlyRate float64) float64 {
 	return v.estPrice(hourlyRate, commercialProfitPercentage)
 }
 
-func (v *ProductVariant) EstWholesalePrice(hourlyRate float64) float64 {
+func (v *Variant) EstWholesalePrice(hourlyRate float64) float64 {
 	return v.estPrice(hourlyRate, wholesaleProfitPercentage)
 }
 
-func (v *ProductVariant) estPrice(hourlyRate, profitPercentage float64) float64 {
+func (v *Variant) estPrice(hourlyRate, profitPercentage float64) float64 {
 	return math.Floor((v.TotalCost(hourlyRate)*(1+profitPercentage))/5) * 5
 }

@@ -5,13 +5,14 @@ import (
 
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/application/core/merchant"
+	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
 type Order struct {
 	ID     string `json:"id" bson:"_id,omitempty"`
 	Ref    string `json:"ref" bson:"ref"`
-	Number int    `json:"number" bson:"number"`
+	Number uint   `json:"number" bson:"number"`
 
 	MerchantID   string   `json:"merchant_id" bson:"merchant"`
 	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen"`
@@ -37,11 +38,14 @@ type Order struct {
 
 type Item struct {
 	ID          string  `json:"id" bson:"_id,omitempty"`
-	Product     string  `json:"product" bson:"product" validate:"mongodb"`
-	Variant     string  `json:"variant" bson:"variant" validate:"mongodb"`
+	ProductID   string  `json:"product_id" bson:"product" validate:"mongodb"`
+	VariantID   string  `json:"variant_id" bson:"variant" validate:"mongodb"`
 	Price       float64 `json:"price" bson:"price"`
 	CustomPrice float64 `json:"custom_price" bson:"custom_price"`
 	Progress    string  `json:"progress" bson:"progress" validate:"required,oneof=not_started designing pending_material crafting laser_carving on_hold done"`
+
+	Product *product.Product `json:"product" bson:"populatedProduct"`
+	Variant *product.Variant `json:"variant" bson:"populatedVariant"`
 }
 
 type PriceAddon struct {

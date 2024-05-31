@@ -117,7 +117,7 @@ func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, i
 	// This keeps the variant even if the new update data doesn't
 	// include the same variant.
 	for _, variant := range prod.Variants {
-		idx := slices.IndexFunc(uprod.Variants, func(uvariant ProductVariant) bool {
+		idx := slices.IndexFunc(uprod.Variants, func(uvariant Variant) bool {
 			return variant.ID == uvariant.ID
 		})
 		if idx == -1 {

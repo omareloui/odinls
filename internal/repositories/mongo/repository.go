@@ -89,8 +89,13 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 
 	repo.productsColl = repo.db.Collection(productsCollectionName)
 	createIndex(repo.productsColl, mongo.IndexModel{Keys: bson.D{{Key: "merchant", Value: 1}}})
+	createIndex(repo.productsColl, mongo.IndexModel{Keys: bson.D{{Key: "variants._id", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	repo.ordersColl = repo.db.Collection(ordersCollectionName)
+	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "ref", Value: 1}}, Options: options.Index().SetUnique(true)})
+	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "merchant", Value: 1}}})
+	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "client", Value: 1}}})
+	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "items._id", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	return repo, nil
 }

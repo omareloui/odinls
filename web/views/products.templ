@@ -28,11 +28,6 @@ type ProductVariantFormData struct {
 	MaterialsCost  FormInputData `json:"materials_cost"`
 }
 
-type ProductVariantFormOpts struct {
-	DontIncludeRemoveButton bool
-	DontIncludeAddButton    bool
-}
-
 templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) {
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
@@ -57,8 +52,6 @@ templ EditProduct(prod *product.Product, formdata *ProductFormData, hourlyRate f
 	}
 }
 
-// TODO: remove the "remove variant" button on editing the product (if it
-// doesn't have id)
 templ productFormBody(prod *product.Product, formdata *ProductFormData, hourlyRate float64) {
 	@input("Name", "text", "name", "e.g. Minimalist Wallet", prod.ID, formdata.Name)
 	@textarea("Description", "description", "Write a description for this product...", prod.ID, formdata.Description)

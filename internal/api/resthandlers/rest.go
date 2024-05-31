@@ -3,13 +3,13 @@ package resthandlers
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	application "github.com/omareloui/odinls/internal/application/core"
-	"github.com/omareloui/odinls/web/views"
 )
 
 type Handler interface {
+	ErrorHandlerAdapter(handler func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc
+
 	AttachAuthenticatedUserMiddleware(next http.Handler) http.Handler
 
 	AuthGuard(next http.HandlerFunc) http.HandlerFunc
@@ -52,7 +52,7 @@ type Handler interface {
 	GetEditProduct(id string) http.HandlerFunc
 	EditProduct(id string) http.HandlerFunc
 
-	GetOrders(w http.ResponseWriter, r *http.Request)
+	GetOrders(w http.ResponseWriter, r *http.Request) error
 }
 
 type handler struct {
@@ -62,42 +62,4 @@ type handler struct {
 
 func NewHandler(app *application.Application, jwtAdapter jwtadapter.JwtAdapter) Handler {
 	return &handler{app: app, jwtAdapter: jwtAdapter}
-}
-
-func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, template templ.Component) {
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(status)
-	if err := renderToBody(w, r, template); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-}
-
-func respondWithInternalServerError(w http.ResponseWriter, r *http.Request) {
-	respondWithErrorPage(w, r, http.StatusInternalServerError)
-}
-
-func respondWithUnauthorized(w http.ResponseWriter, r *http.Request) {
-	respondWithErrorPage(w, r, http.StatusUnauthorized)
-}
-
-func respondWithForbidden(w http.ResponseWriter, r *http.Request) {
-	respondWithErrorPage(w, r, http.StatusForbidden)
-}
-
-func respondWithNotFound(w http.ResponseWriter, r *http.Request) {
-	respondWithErrorPage(w, r, http.StatusNotFound)
-}
-
-func respondWithErrorPage(w http.ResponseWriter, r *http.Request, status int) {
-	auth := r.Context().Value(authContextKey)
-	respondWithTemplate(w, r, status, views.ErrorPage(auth.(*jwtadapter.JwtAccessClaims), http.StatusText(status), status))
-}
-
-func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {
-	return template.Render(r.Context(), w)
-}
-
-func hxRespondWithRedirect(w http.ResponseWriter, path string) {
-	w.Header().Set("HX-Location", path)
 }

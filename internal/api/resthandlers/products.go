@@ -143,7 +143,7 @@ func populateProductFromForm(form url.Values) (*product.Product, error) {
 		Name:        form["name"][0],
 		Description: form["description"][0],
 		Category:    form["category"][0],
-		Variants:    []product.ProductVariant{},
+		Variants:    []product.Variant{},
 	}
 
 	re := regexp.MustCompile(`variant_([\w_]+)-([\w_]+)`)
@@ -163,7 +163,7 @@ func populateProductFromForm(form url.Values) (*product.Product, error) {
 
 		if len(prod.Variants) < idx+1 {
 			for range idx + 1 - len(prod.Variants) {
-				prod.Variants = append(prod.Variants, product.ProductVariant{})
+				prod.Variants = append(prod.Variants, product.Variant{})
 			}
 		}
 

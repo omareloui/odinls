@@ -70,6 +70,39 @@ func (r *repository) GetUsers(options ...user.RetrieveOptsFunc) ([]user.User, er
 	return *usrs, nil
 }
 
+func (r *repository) FindUsersByIDs(ids []string) ([]user.User, error) {
+	ctx, cancel := r.newCtx()
+	defer cancel()
+
+	objIds := make([]primitive.ObjectID, len(ids))
+
+	for i, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errs.ErrInvalidID
+		}
+
+		objIds[i] = objId
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": objIds}}
+
+	cursor, err := r.usersColl.Find(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, user.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	usrs := new([]user.User)
+	if err := cursor.All(ctx, usrs); err != nil {
+		return nil, err
+	}
+
+	return *usrs, nil
+}
+
 func (r *repository) FindUser(id string, options ...user.RetrieveOptsFunc) (*user.User, error) {
 	opts := user.ParseRetrieveOpts(options...)
 

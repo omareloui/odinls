@@ -1,13 +1,60 @@
 
 package views
 
-import "github.com/omareloui/odinls/internal/adapters/jwt"
+import (
+	"fmt"
+	"time"
 
-templ OrdersPage(claims *jwtadapter.JwtAccessClaims) {
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/order"
+	"strconv"
+)
+
+type OrderFormData struct{}
+
+templ OrdersPage(claims *jwtadapter.JwtAccessClaims, ords []order.Order) {
 	@baseLayout(claims, "Orders | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Orders</h2>
-			<p>WIP!!</p>
+			@CreateOrderForm(&order.Order{}, &OrderFormData{})
+			@OrdersList(ords)
 		}
 	}
+}
+
+templ CreateOrderForm(ord *order.Order, formdata *OrderFormData) {
+}
+
+templ OrdersList(ords []order.Order) {
+	<div id="ordersList" class="grid no-entries">
+		for i, ord := range ords {
+			if i > 0 {
+				<br/>
+			}
+			@Order(&ord)
+		}
+	</div>
+}
+
+templ Order(ord *order.Order) {
+	<div hx-target="this">
+		<p>ID: { ord.ID }</p>
+		<p>MerchantID: { ord.MerchantID }</p>
+		for _, crafmanId := range ord.CraftsmenIDs {
+			<p>CraftsmanID: { crafmanId }</p>
+		}
+		<p>Ref: { ord.Ref }</p>
+		<p>Created At: { ord.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { ord.UpdatedAt.Format(time.RFC1123) }</p>
+		<h3 class="text-lg font-bold">Items ({ strconv.Itoa(len(ord.Items)) })</h3>
+		for _, item := range ord.Items {
+			<h4 class="text font-bold">{ item.ID }</h4>
+			<p>ID: { item.ID }</p>
+		}
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/orders/%s/edit", ord.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
 }
