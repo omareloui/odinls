@@ -85,9 +85,9 @@ type Product struct {
 	CraftsmanID string `json:"craftsman_id" bson:"craftsman,omitempty"`
 	Number      uint8  `json:"number" bson:"number,omitempty"`
 
-	Name        string `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
-	Description string `json:"description" bson:"description,omitempty"`
-	Category    string `json:"category" bson:"category,omitempty" validate:"required,oneof=BKPK BAGS BKMR BRCT CUFS DKPD FLDR HSLD HNDB MASK FNCS TOLS WLET"`
+	Name        string `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
+	Description string `json:"description" bson:"description,omitempty" conform:"trim"`
+	Category    string `json:"category" bson:"category,omitempty" conform:"trim,upper" validate:"required,oneof=BKPK BAGS BKMR BRCT CUFS DKPD FLDR HSLD HNDB MASK FNCS TOLS WLET"`
 
 	Variants []Variant `json:"variants" bson:"variants" validate:"required,min=1,dive"`
 
@@ -104,9 +104,9 @@ func (p *Product) Ref() string {
 
 type Variant struct {
 	ID          string `json:"id" bson:"_id,omitempty"`
-	Suffix      string `json:"suffix" bson:"suffix,omitempty" validate:"required,min=2,max=255"`
-	Name        string `json:"name" bson:"name,omitempty" validate:"required,min=3,max=255"`
-	Description string `json:"description" bson:"description,omitempty"`
+	Suffix      string `json:"suffix" bson:"suffix,omitempty" conform:"trim,lower" validate:"required,min=2,max=255"`
+	Name        string `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
+	Description string `json:"description" conform:"trim" bson:"description,omitempty"`
 
 	MaterialsCost  float64 `json:"materials_cost" bson:"materials_cost"`
 	Price          float64 `json:"price" bson:"price"`
@@ -136,4 +136,9 @@ func (v *Variant) EstWholesalePrice(hourlyRate float64) float64 {
 
 func (v *Variant) estPrice(hourlyRate, profitPercentage float64) float64 {
 	return math.Floor((v.TotalCost(hourlyRate)*(1+profitPercentage))/5) * 5
+}
+
+func (v *Variant) Profit(hourlyRate float64) float64 {
+	// TODO: include labor cost?
+	return v.Price - v.MaterialsCost
 }

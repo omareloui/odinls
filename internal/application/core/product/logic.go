@@ -8,7 +8,6 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/counter"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"github.com/omareloui/odinls/internal/sanitizer"
 )
 
 var ErrProductNotFound = errors.New("product not found")
@@ -16,13 +15,15 @@ var ErrProductNotFound = errors.New("product not found")
 type productService struct {
 	repo           ProductRepository
 	validator      interfaces.Validator
+	sanitizer      interfaces.Sanitizer
 	counterService counter.CounterService
 }
 
-func NewProductService(repo ProductRepository, validator interfaces.Validator, counterService counter.CounterService) *productService {
+func NewProductService(repo ProductRepository, validator interfaces.Validator, sanitizer interfaces.Sanitizer, counterService counter.CounterService) *productService {
 	return &productService{
 		repo:           repo,
 		validator:      validator,
+		sanitizer:      sanitizer,
 		counterService: counterService,
 	}
 }
@@ -56,7 +57,10 @@ func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod 
 		return errs.ErrForbidden
 	}
 
-	sanitizeProduct(prod)
+	err := s.sanitizer.SanitizeStruct(prod)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(prod); err != nil {
 		return s.validator.ParseError(err)
@@ -84,7 +88,10 @@ func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, i
 		return errs.ErrForbidden
 	}
 
-	sanitizeProduct(uprod)
+	err := s.sanitizer.SanitizeStruct(uprod)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(uprod); err != nil {
 		return s.validator.ParseError(err)
@@ -126,15 +133,4 @@ func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, i
 	}
 
 	return s.repo.UpdateProductByID(id, uprod, options...)
-}
-
-func sanitizeProduct(prod *Product) {
-	prod.Name = sanitizer.TrimString(prod.Name)
-	prod.Description = sanitizer.TrimString(prod.Description)
-	for i := range prod.Variants {
-		prod.Variants[i].Suffix = sanitizer.LowerCase(sanitizer.TrimString(prod.Variants[i].Suffix))
-		prod.Variants[i].Name = sanitizer.TrimString(prod.Variants[i].Name)
-		prod.Variants[i].Description = sanitizer.TrimString(prod.Variants[i].Description)
-		prod.Variants[i].ProductRef = sanitizer.TrimString(prod.Variants[i].ProductRef)
-	}
 }

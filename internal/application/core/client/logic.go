@@ -7,7 +7,6 @@ import (
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"github.com/omareloui/odinls/internal/sanitizer"
 )
 
 var (
@@ -18,12 +17,14 @@ var (
 type clientService struct {
 	repo      ClientRepository
 	validator interfaces.Validator
+	sanitizer interfaces.Sanitizer
 }
 
-func NewClientService(clientRepository ClientRepository, validator interfaces.Validator) *clientService {
+func NewClientService(clientRepository ClientRepository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) *clientService {
 	return &clientService{
 		repo:      clientRepository,
 		validator: validator,
+		sanitizer: sanitizer,
 	}
 }
 
@@ -56,7 +57,10 @@ func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client 
 		return errs.ErrForbidden
 	}
 
-	sanitizeClient(client)
+	err := s.sanitizer.SanitizeStruct(client)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(client); err != nil {
 		return s.validator.ParseError(err)
@@ -76,26 +80,20 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id 
 		return errs.ErrForbidden
 	}
 
-	sanitizeClient(client)
+	err := s.sanitizer.SanitizeStruct(client)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(client); err != nil {
 		return s.validator.ParseError(err)
 	}
 
 	// TODO(refactor): make sure to update the updated from the SERVICE level in all services
-	// TODO(refactor): DON'T as this is a database responsiblity, move everything there.
+	// TODO(refactor): DON'T as this is a database responsibility, move everything there.
 
 	client.CreatedAt = time.Time{}
 	client.UpdatedAt = time.Now()
 
 	return s.repo.UpdateClientByID(id, client, opts...)
-}
-
-func sanitizeClient(c *Client) {
-	c.Name = sanitizer.TrimString(c.Name)
-	c.Notes = sanitizer.TrimString(c.Notes)
-	sanitizer.SanitizeStringMap(&c.ContactInfo.Emails)
-	sanitizer.SanitizeStringMap(&c.ContactInfo.Links)
-	sanitizer.SanitizeStringMap(&c.ContactInfo.Locations)
-	sanitizer.SanitizeStringMap(&c.ContactInfo.PhoneNumbers)
 }

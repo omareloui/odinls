@@ -8,7 +8,6 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/counter"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"github.com/omareloui/odinls/internal/sanitizer"
 )
 
 const (
@@ -21,13 +20,15 @@ var ErrOrderNotFound = errors.New("order not found")
 type orderService struct {
 	repo           OrderRepository
 	validator      interfaces.Validator
+	sanitizer      interfaces.Sanitizer
 	counterService counter.CounterService
 }
 
-func NewOrderService(repo OrderRepository, validator interfaces.Validator, counterService counter.CounterService) *orderService {
+func NewOrderService(repo OrderRepository, counterService counter.CounterService, validator interfaces.Validator, sanitizer interfaces.Sanitizer) *orderService {
 	return &orderService{
 		repo:           repo,
 		validator:      validator,
+		sanitizer:      sanitizer,
 		counterService: counterService,
 	}
 }
@@ -61,7 +62,10 @@ func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Orde
 		return errs.ErrForbidden
 	}
 
-	sanitizeOrder(ord)
+	err := s.sanitizer.SanitizeStruct(ord)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(ord); err != nil {
 		return s.validator.ParseError(err)
@@ -84,7 +88,10 @@ func (s *orderService) UpdateOrderByID(claims *jwtadapter.JwtAccessClaims, id st
 		return errs.ErrForbidden
 	}
 
-	sanitizeOrder(uord)
+	err := s.sanitizer.SanitizeStruct(uord)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(uord); err != nil {
 		return s.validator.ParseError(err)
@@ -100,8 +107,4 @@ func (s *orderService) UpdateOrderByID(claims *jwtadapter.JwtAccessClaims, id st
 	uord.CreatedAt = ord.CreatedAt
 
 	return s.repo.UpdateOrderByID(id, uord, options...)
-}
-
-func sanitizeOrder(ord *Order) {
-	ord.Note = sanitizer.TrimString(ord.Note)
 }

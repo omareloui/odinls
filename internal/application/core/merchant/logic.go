@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"github.com/omareloui/odinls/internal/sanitizer"
 )
 
 var ErrMerchantNotFound = errors.New("merchant not found")
@@ -13,10 +13,11 @@ var ErrMerchantNotFound = errors.New("merchant not found")
 type merchantService struct {
 	merchantRepository MerchantRepository
 	validator          interfaces.Validator
+	sanitizer          interfaces.Sanitizer
 }
 
-func NewMerchantService(merchantRepository MerchantRepository, validator interfaces.Validator) MerchantService {
-	return &merchantService{merchantRepository: merchantRepository, validator: validator}
+func NewMerchantService(merchantRepository MerchantRepository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) MerchantService {
+	return &merchantService{merchantRepository: merchantRepository, validator: validator, sanitizer: sanitizer}
 }
 
 func (s *merchantService) GetMerchants() ([]Merchant, error) {
@@ -28,7 +29,10 @@ func (s *merchantService) GetMerchantByID(id string) (*Merchant, error) {
 }
 
 func (s *merchantService) UpdateMerchantByID(id string, merchant *Merchant) error {
-	sanitizeMerchant(merchant)
+	err := s.sanitizer.SanitizeStruct(merchant)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(merchant); err != nil {
 		return s.validator.ParseError(err)
@@ -38,7 +42,10 @@ func (s *merchantService) UpdateMerchantByID(id string, merchant *Merchant) erro
 }
 
 func (s *merchantService) CreateMerchant(merchant *Merchant) error {
-	sanitizeMerchant(merchant)
+	err := s.sanitizer.SanitizeStruct(merchant)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(merchant); err != nil {
 		return s.validator.ParseError(err)
@@ -47,9 +54,4 @@ func (s *merchantService) CreateMerchant(merchant *Merchant) error {
 	merchant.CreatedAt = time.Now()
 	merchant.UpdatedAt = time.Now()
 	return s.merchantRepository.CreateMerchant(merchant)
-}
-
-func sanitizeMerchant(m *Merchant) {
-	m.Name = sanitizer.TrimString(m.Name)
-	m.Logo = sanitizer.TrimString(m.Logo)
 }

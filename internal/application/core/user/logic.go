@@ -6,8 +6,8 @@ import (
 
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/role"
+	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"github.com/omareloui/odinls/internal/sanitizer"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,14 +24,16 @@ type userService struct {
 	roleService     role.RoleService
 	merchantService merchant.MerchantService
 	validator       interfaces.Validator
+	sanitizer       interfaces.Sanitizer
 }
 
-func NewUserService(userRepository UserRepository, merchantService merchant.MerchantService, roleService role.RoleService, validator interfaces.Validator) UserService {
+func NewUserService(userRepository UserRepository, merchantService merchant.MerchantService, roleService role.RoleService, validator interfaces.Validator, sanitizer interfaces.Sanitizer) UserService {
 	return &userService{
 		userRepository:  userRepository,
 		roleService:     roleService,
 		merchantService: merchantService,
 		validator:       validator,
+		sanitizer:       sanitizer,
 	}
 }
 
@@ -39,15 +41,16 @@ func (s *userService) GetUsers(opts ...RetrieveOptsFunc) ([]User, error) {
 	return s.userRepository.GetUsers(opts...)
 }
 
-func (s *userService) GetUserByEmailOrUsername(emailOrPassword string, opts ...RetrieveOptsFunc) (*User, error) {
-	return s.userRepository.FindUserByEmailOrUsername(sanitizer.TrimAndLowerCaseString(emailOrPassword), opts...)
+func (s *userService) GetUserByEmailOrUsername(emailOrUsername string, opts ...RetrieveOptsFunc) (*User, error) {
+	return s.userRepository.FindUserByEmailOrUsername(s.sanitizer.Lower(s.sanitizer.Trim(emailOrUsername)), opts...)
 }
 
 func (s *userService) GetUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error) {
-	return s.userRepository.FindUserByEmailOrUsernameFromUser(&User{
-		Username: sanitizer.TrimAndLowerCaseString(usr.Username),
-		Email:    sanitizer.TrimAndLowerCaseString(usr.Email),
-	}, opts...)
+	err := s.sanitizer.SanitizeStruct(usr)
+	if err != nil {
+		return nil, errs.ErrSanitizer
+	}
+	return s.userRepository.FindUserByEmailOrUsernameFromUser(usr, opts...)
 }
 
 func (s *userService) GetUserByID(id string, opts ...RetrieveOptsFunc) (*User, error) {
@@ -55,7 +58,10 @@ func (s *userService) GetUserByID(id string, opts ...RetrieveOptsFunc) (*User, e
 }
 
 func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
-	sanitizeUser(usr)
+	err := s.sanitizer.SanitizeStruct(usr)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(usr); err != nil {
 		return s.validator.ParseError(err)
@@ -82,7 +88,10 @@ func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
 }
 
 func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsFunc) error {
-	sanitizeUser(usr)
+	err := s.sanitizer.SanitizeStruct(usr)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(usr); err != nil {
 		valerr := s.validator.ParseError(err)
@@ -123,11 +132,4 @@ func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsF
 
 func (s *userService) UnsetCraftsmanByID(id string) error {
 	return s.userRepository.UnsetCraftsmanByID(id)
-}
-
-func sanitizeUser(usr *User) {
-	usr.Name.First = sanitizer.TrimString(usr.Name.First)
-	usr.Name.Last = sanitizer.TrimString(usr.Name.Last)
-	usr.Email = sanitizer.TrimAndLowerCaseString(usr.Email)
-	usr.Username = sanitizer.TrimAndLowerCaseString(usr.Username)
 }

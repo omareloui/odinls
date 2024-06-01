@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"github.com/omareloui/odinls/internal/sanitizer"
 )
 
 var (
@@ -17,12 +17,14 @@ var (
 type roleService struct {
 	roleRepository RoleRepository
 	validator      interfaces.Validator
+	sanitizer      interfaces.Sanitizer
 }
 
-func NewRoleService(roleRepository RoleRepository, validator interfaces.Validator) RoleService {
+func NewRoleService(roleRepository RoleRepository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) RoleService {
 	return &roleService{
 		roleRepository: roleRepository,
 		validator:      validator,
+		sanitizer:      sanitizer,
 	}
 }
 
@@ -35,7 +37,10 @@ func (s *roleService) GetRoleByID(id string) (*Role, error) {
 }
 
 func (s *roleService) CreateRole(role *Role) error {
-	sanitizeRole(role)
+	err := s.sanitizer.SanitizeStruct(role)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
 
 	if err := s.validator.Validate(role); err != nil {
 		return s.validator.ParseError(err)
@@ -82,8 +87,4 @@ func (s *roleService) GetRoleByName(role string) (*RoleEnum, error) {
 	}
 
 	return &r, err
-}
-
-func sanitizeRole(r *Role) {
-	r.Name = sanitizer.UpperCase(sanitizer.TrimString(r.Name))
 }

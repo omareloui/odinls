@@ -21,17 +21,17 @@ type Application struct {
 	OrderService    order.OrderService
 }
 
-func NewApplication(repo repository.Repository, validator interfaces.Validator) *Application {
-	role := role.NewRoleService(repo, validator)
-	merchantService := merchant.NewMerchantService(repo, validator)
+func NewApplication(repo repository.Repository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) *Application {
+	role := role.NewRoleService(repo, validator, sanitizer)
+	merchantService := merchant.NewMerchantService(repo, validator, sanitizer)
 	counterService := counter.NewCounterService(repo)
 
 	return &Application{
-		UserService:     user.NewUserService(repo, merchantService, role, validator),
+		UserService:     user.NewUserService(repo, merchantService, role, validator, sanitizer),
 		RoleService:     role,
 		MerchantService: merchantService,
-		ClientService:   client.NewClientService(repo, validator),
-		ProductService:  product.NewProductService(repo, validator, counterService),
-		OrderService:    order.NewOrderService(repo, validator, counterService),
+		ClientService:   client.NewClientService(repo, validator, sanitizer),
+		ProductService:  product.NewProductService(repo, validator, sanitizer, counterService),
+		OrderService:    order.NewOrderService(repo, counterService, validator, sanitizer),
 	}
 }
