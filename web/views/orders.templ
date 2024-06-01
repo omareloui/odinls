@@ -17,9 +17,9 @@ type OrderFormData struct {
 	ClientID FormInputData `json:"client_id"`
 	Status   FormInputData `json:"status"`
 
-	Timeline    TimelineFormData `json:"timeline"`
-	Note        FormInputData    `json:"note"`
-	CustomPrice FormInputData    `json:"custom_price"`
+	Timeline    OrderTimelineFormData `json:"timeline"`
+	Note        FormInputData         `json:"note"`
+	CustomPrice FormInputData         `json:"custom_price"`
 
 	Items           []OrderItemFormData      `json:"items"`
 	PriceAddons     []PriceAddonFormData     `json:"price_addons"`
@@ -31,7 +31,7 @@ type OrderItemFormData struct {
 	Product     FormInputData `json:"product_id"`
 	Variant     FormInputData `json:"variant_id"`
 	CustomPrice FormInputData `json:"custom_price"`
-	Qunatity    FormInputData `json:"quantity"`
+	Quantity    FormInputData `json:"quantity"`
 }
 
 type PriceAddonFormData struct {
@@ -45,7 +45,7 @@ type ReceivedAmountFormData struct {
 	Date   FormInputData `json:"date"`
 }
 
-type TimelineFormData struct {
+type OrderTimelineFormData struct {
 	IssuanceDate FormInputData `json:"issuance_date"`
 	DueDate      FormInputData `json:"due_date"`
 	Deadline     FormInputData `json:"deadline"`
@@ -85,14 +85,11 @@ templ EditOrder(ord *order.Order, prods []product.Product, clients []client.Clie
 templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.Client, formdata *OrderFormData) {
 	@selectInput("Client", "client_id", "Select a client", ord.ID, getClientsMap(clients), formdata.ClientID)
 	@selectInput("Status", "status", "Select a status", ord.ID, getOrderStatusesMap(), formdata.Status)
-	@textarea("Note", "note", "Write a note for this order...", ord.ID, formdata.Note)
 	@moneyInput("Custom Price", "custom_price", ord.ID, formdata.CustomPrice)
 	@dateInput("Issuance Date", "issuance_date", ord.ID, formdata.Timeline.IssuanceDate)
 	@dateInput("Due Date", "due_date", ord.ID, formdata.Timeline.DueDate)
 	@dateInput("Deadline", "deadline", ord.ID, formdata.Timeline.Deadline)
-	@dateInput("Done On", "done_on", ord.ID, formdata.Timeline.DoneOn)
-	@dateInput("Shipped On", "shipped_on", ord.ID, formdata.Timeline.ShippedOn)
-	@dateInput("Resolved On", "resolved_on", ord.ID, formdata.Timeline.ResolvedOn)
+	@textarea("Note", "note", "Write a note for this order...", ord.ID, formdata.Note)
 	<div
 		class="grid gap-2"
 		x-data={ fmt.Sprintf(`{

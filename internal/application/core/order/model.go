@@ -10,6 +10,7 @@ import (
 )
 
 // TODO: add a price
+// TODO: remove custom price on the order level
 type Order struct {
 	ID     string `json:"id" bson:"_id,omitempty"`
 	Ref    string `json:"ref" bson:"ref"`
@@ -21,7 +22,7 @@ type Order struct {
 
 	Status      string       `json:"status" bson:"status" validate:"required,oneof=pending_confirmation confirmed in_progress pending_shipment shipping pending_payment completed canceled expired"`
 	Items       []Item       `json:"items" bson:"items" validate:"required,min=1,dive,required"`
-	PriceAddons []PriceAddon `json:"price_addons" bson:"price_addons" validate:"required,dive"`
+	PriceAddons []PriceAddon `json:"price_addons" bson:"price_addons" validate:"dive"`
 
 	CustomPrice     float64          `json:"custom_price" bson:"custom_price,omitempty"`
 	ReceivedAmounts []ReceivedAmount `json:"received_amounts" bson:"received_amounts" validate:"dive"`
