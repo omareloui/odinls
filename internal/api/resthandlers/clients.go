@@ -22,8 +22,8 @@ func (h *handler) GetClients(w http.ResponseWriter, r *http.Request) error {
 
 func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
-
 	cli := mapFormToClient(r)
+
 	err := h.app.ClientService.CreateClient(claims, cli)
 	if err != nil {
 		if errors.Is(client.ErrClientExistsForMerchant, err) {
@@ -127,6 +127,7 @@ func mapFormToClient(r *http.Request) *client.Client {
 		Name:               r.FormValue("name"),
 		Notes:              r.FormValue("notes"),
 		WholesaleAsDefault: r.FormValue("wholesale_as_default") == "on",
+		ContactInfo:        client.ContactInfo{},
 	}
 
 	if phone := r.FormValue("phone"); phone != "" {

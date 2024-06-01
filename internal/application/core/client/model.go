@@ -12,7 +12,7 @@ type Client struct {
 
 	Name               string      `json:"name" bson:"name" conform:"title,trim" validate:"required,min=3,max=255,not_blank"`
 	Notes              string      `json:"notes" conform:"trim" bson:"notes,omitempty"`
-	ContactInfo        ContactInfo `json:"contact_info" bson:"contact_info,omitempty" validate:"required"`
+	ContactInfo        ContactInfo `json:"contact_info" bson:"contact_info,omitempty"`
 	WholesaleAsDefault bool        `json:"wholesale_as_default" bson:"wholesale_as_default" validate:"boolean"`
 
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
