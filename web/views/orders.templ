@@ -164,8 +164,10 @@ templ orderItemFormBody() {
 templ orderPriceAddonFormBody() {
 	<div class="grid gap-2">
 		<h2 class="text-lg my-2">Price Addon #<span class="font-bold" x-text="idx + 1"></span></h2>
-		@alpineInput("Amount", "number", "`addon_amount-${idx}`", "e.g. 400EGP", "price_addon.rand", "price_addon.amount")
-		@alpineSelect("Kind", "`addon_kind-${idx}`", "Select kind...", "price_addon.rand", "priceAddonsKinds", "price_addon.kind")
+		<div class="grid grid-cols-3 gap-4">
+			@alpineInput("Amount", "number", "`addon_amount-${idx}`", "e.g. 400EGP", "price_addon.rand", "price_addon.amount", "col-span-2")
+			@alpineSelect("Kind", "`addon_kind-${idx}`", "Select kind...", "price_addon.rand", "priceAddonsKinds", "price_addon.kind", "self-end")
+		</div>
 		@alpineCheckbox("The amount is a percentage", "`addon_is_percentage-${idx}`", "price_addon.rand", "price_addon.is_percentage")
 		<button
 			type="button"

@@ -12,8 +12,8 @@
   @apply mb-1 block text-sm font-medium text-gray-900;
 }
 
-.input-text-field {
-  @apply bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none;
+.input-field {
+  @apply bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none h-11;
 }
 
 .form-visibility-button {

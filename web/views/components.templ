@@ -21,22 +21,22 @@ templ input(label, kind, name, placeholder, idSuffix string, data FormInputData)
 			type={ kind }
 			name={ name }
 			placeholder={ placeholder }
-			class="input-text-field"
+			class="input-field"
 			value={ data.Value }
 		/>
 		@errorMessage(data.Error)
 	</div>
 }
 
-templ alpineInput(label, kind, nameKey, placeholder, idSuffixKey, dataKey string) {
-	<div>
+templ alpineInput(label, kind, nameKey, placeholder, idSuffixKey, dataKey string, classes ...string) {
+	<div class={ strings.Join(classes, " ") }>
 		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
 		<input
 			:id={ alpineJoin(nameKey, idSuffixKey) }
 			type={ kind }
 			:name={ nameKey }
 			placeholder={ placeholder }
-			class="input-text-field"
+			class="input-field"
 			x-model={ dataKey + ".value" }
 		/>
 		@alipneErrMessage(dataKey + ".error")
@@ -49,7 +49,7 @@ templ moneyInput(label, name, idSuffix string, data FormInputData) {
 		<input
 			id={ join(name, idSuffix) }
 			name={ name }
-			class="input-text-field"
+			class="input-field"
 			value={ data.Value }
 			placeholder="1,000.00"
 			x-mask:dynamic="$money($input, '.', ',')"
@@ -64,7 +64,7 @@ templ alpineMoneyInput(label, nameKey, idSuffixKey, dataKey string) {
 		<input
 			:id={ alpineJoin(nameKey, idSuffixKey) }
 			:name={ nameKey }
-			class="input-text-field"
+			class="input-field"
 			placeholder="1,000.00"
 			x-model={ dataKey + ".value" }
 			x-mask:dynamic="$money($input, '.', ',')"
@@ -80,7 +80,7 @@ templ textarea(label, name, placeholder, idSuffix string, data FormInputData) {
 			id={ join(name, idSuffix) }
 			name={ name }
 			placeholder={ placeholder }
-			class="input-text-field"
+			class="input-field"
 		>{ data.Value }</textarea>
 		@errorMessage(data.Error)
 	</div>
@@ -93,7 +93,7 @@ templ alpineTextarea(label, nameKey, placeholder, idSuffixKey, dataKey string) {
 			:id={ alpineJoin(nameKey, idSuffixKey) }
 			:name={ nameKey }
 			placeholder={ placeholder }
-			class="input-text-field"
+			class="input-field"
 			x-model={ dataKey + ".value" }
 		></textarea>
 		@alipneErrMessage(dataKey + ".error")
@@ -123,13 +123,13 @@ templ alpineCheckbox(label, nameKey, idSuffix, dataKey string) {
 	</div>
 }
 
-templ selectInput(label, name, placeholder, idSuffix string, options map[string]string, data FormInputData) {
-	<div>
+templ selectInput(label, name, placeholder, idSuffix string, options map[string]string, data FormInputData, classes ...string) {
+	<div class={ strings.Join(classes, " ") }>
 		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
 		<select
 			id={ join(name, idSuffix) }
 			name={ name }
-			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+			class="input-field"
 		>
 			<option value="" disabled selected>{ placeholder }</option>
 			for k, v := range options {
@@ -144,13 +144,13 @@ templ selectInput(label, name, placeholder, idSuffix string, options map[string]
 	</div>
 }
 
-templ alpineSelect(label, nameKey, placeholder, idSuffixKey, optionsKey, dataKey string) {
-	<div>
+templ alpineSelect(label, nameKey, placeholder, idSuffixKey, optionsKey, dataKey string, classes ...string) {
+	<div class={ strings.Join(classes, " ") }>
 		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
 		<select
 			:id={ alpineJoin(nameKey, idSuffixKey) }
 			:name={ nameKey }
-			class="bg-gray-50 border-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:border-blue-300 block w-full p-2.5 focus:outline-none"
+			class="input-field"
 			x-model={ dataKey + ".value" }
 		>
 			<option value="" disabled selected>{ placeholder }</option>
@@ -168,7 +168,7 @@ templ dateInput(label, name, idSuffix string, data FormInputData) {
 		<input
 			data-datepicker
 			id={ join(name, idSuffix) }
-			class="input-text-field"
+			class="input-field"
 			x-mask="9999-99-99"
 			placeholder="yyyy-mm-dd"
 			name={ name }
