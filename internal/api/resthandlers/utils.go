@@ -2,8 +2,8 @@ package resthandlers
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -13,6 +13,8 @@ import (
 )
 
 type ValidationErrorResponseFunc func(valerr *errs.ValidationError) templ.Component
+
+var nonDigitRegexp *regexp.Regexp = regexp.MustCompile(`\D+`)
 
 func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, template templ.Component) error {
 	w.Header().Set("Content-Type", "text/html")
@@ -72,8 +74,7 @@ func parseIntIfExists(str string) (int, error) {
 
 func parseFloatIfExists(str string) (float64, error) {
 	if str != "" {
-		str = strings.ReplaceAll(str, ",", "")
-		str = strings.ReplaceAll(str, " ", "")
+		str = nonDigitRegexp.ReplaceAllLiteralString(str, "")
 		num, err := strconv.ParseFloat(str, 64)
 		if err != nil {
 			return 0, errs.ErrInvalidFloat
@@ -92,4 +93,25 @@ func parseDateOnlyIfExists(str string) (time.Time, error) {
 		return date, nil
 	}
 	return time.Time{}, nil
+}
+
+func formatDateOnlyIfNonZero(date time.Time) string {
+	if date.IsZero() {
+		return ""
+	}
+	return date.Format(time.DateOnly)
+}
+
+func formatFloatIfNonZero(f float64) string {
+	if f == 0 {
+		return ""
+	}
+	return strconv.FormatFloat(f, 'f', -1, 64)
+}
+
+func formatBooleanIfNonZero(b bool) string {
+	if !b {
+		return ""
+	}
+	return "on"
 }

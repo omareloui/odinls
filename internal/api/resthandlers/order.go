@@ -226,34 +226,18 @@ func mapFormToOrder(f url.Values) (*order.Order, error) {
 	return o, nil
 }
 
-func setOrderDate(f *url.Values, key string, t *time.Time) error {
-	var err error
-	val := (*f)[key]
-	if val != nil {
-		*t, err = parseDateOnlyIfExists(val[0])
-	}
-	return err
-}
-
 func mapOrderToFormData(ord *order.Order, valerr *errs.ValidationError) *views.OrderFormData {
 	formdata := &views.OrderFormData{
-		// Timeline    TimelineFormData `json:"timeline"`
-		// Note        FormInputData    `json:"note"`
-		// CustomPrice FormInputData    `json:"custom_price"`
-
-		// Items           []OrderItemFormData      `json:"items"`
-		// PriceAddons     []PriceAddonFormData     `json:"price_addons"`
-		// ReceivedAmounts []ReceivedAmountFormData `json:"received_amounts"`
-
-		ClientID: views.FormInputData{Value: ord.ClientID, Error: valerr.Errors.MsgFor("ClientID")},
-		Status:   views.FormInputData{Value: ord.Status, Error: valerr.Errors.MsgFor("Status")},
+		ClientID:    views.FormInputData{Value: ord.ClientID, Error: valerr.Errors.MsgFor("ClientID")},
+		Status:      views.FormInputData{Value: ord.Status, Error: valerr.Errors.MsgFor("Status")},
+		CustomPrice: views.FormInputData{Value: formatFloatIfNonZero(ord.CustomPrice), Error: valerr.Errors.MsgFor("CustomPrice")},
 		Timeline: views.OrderTimelineFormData{
-			IssuanceDate: views.FormInputData{Value: ord.Timeline.IssuanceDate.Format(time.DateOnly), Error: valerr.Errors.MsgFor("Timeline.IssuanceDate")},
-			DueDate:      views.FormInputData{Value: ord.Timeline.DueDate.Format(time.DateOnly), Error: valerr.Errors.MsgFor("Timeline.DueDate")},
-			Deadline:     views.FormInputData{Value: ord.Timeline.Deadline.Format(time.DateOnly), Error: valerr.Errors.MsgFor("Timeline.Deadline")},
-			DoneOn:       views.FormInputData{Value: ord.Timeline.DoneOn.Format(time.DateOnly), Error: valerr.Errors.MsgFor("Timeline.DoneOn")},
-			ShippedOn:    views.FormInputData{Value: ord.Timeline.ShippedOn.Format(time.DateOnly), Error: valerr.Errors.MsgFor("Timeline.ShippedOn")},
-			ResolvedOn:   views.FormInputData{Value: ord.Timeline.ResolvedOn.Format(time.DateOnly), Error: valerr.Errors.MsgFor("Timeline.ResolvedOn")},
+			IssuanceDate: views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.IssuanceDate), Error: valerr.Errors.MsgFor("Timeline.IssuanceDate")},
+			DueDate:      views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.DueDate), Error: valerr.Errors.MsgFor("Timeline.DueDate")},
+			Deadline:     views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.Deadline), Error: valerr.Errors.MsgFor("Timeline.Deadline")},
+			DoneOn:       views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.DoneOn), Error: valerr.Errors.MsgFor("Timeline.DoneOn")},
+			ShippedOn:    views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.ShippedOn), Error: valerr.Errors.MsgFor("Timeline.ShippedOn")},
+			ResolvedOn:   views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.ResolvedOn), Error: valerr.Errors.MsgFor("Timeline.ResolvedOn")},
 		},
 		Items:           []views.OrderItemFormData{},
 		PriceAddons:     []views.PriceAddonFormData{},
@@ -277,30 +261,35 @@ func mapOrderToFormData(ord *order.Order, valerr *errs.ValidationError) *views.O
 			ID:          views.FormInputData{Value: item.ID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].ID", i))},
 			Product:     views.FormInputData{Value: item.ProductID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].Product", i))},
 			Variant:     views.FormInputData{Value: item.VariantID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].Variant", i))},
-			CustomPrice: views.FormInputData{Value: strconv.FormatFloat(item.CustomPrice, 'f', -1, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].CustomPrice", i))},
+			CustomPrice: views.FormInputData{Value: formatFloatIfNonZero(item.CustomPrice), Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].CustomPrice", i))},
 			Quantity:    views.FormInputData{Value: "1", Error: ""},
 		})
 	}
 
 	for i, addon := range ord.PriceAddons {
-		// FIXME: this doesn't work with alpin's chebox
-		isPercentage := ""
-		if addon.IsPercentage {
-			isPercentage = "on"
-		}
 		formdata.PriceAddons = append(formdata.PriceAddons, views.PriceAddonFormData{
-			Kind:         views.FormInputData{Value: addon.Kind, Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Kind", i))},
-			Amount:       views.FormInputData{Value: strconv.FormatFloat(addon.Amount, 'f', -1, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Amount", i))},
-			IsPercentage: views.FormInputData{Value: isPercentage, Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].IsPercentage", i))},
+			Kind:   views.FormInputData{Value: addon.Kind, Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Kind", i))},
+			Amount: views.FormInputData{Value: formatFloatIfNonZero(addon.Amount), Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Amount", i))},
+			// FIXME: this doesn't work with alpine's checkbox
+			IsPercentage: views.FormInputData{Value: formatBooleanIfNonZero(addon.IsPercentage), Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].IsPercentage", i))},
 		})
 	}
 
 	for i, recieved := range ord.ReceivedAmounts {
 		formdata.ReceivedAmounts = append(formdata.ReceivedAmounts, views.ReceivedAmountFormData{
-			Amount: views.FormInputData{Value: strconv.FormatFloat(recieved.Amount, 'f', -1, 64), Error: valerr.Errors.MsgFor(fmt.Sprintf("ReceivedAmounts[%d].Amount", i))},
-			Date:   views.FormInputData{Value: recieved.Date.Format(time.DateOnly), Error: valerr.Errors.MsgFor("ReceivedAmounts[%d].Date")},
+			Amount: views.FormInputData{Value: formatFloatIfNonZero(recieved.Amount), Error: valerr.Errors.MsgFor(fmt.Sprintf("ReceivedAmounts[%d].Amount", i))},
+			Date:   views.FormInputData{Value: formatDateOnlyIfNonZero(recieved.Date), Error: valerr.Errors.MsgFor("ReceivedAmounts[%d].Date")},
 		})
 	}
 
 	return formdata
+}
+
+func setOrderDate(f *url.Values, key string, t *time.Time) error {
+	var err error
+	val := (*f)[key]
+	if val != nil {
+		*t, err = parseDateOnlyIfExists(val[0])
+	}
+	return err
 }

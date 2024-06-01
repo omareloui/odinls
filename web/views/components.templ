@@ -51,23 +51,23 @@ templ moneyInput(label, name, idSuffix string, data FormInputData) {
 			name={ name }
 			class="input-field"
 			value={ data.Value }
-			placeholder="1,000.00"
-			x-mask:dynamic="$money($input, '.', ',')"
+			placeholder="E£ 1,000.00"
+			x-mask:dynamic="'E£ ' + $money($input, '.', ',')"
 		/>
 		@errorMessage(data.Error)
 	</div>
 }
 
-templ alpineMoneyInput(label, nameKey, idSuffixKey, dataKey string) {
-	<div>
+templ alpineMoneyInput(label, nameKey, idSuffixKey, dataKey string, classes ...string) {
+	<div class={ strings.Join(classes, " ") }>
 		<label class="input-label" :for={ alpineJoin(nameKey, idSuffixKey) }>{ label }</label>
 		<input
 			:id={ alpineJoin(nameKey, idSuffixKey) }
 			:name={ nameKey }
 			class="input-field"
-			placeholder="1,000.00"
 			x-model={ dataKey + ".value" }
-			x-mask:dynamic="$money($input, '.', ',')"
+			placeholder="E£ 1,000.00"
+			x-mask:dynamic="'E£ ' + $money($input, '.', ',')"
 		/>
 		@alipneErrMessage(dataKey + ".error")
 	</div>

@@ -18,7 +18,7 @@ type Order struct {
 
 	MerchantID   string   `json:"merchant_id" bson:"merchant"`
 	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen"`
-	ClientID     string   `json:"client_id" bson:"client" validate:"mongodb"`
+	ClientID     string   `json:"client_id" bson:"client" validate:"required,mongodb"`
 
 	Status      string       `json:"status" bson:"status" validate:"required,oneof=pending_confirmation confirmed in_progress pending_shipment shipping pending_payment completed canceled expired"`
 	Items       []Item       `json:"items" bson:"items" validate:"required,min=1,dive,required"`
