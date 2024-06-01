@@ -270,7 +270,6 @@ func mapOrderToMongoDoc(ord *order.Order) (bson.M, error) {
 		"status":           ord.Status,
 		"items":            items,
 		"price_addons":     ord.PriceAddons,
-		"custom_price":     ord.CustomPrice,
 		"received_amounts": ord.ReceivedAmounts,
 		"timeline":         ord.Timeline,
 		"updated_at":       now,

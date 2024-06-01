@@ -107,11 +107,6 @@ func mapFormToOrder(f url.Values) (*order.Order, error) {
 		Timeline: order.Timeline{},
 	}
 
-	o.CustomPrice, err = parseFloatIfExists(f["custom_price"][0])
-	if err != nil {
-		return nil, err
-	}
-
 	err = setOrderDate(&f, "issuance_date", &o.Timeline.IssuanceDate)
 	if err != nil {
 		return nil, err
@@ -228,9 +223,8 @@ func mapFormToOrder(f url.Values) (*order.Order, error) {
 
 func mapOrderToFormData(ord *order.Order, valerr *errs.ValidationError) *views.OrderFormData {
 	formdata := &views.OrderFormData{
-		ClientID:    views.FormInputData{Value: ord.ClientID, Error: valerr.Errors.MsgFor("ClientID")},
-		Status:      views.FormInputData{Value: ord.Status, Error: valerr.Errors.MsgFor("Status")},
-		CustomPrice: views.FormInputData{Value: formatFloatIfNonZero(ord.CustomPrice), Error: valerr.Errors.MsgFor("CustomPrice")},
+		ClientID: views.FormInputData{Value: ord.ClientID, Error: valerr.Errors.MsgFor("ClientID")},
+		Status:   views.FormInputData{Value: ord.Status, Error: valerr.Errors.MsgFor("Status")},
 		Timeline: views.OrderTimelineFormData{
 			IssuanceDate: views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.IssuanceDate), Error: valerr.Errors.MsgFor("Timeline.IssuanceDate")},
 			DueDate:      views.FormInputData{Value: formatDateOnlyIfNonZero(ord.Timeline.DueDate), Error: valerr.Errors.MsgFor("Timeline.DueDate")},

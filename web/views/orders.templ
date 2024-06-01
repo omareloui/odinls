@@ -12,14 +12,12 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/product"
 )
 
-// / TODO: on creating an order, make it simpler, remove most of the dates...
 type OrderFormData struct {
 	ClientID FormInputData `json:"client_id"`
 	Status   FormInputData `json:"status"`
 
-	Timeline    OrderTimelineFormData `json:"timeline"`
-	Note        FormInputData         `json:"note"`
-	CustomPrice FormInputData         `json:"custom_price"`
+	Timeline OrderTimelineFormData `json:"timeline"`
+	Note     FormInputData         `json:"note"`
 
 	Items           []OrderItemFormData      `json:"items"`
 	PriceAddons     []PriceAddonFormData     `json:"price_addons"`
@@ -85,7 +83,6 @@ templ EditOrder(ord *order.Order, prods []product.Product, clients []client.Clie
 templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.Client, formdata *OrderFormData) {
 	@selectInput("Client", "client_id", "Select a client", ord.ID, getClientsMap(clients), formdata.ClientID)
 	@selectInput("Status", "status", "Select a status", ord.ID, getOrderStatusesMap(), formdata.Status)
-	@moneyInput("Custom Price", "custom_price", ord.ID, formdata.CustomPrice)
 	@dateInput("Issuance Date", "issuance_date", ord.ID, formdata.Timeline.IssuanceDate)
 	@dateInput("Due Date", "due_date", ord.ID, formdata.Timeline.DueDate)
 	@dateInput("Deadline", "deadline", ord.ID, formdata.Timeline.Deadline)

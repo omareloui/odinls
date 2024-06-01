@@ -118,18 +118,18 @@ const (
 	PriceAddonKindDiscount
 )
 
-func (p *PriceAddonKindEnum) String() string {
+func (p PriceAddonKindEnum) String() string {
 	return [...]string{
 		"fees", "taxes",
 		"shipping", "discount",
-	}[*p]
+	}[p]
 }
 
-func (p *PriceAddonKindEnum) View() string {
+func (p PriceAddonKindEnum) View() string {
 	return [...]string{
 		"Fees", "Taxes",
 		"Shipping", "Discount",
-	}[*p]
+	}[p]
 }
 
 func PriceAddonKindEnums() []PriceAddonKindEnum {
