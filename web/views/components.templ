@@ -173,6 +173,7 @@ templ dateInput(label, name, idSuffix string, data FormInputData) {
 			placeholder="yyyy-mm-dd"
 			name={ name }
 			value={ data.Value }
+			autocomplete="off"
 		/>
 		@errorMessage(data.Error)
 	</div>

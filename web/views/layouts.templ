@@ -11,11 +11,12 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 			<title>{ pageTitle }</title>
 			<link rel="stylesheet" href="/styles/main.css"/>
 			<link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
-			<script src="/js/htmx.lib.js"></script>
-			<script src="/js/litepicker.lib.js"></script>
-			<script defer src="/js/alpine.mask.lib.js"></script>
-			<script defer src="/js/alpine.collapse.lib.js"></script>
-			<script defer src="/js/alpine.lib.js"></script>
+			<script src="/js/vendor/htmx.lib.js"></script>
+			<script src="/js/vendor/litepicker.lib.js"></script>
+			<script defer src="/js/vendor/alpine.mask.lib.js"></script>
+			<script defer src="/js/vendor/alpine.collapse.lib.js"></script>
+			<script defer src="/js/vendor/alpine.lib.js"></script>
+			<script defer src="/js/datepickers.js"></script>
 		</head>
 		<body>
 			@container() {
@@ -35,19 +36,8 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 				})
 
 				function randnum(min = 1, max = 1000000000) {
-					return Math.floor(Math.random() * (max - min + 1)) + min
+					return Math.floor(Math.random() * (max - min + 1)) + min;
 				}
-
-				function loadDatePickers () {
-					const els = document.querySelectorAll("input[data-datepicker]")
-					const pickers = []
-					for (const el of els) {
-						const picker = new Litepicker({ element: el });
-						pickers.push(picker)
-					}
-				}
-
-				loadDatePickers()
 			</script>
 		</body>
 	</html>
