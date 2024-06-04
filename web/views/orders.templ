@@ -52,14 +52,21 @@ type OrderTimelineFormData struct {
 	ResolvedOn   FormInputData `json:"resolved_on"`
 }
 
+func NewDefaultOrderFormData() *OrderFormData {
+	return &OrderFormData{
+		Status: FormInputData{Value: order.StatusPendingConfirmation.String()},
+		Timeline: OrderTimelineFormData{
+			IssuanceDate: FormInputData{Value: time.Now().Format(time.DateOnly)}},
+		Items:       []OrderItemFormData{{Quantity: FormInputData{Value: "1"}}},
+		PriceAddons: []PriceAddonFormData{},
+	}
+}
+
 templ OrdersPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product, clients []client.Client, ords []order.Order) {
 	@baseLayout(claims, "Orders | Odin LS") {
 		@container() {
 			@CreateOrderForm(&order.Order{}, prods, clients,
-				&OrderFormData{
-					Items:       []OrderItemFormData{{}},
-					PriceAddons: []PriceAddonFormData{},
-				}, true)
+				NewDefaultOrderFormData(), true)
 			<h2 class="text-3xl font-bold mb-3">Orders</h2>
 			@OrdersList(ords)
 		}
@@ -87,49 +94,61 @@ templ orderFormBody(ord *order.Order, prods []product.Product, clients []client.
 	@dateInput("Due Date", "due_date", ord.ID, formdata.Timeline.DueDate)
 	@dateInput("Deadline", "deadline", ord.ID, formdata.Timeline.Deadline)
 	@textarea("Note", "note", "Write a note for this order...", ord.ID, formdata.Note)
+	// TODO: make sure to include non-sensitive fields in the products
 	<div
 		class="grid gap-2"
 		x-data={ fmt.Sprintf(`{
 			products: %s,
 			productsOptions() { return this.products.map(p => ({value: p.id,view: p.name})) },
 			items: %s.map((v) => {v.rand = randnum(1000000000, 9999999999); return v}),
-			addNew() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); this.items.push(obj)},
+			addNewItem() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); obj.quantity.value = "1"; this.items.push(obj)},
 			get hideRemoveBtn() {return this.items.length < 2},
-			rm(idx) {this.items.splice(idx,1)},
+			rmItem(idx) {this.items.splice(idx,1)},
+			priceAddons: %s.map((v) => {v.rand = randnum(1000000000, 9999999999); v.is_percentage.value = v.is_percentage.value === "true" || v.is_percentage.value === "on"; return v}),
+			priceAddonsKinds: %s,
+			addNewPriceAddon() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); this.priceAddons.push(obj)},
+			rmPriceAddon(idx) {this.priceAddons.splice(idx,1)},
+
+			getItemPrice(item) {
+				return calculateItemPrice(this.products, item)
+			},
+			getItemTotalPrice(item) {
+				return calculateItemTotal(this.products, item);
+			},
+			get subtotal() {
+				return calculateSubtotal(this.products, this.items, this.priceAddons)
+			},
 		}`,
 		toJSON(prods),
 		toJSON(formdata.Items),
-		toJSON(OrderItemFormData{})) }
-	>
-		<template x-for="(item, idx) in items">
-			@orderItemFormBody()
-		</template>
-		<button
-			type="button"
-			class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
-			@click="addNew"
-		>Add Item</button>
-	</div>
-	<div
-		class="grid gap-2"
-		x-data={ fmt.Sprintf(`{
-			priceAddons: %s.map((v) => {v.rand = randnum(1000000000, 9999999999); return v}),
-			priceAddonsKinds: %s,
-			addNew() {const obj = %s; obj.rand = randnum(1000000000, 9999999999); this.priceAddons.push(obj)},
-			rm(idx) {this.priceAddons.splice(idx,1)},
-		}`,
+		toJSON(OrderItemFormData{}),
 		toJSON(formdata.PriceAddons),
 		toJSON(getPriceAddonsKindOptions()),
 		toJSON(PriceAddonFormData{})) }
 	>
-		<template x-for="(price_addon, idx) in priceAddons">
-			@orderPriceAddonFormBody()
-		</template>
-		<button
-			type="button"
-			class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
-			@click="addNew"
-		>Add Price Addon</button>
+		<div class="grid gap-2">
+			<template x-for="(item, idx) in items">
+				@orderItemFormBody()
+			</template>
+			<button
+				type="button"
+				class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
+				@click="addNewItem"
+			>Add Item</button>
+		</div>
+		<div
+			class="grid gap-2"
+		>
+			<template x-for="(price_addon, idx) in priceAddons">
+				@orderPriceAddonFormBody()
+			</template>
+			<button
+				type="button"
+				class="px-5 py-2.5 mt-4 mb-6 text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text text-center place-self-center w-fit"
+				@click="addNewPriceAddon"
+			>Add Price Addon</button>
+		</div>
+		<p class="self-center justify-self-center mt-5">Subtotal: <span class="font-bold" x-text="`E£${subtotal}`"></span></p>
 	</div>
 }
 
@@ -140,18 +159,29 @@ templ orderItemFormBody() {
 			get variantsOptions() {
 				const found = this.products.find(x => x.id === this.item.product_id.value);
 				return found ? found.variants.map(v => ({value: v.id, view: v.name})) : [];
-			}
+			},
+			get variantPrice() {
+				return getItemPrice(this.item)
+			},
+
+			get itemTotal() {
+				return this.variantPrice * parseInt(this.item.quantity?.value || '1');
+			},
 		}"
 	>
 		<h2 class="text-lg my-2">Item #<span class="font-bold" x-text="idx + 1"></span></h2>
 		<input type="hidden" :name="`item_id-${idx}`" :value="item.id.value"/>
 		@alpineSelect("Product", "`item_product-${idx}`", "Select a product...", "item.rand", "productsOptions", "item.product_id")
-		@alpineSelect("Variant", "`item_variant-${idx}`", "Select a variant...", "item.rand", "variantsOptions", "item.variant_id")
-		@alpineMoneyInput("Custom Price", "`item_custom_price-${idx}`", "item.rand", "item.custom_price")
+		<div class="grid gap-5 grid-cols-8">
+			@alpineSelect("Variant", "`item_variant-${idx}`", "Select a variant...", "item.rand", "variantsOptions", "item.variant_id", "col-span-5")
+			@alpineMoneyInput("Custom Price", "`item_custom_price-${idx}`", "item.rand", "item.custom_price", "col-span-2")
+			<p class="self-center justify-self-center mt-5">Price: <span class="font-bold" x-text="`E£${variantPrice}`"></span></p>
+		</div>
 		@alpineInput("Quantity", "number", "`item_quantity-${idx}`", "e.g. 2", "item.rand", "item.quantity")
+		<p class="self-center justify-self-center">Total: <span class="font-bold" x-text="`E£${itemTotal}`"></span></p>
 		<button
 			type="button"
-			@click="rm(idx)"
+			@click="rmItem(idx)"
 			x-show="!hideRemoveBtn"
 			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
 		>Remove Item</button>
@@ -168,7 +198,7 @@ templ orderPriceAddonFormBody() {
 		@alpineCheckbox("The amount is a percentage", "`addon_is_percentage-${idx}`", "price_addon.rand", "price_addon.is_percentage")
 		<button
 			type="button"
-			@click="rm(idx)"
+			@click="rmPriceAddon(idx)"
 			class="px-5 py-2.5 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm w-full text-center"
 		>Remove Addon</button>
 	</div>
@@ -192,12 +222,13 @@ templ Order(ord *order.Order) {
 		for _, crafmanId := range ord.CraftsmenIDs {
 			<p>CraftsmanID: { crafmanId }</p>
 		}
-		<p>Ref: { ord.Ref }</p>
+		<p>Ref: { ord.RefView() }</p>
+		<p>Subtotal: { strconv.FormatFloat(ord.Subtotal, 'f', 2, 64) }</p>
 		<p>Created At: { ord.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { ord.UpdatedAt.Format(time.RFC1123) }</p>
 		<h3 class="text-lg font-bold">Items ({ strconv.Itoa(len(ord.Items)) })</h3>
-		for _, item := range ord.Items {
-			<h4 class="text font-bold">{ item.ID }</h4>
+		for i, item := range ord.Items {
+			<h4 class="text font-bold">Item #{ strconv.Itoa(i + 1) }</h4>
 			<p>ID: { item.ID }</p>
 		}
 		<button
@@ -205,6 +236,12 @@ templ Order(ord *order.Order) {
 			hx-get={ fmt.Sprintf("/orders/%s/edit", ord.ID) }
 			hx-swap="outerHTML"
 		>Edit</button>
+	</div>
+}
+
+templ OrderOOB(ord *order.Order) {
+	<div id="ordersList" hx-swap-oob="beforeend">
+		@Order(ord)
 	</div>
 }
 

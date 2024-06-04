@@ -10,7 +10,10 @@ import (
 	"github.com/omareloui/odinls/internal/interfaces"
 )
 
-var ErrProductNotFound = errors.New("product not found")
+var (
+	ErrProductNotFound = errors.New("product not found")
+	ErrVariantNotFound = errors.New("variant not found")
+)
 
 type productService struct {
 	repo           ProductRepository

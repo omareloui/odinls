@@ -1,7 +1,6 @@
 package resthandlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -55,15 +54,25 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println("Validation error found:", valerr.Errors)
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateOrderForm(ord, prods, clients, mapOrderToFormData(ord, &valerr)))
 		}
+		fmt.Println(err)
 		return err
 	}
 
-	fmt.Printf("=============> %+v\n", ord)
+	prods, clients, err := h.getMerchantProdsAndClients(claims)
+	if err != nil {
+		return err
+	}
 
-	return errors.New("just fail")
+	err = renderToBody(w, r, views.OrderOOB(ord))
+	if err != nil {
+		return err
+	}
+
+	return respondWithTemplate(w, r, http.StatusOK,
+		views.CreateOrderForm(&order.Order{}, prods, clients,
+			views.NewDefaultOrderFormData()))
 }
 
 func (h *handler) GetOrder(id string) HandlerFunc {
@@ -172,7 +181,7 @@ func mapFormToOrder(f url.Values) (*order.Order, error) {
 			case "product":
 				items[idx].ProductID = val
 			case "variant":
-				items[idx].ProductID = val
+				items[idx].VariantID = val
 			case "custom_price":
 				items[idx].CustomPrice, err = parseFloatIfExists(val)
 				if err != nil {
@@ -253,8 +262,8 @@ func mapOrderToFormData(ord *order.Order, valerr *errs.ValidationError) *views.O
 
 		formdata.Items = append(formdata.Items, views.OrderItemFormData{
 			ID:          views.FormInputData{Value: item.ID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].ID", i))},
-			Product:     views.FormInputData{Value: item.ProductID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].Product", i))},
-			Variant:     views.FormInputData{Value: item.VariantID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].Variant", i))},
+			Product:     views.FormInputData{Value: item.ProductID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].ProductID", i))},
+			Variant:     views.FormInputData{Value: item.VariantID, Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].VariantID", i))},
 			CustomPrice: views.FormInputData{Value: formatFloatIfNonZero(item.CustomPrice), Error: valerr.Errors.MsgFor(fmt.Sprintf("Items[%d].CustomPrice", i))},
 			Quantity:    views.FormInputData{Value: "1", Error: ""},
 		})
@@ -262,9 +271,8 @@ func mapOrderToFormData(ord *order.Order, valerr *errs.ValidationError) *views.O
 
 	for i, addon := range ord.PriceAddons {
 		formdata.PriceAddons = append(formdata.PriceAddons, views.PriceAddonFormData{
-			Kind:   views.FormInputData{Value: addon.Kind, Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Kind", i))},
-			Amount: views.FormInputData{Value: formatFloatIfNonZero(addon.Amount), Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Amount", i))},
-			// FIXME: this doesn't work with alpine's checkbox
+			Kind:         views.FormInputData{Value: addon.Kind, Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Kind", i))},
+			Amount:       views.FormInputData{Value: formatFloatIfNonZero(addon.Amount), Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].Amount", i))},
 			IsPercentage: views.FormInputData{Value: formatBooleanIfNonZero(addon.IsPercentage), Error: valerr.Errors.MsgFor(fmt.Sprintf("PriceAddons[%d].IsPercentage", i))},
 		})
 	}

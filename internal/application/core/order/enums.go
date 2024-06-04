@@ -18,22 +18,22 @@ const (
 	StatusExpired
 )
 
-func (s *StatusEnum) String() string {
+func (s StatusEnum) String() string {
 	return [...]string{
 		"pending_confirmation", "confirmed",
 		"in_progress", "pending_shipment",
 		"shipping", "pending_payment",
 		"completed", "canceled", "expired",
-	}[*s]
+	}[s]
 }
 
-func (s *StatusEnum) View() string {
+func (s StatusEnum) View() string {
 	return [...]string{
 		"Pending Confirmation", "Confirmed",
 		"In Progress", "Pending Shipment",
 		"Shipping", "Pending Payment",
 		"Completed", "Canceled", "Expired",
-	}[*s]
+	}[s]
 }
 
 func StatusesEnums() []StatusEnum {
@@ -72,18 +72,18 @@ const (
 	ItemProgressDone
 )
 
-func (s *ItemProgressEnum) View() string {
+func (s ItemProgressEnum) View() string {
 	return [...]string{
 		"Not Started", "Designing", "Pending Material",
 		"Crafting", "Laser Carving", "On Hold", "Done",
-	}[*s]
+	}[s]
 }
 
-func (s *ItemProgressEnum) String() string {
+func (s ItemProgressEnum) String() string {
 	return [...]string{
 		"not_started", "designing", "pending_material",
 		"crafting", "laser_carving", "on_hold", "done",
-	}[*s]
+	}[s]
 }
 
 func ItemsProgressEnums() []ItemProgressEnum {

@@ -31,6 +31,7 @@ func (h *handler) ErrorHandler(w http.ResponseWriter, r *http.Request, err error
 		errors.Is(user.ErrUserNotFound, err) ||
 		errors.Is(merchant.ErrMerchantNotFound, err) ||
 		errors.Is(product.ErrProductNotFound, err) ||
+		errors.Is(product.ErrVariantNotFound, err) ||
 		errors.Is(client.ErrClientNotFound, err) {
 		_ = respondWithString(w, r, http.StatusNotFound, err.Error())
 		return
