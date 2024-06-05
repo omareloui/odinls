@@ -57,9 +57,9 @@ func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client 
 		return errs.ErrForbidden
 	}
 
-	err := s.sanitizer.SanitizeStruct(client)
+	err := s.sanitizeClient(client)
 	if err != nil {
-		return errs.ErrSanitizer
+		return err
 	}
 
 	if err := s.validator.Validate(client); err != nil {
@@ -80,9 +80,9 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id 
 		return errs.ErrForbidden
 	}
 
-	err := s.sanitizer.SanitizeStruct(client)
+	err := s.sanitizeClient(client)
 	if err != nil {
-		return errs.ErrSanitizer
+		return err
 	}
 
 	if err := s.validator.Validate(client); err != nil {
@@ -96,4 +96,17 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id 
 	client.UpdatedAt = time.Now()
 
 	return s.repo.UpdateClientByID(id, client, opts...)
+}
+
+func (s *clientService) sanitizeClient(cli *Client) error {
+	err := s.sanitizer.SanitizeStruct(cli)
+	if err != nil {
+		return errs.ErrSanitizer
+	}
+
+	cli.ContactInfo.Locations = s.sanitizer.TrimMap(cli.ContactInfo.Locations)
+	cli.ContactInfo.Emails = s.sanitizer.TrimMap(cli.ContactInfo.Emails)
+	cli.ContactInfo.Links = s.sanitizer.TrimMap(cli.ContactInfo.Links)
+	cli.ContactInfo.PhoneNumbers = s.sanitizer.TrimMap(cli.ContactInfo.PhoneNumbers)
+	return nil
 }

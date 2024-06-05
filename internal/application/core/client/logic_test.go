@@ -9,6 +9,7 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
+	"github.com/omareloui/odinls/internal/sanitizer/conformadaptor"
 	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -53,7 +54,8 @@ func TestGetClients(t *testing.T) {
 	mockRepo.On("GetClients").Return(clients, nil)
 
 	v := playgroundvalidator.NewValidator()
-	s := client.NewClientService(mockRepo, v)
+	sani := conformadaptor.NewSanitizer()
+	s := client.NewClientService(mockRepo, v, sani)
 
 	t.Run("with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
@@ -101,7 +103,8 @@ func TestGetCurrentMerchantClients(t *testing.T) {
 	mockRepo.On("GetClientsByMerchantID").Return(clients, nil)
 
 	v := playgroundvalidator.NewValidator()
-	s := client.NewClientService(mockRepo, v)
+	sani := conformadaptor.NewSanitizer()
+	s := client.NewClientService(mockRepo, v, sani)
 
 	t.Run("is craftsman and with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
@@ -166,7 +169,8 @@ func TestGetClientByID(t *testing.T) {
 	mockRepo.On("GetClientByID").Return(&cli, nil)
 
 	v := playgroundvalidator.NewValidator()
-	s := client.NewClientService(mockRepo, v)
+	sani := conformadaptor.NewSanitizer()
+	s := client.NewClientService(mockRepo, v, sani)
 
 	t.Run("is craftsman", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
@@ -220,7 +224,8 @@ func TestCreateClient(t *testing.T) {
 	mockRepo.On("CreateClient").Return(nil)
 
 	v := playgroundvalidator.NewValidator()
-	s := client.NewClientService(mockRepo, v)
+	sani := conformadaptor.NewSanitizer()
+	s := client.NewClientService(mockRepo, v, sani)
 
 	t.Run("permissions", func(t *testing.T) {
 		t.Run("with permissions", func(t *testing.T) {
@@ -318,11 +323,11 @@ func TestCreateClient(t *testing.T) {
 			assert.Equal(t, errs.ValidationError{}.Error(), err.Error())
 
 			if valerr, ok := err.(errs.ValidationError); ok {
-				assert.Equal(t, valerr.Errors["Emails[default]"].Msg(), "Invalid email")
-				assert.Contains(t, valerr.Errors["Links[ig]"].Msg(), "Value is too short")
-				assert.Contains(t, valerr.Errors["Links[fb]"].Msg(), "valid URL")
-				assert.Contains(t, valerr.Errors["Locations[home]"].Msg(), "required")
-				assert.Contains(t, valerr.Errors["Locations[]"].Msg(), "required")
+				assert.Equal(t, valerr.Errors["ContactInfo.Emails[default]"].Msg(), "Invalid email")
+				assert.Contains(t, valerr.Errors["ContactInfo.Links[ig]"].Msg(), "Value is too short")
+				assert.Contains(t, valerr.Errors["ContactInfo.Links[fb]"].Msg(), "valid URL")
+				assert.Contains(t, valerr.Errors["ContactInfo.Locations[home]"].Msg(), "required")
+				assert.Contains(t, valerr.Errors["ContactInfo.Locations[]"].Msg(), "required")
 			}
 		})
 
@@ -398,7 +403,8 @@ func TestUpdateClient(t *testing.T) {
 	mockRepo.On("UpdateClientByID").Return(nil)
 
 	v := playgroundvalidator.NewValidator()
-	s := client.NewClientService(mockRepo, v)
+	sani := conformadaptor.NewSanitizer()
+	s := client.NewClientService(mockRepo, v, sani)
 
 	t.Run("with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
