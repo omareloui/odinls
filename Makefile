@@ -25,3 +25,13 @@ css:
 seed:
 	@echo "Seeding..."
 	@go run ./cmd/seeder
+
+test:
+	@go test -v ./...
+	
+
+test-cov:
+	@go test -v -converprofile=coverage.txt ./...
+
+gen-mocks:
+	@mockery

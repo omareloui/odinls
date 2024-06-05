@@ -12,43 +12,10 @@ import (
 	"github.com/omareloui/odinls/internal/sanitizer/conformadaptor"
 	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-type MockRepository struct {
-	mock.Mock
-}
-
-func (m *MockRepository) GetClients(opts ...client.RetrieveOptsFunc) ([]client.Client, error) {
-	args := m.Called()
-	result := args.Get(0)
-	return result.([]client.Client), args.Error(1)
-}
-
-func (m *MockRepository) GetClientsByMerchantID(merchantId string, opts ...client.RetrieveOptsFunc) ([]client.Client, error) {
-	args := m.Called()
-	result := args.Get(0)
-	return result.([]client.Client), args.Error(1)
-}
-
-func (m *MockRepository) GetClientByID(id string, opts ...client.RetrieveOptsFunc) (*client.Client, error) {
-	args := m.Called()
-	result := args.Get(0)
-	return result.(*client.Client), args.Error(1)
-}
-
-func (m *MockRepository) CreateClient(client *client.Client, opts ...client.RetrieveOptsFunc) error {
-	args := m.Called()
-	return args.Error(0)
-}
-
-func (m *MockRepository) UpdateClientByID(id string, client *client.Client, opts ...client.RetrieveOptsFunc) error {
-	args := m.Called()
-	return args.Error(0)
-}
-
 func TestGetClients(t *testing.T) {
-	mockRepo := new(MockRepository)
+	mockRepo := new(MockClientRepository)
 
 	clients := []client.Client{}
 	mockRepo.On("GetClients").Return(clients, nil)
@@ -95,12 +62,12 @@ func TestGetClients(t *testing.T) {
 }
 
 func TestGetCurrentMerchantClients(t *testing.T) {
-	mockRepo := new(MockRepository)
+	mockRepo := new(MockClientRepository)
 
 	merId := "1234"
 
 	clients := []client.Client{{MerchantID: merId}}
-	mockRepo.On("GetClientsByMerchantID").Return(clients, nil)
+	mockRepo.On("GetClientsByMerchantID", merId).Return(clients, nil)
 
 	v := playgroundvalidator.NewValidator()
 	sani := conformadaptor.NewSanitizer()
@@ -160,13 +127,13 @@ func TestGetCurrentMerchantClients(t *testing.T) {
 }
 
 func TestGetClientByID(t *testing.T) {
-	mockRepo := new(MockRepository)
+	mockRepo := new(MockClientRepository)
 
 	clientId := "11"
 	merId := "1234"
 
 	cli := client.Client{ID: clientId, MerchantID: merId}
-	mockRepo.On("GetClientByID").Return(&cli, nil)
+	mockRepo.On("GetClientByID", clientId).Return(&cli, nil)
 
 	v := playgroundvalidator.NewValidator()
 	sani := conformadaptor.NewSanitizer()
@@ -203,7 +170,7 @@ func TestGetClientByID(t *testing.T) {
 }
 
 func TestCreateClient(t *testing.T) {
-	mockRepo := new(MockRepository)
+	mockRepo := new(MockClientRepository)
 
 	clientId := "11"
 	merId := "1234"
@@ -221,20 +188,20 @@ func TestCreateClient(t *testing.T) {
 		WholesaleAsDefault: false,
 	}
 
-	mockRepo.On("CreateClient").Return(nil)
-
 	v := playgroundvalidator.NewValidator()
 	sani := conformadaptor.NewSanitizer()
 	s := client.NewClientService(mockRepo, v, sani)
 
 	t.Run("permissions", func(t *testing.T) {
+		cli2 := cli
+		mockRepo.On("CreateClient", &cli2).Return(nil)
+
 		t.Run("with permissions", func(t *testing.T) {
 			claims := jwtadapter.JwtAccessClaims{
 				Role:          role.Role{Name: role.Admin.String()},
 				CraftsmanInfo: user.Craftsman{MerchantID: merId},
 			}
 
-			cli2 := cli
 			err := s.CreateClient(&claims, &cli2)
 			mockRepo.AssertExpectations(t)
 
@@ -248,14 +215,12 @@ func TestCreateClient(t *testing.T) {
 				Role: role.Role{Name: role.Moderator.String()},
 			}
 
-			cli2 := cli
 			err := s.CreateClient(&claims, &cli2)
 			mockRepo.AssertExpectations(t)
 			assert.ErrorIs(t, errs.ErrForbidden, err)
 		})
 
 		t.Run("no claims", func(t *testing.T) {
-			cli2 := cli
 			err := s.CreateClient(nil, &cli2)
 			mockRepo.AssertExpectations(t)
 			assert.ErrorIs(t, errs.ErrForbidden, err)
@@ -270,6 +235,7 @@ func TestCreateClient(t *testing.T) {
 
 		t.Run("valid inputs", func(t *testing.T) {
 			cli2 := cli
+			mockRepo.On("CreateClient", &cli2).Return(nil)
 			err := s.CreateClient(&claims, &cli2)
 			mockRepo.AssertExpectations(t)
 
@@ -280,6 +246,7 @@ func TestCreateClient(t *testing.T) {
 
 		t.Run("nil contact info maps", func(t *testing.T) {
 			cli2 := cli
+			mockRepo.On("CreateClient", &cli2).Return(nil)
 			cli2.ContactInfo = client.ContactInfo{}
 
 			err := s.CreateClient(&claims, &cli2)
@@ -333,6 +300,7 @@ func TestCreateClient(t *testing.T) {
 
 		t.Run("sanitize contact info keys and values", func(t *testing.T) {
 			cli2 := cli
+			mockRepo.On("CreateClient", &cli2).Return(nil)
 			notSanitizedPhoneKey := " 		home"
 			notSanitizedPhoneValue := " 01111  "
 			notSanitizedLinkKey := " 		facebook "
@@ -362,9 +330,10 @@ func TestCreateClient(t *testing.T) {
 
 		t.Run("trim spaces and tabs", func(t *testing.T) {
 			cli2 := cli
+			mockRepo.On("CreateClient", &cli2).Return(nil)
 
-			notSanitizedName := " 		Seif "
-			sanitizedName := "Seif"
+			notSanitizedName := " 		seif eloui "
+			sanitizedName := "Seif Eloui"
 			notSanitizedNotes := " 		    this is a note!          "
 			sanitizedNotes := "this is a note!"
 
@@ -382,7 +351,7 @@ func TestCreateClient(t *testing.T) {
 }
 
 func TestUpdateClient(t *testing.T) {
-	mockRepo := new(MockRepository)
+	mockRepo := new(MockClientRepository)
 
 	clientId := "11"
 	merId := "1234"
@@ -400,8 +369,6 @@ func TestUpdateClient(t *testing.T) {
 		WholesaleAsDefault: false,
 	}
 
-	mockRepo.On("UpdateClientByID").Return(nil)
-
 	v := playgroundvalidator.NewValidator()
 	sani := conformadaptor.NewSanitizer()
 	s := client.NewClientService(mockRepo, v, sani)
@@ -413,6 +380,7 @@ func TestUpdateClient(t *testing.T) {
 		}
 
 		cli2 := cli
+		mockRepo.On("UpdateClientByID", clientId, &cli2).Return(nil)
 
 		cli2.CreatedAt = time.Now()
 
@@ -437,6 +405,7 @@ func TestUpdateClient(t *testing.T) {
 
 	t.Run("no claims", func(t *testing.T) {
 		cli2 := cli
+
 		err := s.UpdateClientByID(nil, clientId, &cli2)
 		mockRepo.AssertExpectations(t)
 		assert.ErrorIs(t, errs.ErrForbidden, err)
