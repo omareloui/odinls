@@ -3,10 +3,10 @@ disable-version-string: True
 with-expecter: False
 
 # NOTE: on external packages set this value to "{{.PackagePath}}"
-dir: "{{.InterfaceDir}}"
-filename: "mock_{{.InterfaceName}}_test.go"
+dir: "{{.InterfaceDir}}/mocks"
+filename: "Mock{{.InterfaceName}}.go"
 mockname: "Mock{{.InterfaceName}}"
-outpkg: "{{.PackageName}}_test"
+outpkg: "{{.PackageName}}_mock"
 
 packages:
   github.com/omareloui/odinls/internal/application/core/product:
@@ -18,6 +18,18 @@ packages:
     interfaces:
       ClientService:
       ClientRepository:
+  github.com/omareloui/odinls/internal/application/core/role:
+    interfaces:
+      RoleService:
+      RoleRepository:
+  github.com/omareloui/odinls/internal/application/core/user:
+    interfaces:
+      UserService:
+      UserRepository:
+  github.com/omareloui/odinls/internal/application/core/merchant:
+    interfaces:
+      MerchantService:
+      MerchantRepository:
   github.com/omareloui/odinls/internal/application/core/counter:
     interfaces:
       CounterService:

@@ -6,6 +6,7 @@ import (
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/client"
+	client_mock "github.com/omareloui/odinls/internal/application/core/client/mocks"
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestGetClients(t *testing.T) {
-	mockRepo := new(MockClientRepository)
+	mockRepo := new(client_mock.MockClientRepository)
 
 	clients := []client.Client{}
 	mockRepo.On("GetClients").Return(clients, nil)
@@ -62,7 +63,7 @@ func TestGetClients(t *testing.T) {
 }
 
 func TestGetCurrentMerchantClients(t *testing.T) {
-	mockRepo := new(MockClientRepository)
+	mockRepo := new(client_mock.MockClientRepository)
 
 	merId := "1234"
 
@@ -127,7 +128,7 @@ func TestGetCurrentMerchantClients(t *testing.T) {
 }
 
 func TestGetClientByID(t *testing.T) {
-	mockRepo := new(MockClientRepository)
+	mockRepo := new(client_mock.MockClientRepository)
 
 	clientId := "11"
 	merId := "1234"
@@ -170,7 +171,7 @@ func TestGetClientByID(t *testing.T) {
 }
 
 func TestCreateClient(t *testing.T) {
-	mockRepo := new(MockClientRepository)
+	mockRepo := new(client_mock.MockClientRepository)
 
 	clientId := "11"
 	merId := "1234"
@@ -351,7 +352,7 @@ func TestCreateClient(t *testing.T) {
 }
 
 func TestUpdateClient(t *testing.T) {
-	mockRepo := new(MockClientRepository)
+	mockRepo := new(client_mock.MockClientRepository)
 
 	clientId := "11"
 	merId := "1234"
