@@ -70,7 +70,7 @@ func (a *APIAdapter) Run() {
 
 	a.Get("/unauthorized", a.handler.Unauthorized)
 
-	static(a.router, []string{"styles", "js"}, "./web/public")
+	static(a.router, []string{"styles", "js", "images"}, "./web/public")
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.port), a.router))
 }
