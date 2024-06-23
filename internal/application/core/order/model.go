@@ -1,6 +1,7 @@
 package order
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
@@ -9,25 +10,27 @@ import (
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
+const splitRefOnIdx = 4
+
 type Order struct {
 	ID     string `json:"id" bson:"_id,omitempty"`
 	Ref    string `json:"ref" bson:"ref"`
 	Number uint   `json:"number" bson:"number"`
 
-	MerchantID   string   `json:"merchant_id" bson:"merchant"`
-	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen"`
+	MerchantID   string   `json:"merchant_id" bson:"merchant" validate:"omitempty,mongodb"`
+	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen" validate:"omitempty,mongodb"`
 	ClientID     string   `json:"client_id" bson:"client" validate:"required,mongodb"`
 
 	Status      string       `json:"status" bson:"status" validate:"required,oneof=pending_confirmation confirmed in_progress pending_shipment shipping pending_payment completed canceled expired"`
-	Items       []Item       `json:"items" bson:"items" validate:"required,min=1,dive,required"`
-	PriceAddons []PriceAddon `json:"price_addons" bson:"price_addons" validate:"dive,required"`
+	Items       []Item       `json:"items" bson:"items" validate:"required,min=1,dive"`
+	PriceAddons []PriceAddon `json:"price_addons" bson:"price_addons,omitempty" validate:"dive"`
 
-	ReceivedAmounts []ReceivedAmount `json:"received_amounts" bson:"received_amounts" validate:"dive"`
+	ReceivedAmounts []ReceivedAmount `json:"received_amounts" bson:"received_amounts,omitempty" validate:"dive"`
 
-	Timeline Timeline `json:"timeline" bson:"timeline" validate:"required"`
+	Timeline Timeline `json:"timeline" bson:"timeline"`
 	Note     string   `json:"note" bson:"note,omitempty"`
 
-	Subtotal float64 `json:"subtotal" bson:"subtotal,omitempty"`
+	Subtotal float64 `json:"subtotal" bson:"subtotal"`
 
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
@@ -37,13 +40,20 @@ type Order struct {
 	Craftsmen []user.User        `json:"craftsmen" bson:"populatedCraftsmen,omitempty"`
 }
 
+func (o *Order) RefView() string {
+	if o.Ref == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s-%s", o.Ref[:splitRefOnIdx], o.Ref[splitRefOnIdx:])
+}
+
 type Item struct {
-	ID          string  `json:"id" bson:"_id,omitempty"`
+	ID          string  `json:"id" bson:"_id,omitempty" validate:"omitempty,mongodb"`
 	ProductID   string  `json:"product_id" bson:"product" validate:"required,mongodb"`
 	VariantID   string  `json:"variant_id" bson:"variant" validate:"required,mongodb"`
 	Price       float64 `json:"price" bson:"price"`
 	CustomPrice float64 `json:"custom_price" bson:"custom_price" validate:"gte=0"`
-	Progress    string  `json:"progress" bson:"progress" validate:"required,oneof=not_started designing pending_material crafting laser_carving on_hold done"`
+	Progress    string  `json:"progress" bson:"progress" validate:"omitempty,oneof=not_started designing pending_material crafting laser_carving on_hold done"`
 
 	Product *product.Product `json:"product" bson:"populatedProduct"`
 	Variant *product.Variant `json:"variant" bson:"populatedVariant"`
@@ -56,12 +66,12 @@ type PriceAddon struct {
 }
 
 type Timeline struct {
-	IssuanceDate time.Time `json:"issuance_date" bson:"issuance_date,omitempty" validate:""`
-	DueDate      time.Time `json:"due_date" bson:"due_date,omitempty" validate:""`
-	Deadline     time.Time `json:"deadline" bson:"deadline,omitempty" validate:""`
-	DoneOn       time.Time `json:"done_on" bson:"done_on,omitempty" validate:"ltcsfield=IssuanceDate"`
-	ShippedOn    time.Time `json:"shipped_on" bson:"shipped_on,omitempty" validate:"ltcsfield=IssuanceDate"`
-	ResolvedOn   time.Time `json:"resolved_on" bson:"resolved_on,omitempty" validate:"ltcsfield=IssuanceDate"`
+	IssuanceDate time.Time `json:"issuance_date" bson:"issuance_date,omitempty" validate:"omitempty"`
+	DueDate      time.Time `json:"due_date" bson:"due_date,omitempty" validate:"omitempty"`
+	Deadline     time.Time `json:"deadline" bson:"deadline,omitempty" validate:"omitempty"`
+	DoneOn       time.Time `json:"done_on" bson:"done_on,omitempty" validate:"omitempty,gtfield=IssuanceDate"`
+	ShippedOn    time.Time `json:"shipped_on" bson:"shipped_on,omitempty" validate:"omitempty,gtfield=IssuanceDate"`
+	ResolvedOn   time.Time `json:"resolved_on" bson:"resolved_on,omitempty" validate:"omitempty,gtfield=IssuanceDate"`
 }
 
 type ReceivedAmount struct {
@@ -69,15 +79,10 @@ type ReceivedAmount struct {
 	Date   time.Time `json:"date" bson:"date" validate:"required"`
 }
 
-func (o *Order) CalcSubtotal() float64 {
+func (o *Order) calcSubtotal() float64 {
 	var total float64
 
 	var itemsTotal float64
-
-	var discountsPercentage float64
-	var taxesPercentage float64
-	var feesPercentage float64
-	var shippingPercentage float64
 
 	for _, item := range o.Items {
 		if item.CustomPrice > 0 {
@@ -86,6 +91,11 @@ func (o *Order) CalcSubtotal() float64 {
 			itemsTotal += item.Price
 		}
 	}
+
+	var discountsPercentage float64
+	var taxesPercentage float64
+	var feesPercentage float64
+	var shippingPercentage float64
 
 	for _, addon := range o.PriceAddons {
 		if !addon.IsPercentage {
@@ -109,10 +119,10 @@ func (o *Order) CalcSubtotal() float64 {
 		}
 	}
 
-	total += total * (1 + feesPercentage)
-	total += total * (1 + shippingPercentage)
-	total -= total * (1 + discountsPercentage)
-	total += total * (1 + taxesPercentage)
+	total += total * feesPercentage
+	total += total * shippingPercentage
+	total -= total * discountsPercentage
+	total += total * taxesPercentage
 
 	return total
 }
@@ -122,5 +132,5 @@ func (o *Order) RemainingAmount() float64 {
 	for _, received := range o.ReceivedAmounts {
 		paid += received.Amount
 	}
-	return o.CalcSubtotal() - paid
+	return o.calcSubtotal() - paid
 }

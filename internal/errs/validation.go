@@ -28,6 +28,10 @@ type ValidationField struct {
 }
 
 func (v ValidationField) Msg() string {
+	if v.Tag == "" {
+		return ""
+	}
+
 	switch v.Tag {
 	case "required":
 		return "This field is required"
@@ -38,9 +42,9 @@ func (v ValidationField) Msg() string {
 	case "gte":
 		return fmt.Sprintf("Value is low (at least %s is required)", v.Param)
 	case "min":
-		return fmt.Sprintf("Value is too short (at least %s characters)", v.Param)
+		return fmt.Sprintf("Value is too short (at least %s elements)", v.Param)
 	case "max":
-		return fmt.Sprintf("Value is too log (maximum %s characters)", v.Param)
+		return fmt.Sprintf("Value is too log (maximum %s elements)", v.Param)
 	case "eqfield":
 		return fmt.Sprintf(`This field must match the "%s" field`, v.Tag)
 	case "not_blank":
@@ -51,6 +55,10 @@ func (v ValidationField) Msg() string {
 		return "This field expects alphanumeric or underscore characters"
 	case "mongodb":
 		return "Invalid ID"
+	case "oneof":
+		return fmt.Sprintf(`This field must be one of %s`, v.Param)
+	case "gtcsfield", "gtfield":
+		return fmt.Sprintf(`This field has to be greater than %s`, v.Param)
 	default:
 		msg := fmt.Sprintf(`Failed on "%s" tag`, v.Tag)
 		if v.Param != "" {
@@ -58,6 +66,10 @@ func (v ValidationField) Msg() string {
 		}
 		return msg
 	}
+}
+
+func (v ValidationField) String() string {
+	return v.Msg()
 }
 
 type ValidationError struct {

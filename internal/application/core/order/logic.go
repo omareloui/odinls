@@ -2,10 +2,13 @@ package order
 
 import (
 	"errors"
+	"log"
+	"slices"
 
 	"github.com/aidarkhanov/nanoid"
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/counter"
+	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
 )
@@ -21,14 +24,16 @@ type orderService struct {
 	repo           OrderRepository
 	validator      interfaces.Validator
 	sanitizer      interfaces.Sanitizer
+	productService product.ProductService
 	counterService counter.CounterService
 }
 
-func NewOrderService(repo OrderRepository, counterService counter.CounterService, validator interfaces.Validator, sanitizer interfaces.Sanitizer) *orderService {
+func NewOrderService(repo OrderRepository, productService product.ProductService, counterService counter.CounterService, validator interfaces.Validator, sanitizer interfaces.Sanitizer) *orderService {
 	return &orderService{
 		repo:           repo,
 		validator:      validator,
 		sanitizer:      sanitizer,
+		productService: productService,
 		counterService: counterService,
 	}
 }
@@ -71,14 +76,35 @@ func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Orde
 		return s.validator.ParseError(err)
 	}
 
+	ord.MerchantID = claims.CraftsmanInfo.MerchantID
+
+	for i, item := range ord.Items {
+		// Set the price
+		prod, err := s.productService.GetProductByIDAndVariantID(claims, item.ProductID, item.VariantID)
+		if err != nil {
+			return err
+		}
+		variantIdx := slices.IndexFunc(prod.Variants, func(v product.Variant) bool {
+			return v.ID == ord.Items[i].VariantID
+		})
+		if variantIdx == -1 {
+			log.Fatalln("invalid variant index: (searching a variant after getting it back by searching for a product with its id and its variant id)")
+		}
+		ord.Items[i].Price = prod.Variants[variantIdx].Price
+
+		// Set the default progress status
+		ord.Items[i].Progress = ItemProgressNotStarted.String()
+	}
+
+	ord.Ref, _ = nanoid.Generate(refAlphabet, refSize)
+
+	ord.Subtotal = ord.calcSubtotal()
+
 	num, err := s.counterService.AddOneToOrder(claims)
 	if err != nil {
 		return err
 	}
-
 	ord.Number = num
-	ord.MerchantID = claims.CraftsmanInfo.MerchantID
-	ord.Ref, _ = nanoid.Generate(refAlphabet, refSize)
 
 	return s.repo.CreateOrder(ord, options...)
 }

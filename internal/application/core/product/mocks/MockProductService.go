@@ -113,6 +113,80 @@ func (_m *MockProductService) GetProductByID(claims *jwtadapter.JwtAccessClaims,
 	return r0, r1
 }
 
+// GetProductByIDAndVariantID provides a mock function with given fields: claims, id, variantId, options
+func (_m *MockProductService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccessClaims, id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, claims, id, variantId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProductByIDAndVariantID")
+	}
+
+	var r0 *product.Product
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+		return rf(claims, id, variantId, options...)
+	}
+	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, string, ...product.RetrieveOptsFunc) *product.Product); ok {
+		r0 = rf(claims, id, variantId, options...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*product.Product)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, string, ...product.RetrieveOptsFunc) error); ok {
+		r1 = rf(claims, id, variantId, options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetProductByVariantID provides a mock function with given fields: claims, id, opts
+func (_m *MockProductService) GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, opts ...product.RetrieveOptsFunc) (*product.Product, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, claims, id)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProductByVariantID")
+	}
+
+	var r0 *product.Product
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+		return rf(claims, id, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) *product.Product); ok {
+		r0 = rf(claims, id, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*product.Product)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) error); ok {
+		r1 = rf(claims, id, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetProducts provides a mock function with given fields: claims, opts
 func (_m *MockProductService) GetProducts(claims *jwtadapter.JwtAccessClaims, opts ...product.RetrieveOptsFunc) ([]product.Product, error) {
 	_va := make([]interface{}, len(opts))

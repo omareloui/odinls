@@ -85,6 +85,77 @@ func (r *repository) GetProductByID(id string, options ...product.RetrieveOptsFu
 	return prod, nil
 }
 
+func (r *repository) GetProductByVariantID(id string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
+	opts := product.ParseRetrieveOpts(options...)
+
+	ctx, cancel := r.newCtx()
+	defer cancel()
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errs.ErrInvalidID
+	}
+
+	filter := bson.M{"variants._id": objId}
+
+	prod := &product.Product{}
+
+	err = r.productsColl.FindOne(ctx, filter).Decode(prod)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, product.ErrVariantNotFound
+		}
+		return nil, err
+	}
+
+	if opts.PopulateCraftsman {
+		r.populateCraftsmanForProduct(prod)
+	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForProduct(prod)
+	}
+
+	return prod, nil
+}
+
+func (r *repository) GetProductByIDAndVariantID(id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
+	opts := product.ParseRetrieveOpts(options...)
+
+	ctx, cancel := r.newCtx()
+	defer cancel()
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errs.ErrInvalidID
+	}
+
+	varObjId, err := primitive.ObjectIDFromHex(variantId)
+	if err != nil {
+		return nil, errs.ErrInvalidID
+	}
+
+	filter := bson.M{"_id": objId, "variants._id": varObjId}
+
+	prod := &product.Product{}
+
+	err = r.productsColl.FindOne(ctx, filter).Decode(prod)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, product.ErrProductNotFound
+		}
+		return nil, err
+	}
+
+	if opts.PopulateCraftsman {
+		r.populateCraftsmanForProduct(prod)
+	}
+	if opts.PopulateMerchant {
+		r.populateMerchantForProduct(prod)
+	}
+
+	return prod, nil
+}
+
 func (r *repository) GetProductsByMerchantID(merchantId string, options ...product.RetrieveOptsFunc) ([]product.Product, error) {
 	opts := product.ParseRetrieveOpts(options...)
 

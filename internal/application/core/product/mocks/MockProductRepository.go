@@ -74,6 +74,80 @@ func (_m *MockProductRepository) GetProductByID(id string, opts ...product.Retri
 	return r0, r1
 }
 
+// GetProductByIDAndVariantID provides a mock function with given fields: id, variantId, options
+func (_m *MockProductRepository) GetProductByIDAndVariantID(id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, id, variantId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProductByIDAndVariantID")
+	}
+
+	var r0 *product.Product
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+		return rf(id, variantId, options...)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, ...product.RetrieveOptsFunc) *product.Product); ok {
+		r0 = rf(id, variantId, options...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*product.Product)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, ...product.RetrieveOptsFunc) error); ok {
+		r1 = rf(id, variantId, options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetProductByVariantID provides a mock function with given fields: id, opts
+func (_m *MockProductRepository) GetProductByVariantID(id string, opts ...product.RetrieveOptsFunc) (*product.Product, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, id)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProductByVariantID")
+	}
+
+	var r0 *product.Product
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+		return rf(id, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(string, ...product.RetrieveOptsFunc) *product.Product); ok {
+		r0 = rf(id, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*product.Product)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, ...product.RetrieveOptsFunc) error); ok {
+		r1 = rf(id, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetProducts provides a mock function with given fields: opts
 func (_m *MockProductRepository) GetProducts(opts ...product.RetrieveOptsFunc) ([]product.Product, error) {
 	_va := make([]interface{}, len(opts))

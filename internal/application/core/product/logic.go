@@ -47,6 +47,22 @@ func (s *productService) GetProductByID(claims *jwtadapter.JwtAccessClaims, id s
 	return s.repo.GetProductByID(id, options...)
 }
 
+func (s *productService) GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
+	if claims == nil || !claims.Role.IsOPAdmin() {
+		return nil, errs.ErrForbidden
+	}
+
+	return s.repo.GetProductByVariantID(id, options...)
+}
+
+func (s *productService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccessClaims, id string, variantId string, options ...RetrieveOptsFunc) (*Product, error) {
+	if claims == nil || !claims.Role.IsOPAdmin() {
+		return nil, errs.ErrForbidden
+	}
+
+	return s.repo.GetProductByIDAndVariantID(id, variantId, options...)
+}
+
 func (s *productService) GetCurrentMerchantProducts(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Product, error) {
 	if claims == nil && !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden

@@ -26,12 +26,14 @@ func NewApplication(repo repository.Repository, validator interfaces.Validator, 
 	merchantService := merchant.NewMerchantService(repo, validator, sanitizer)
 	counterService := counter.NewCounterService(repo)
 
+	productService := product.NewProductService(repo, validator, sanitizer, counterService)
+
 	return &Application{
 		UserService:     user.NewUserService(repo, merchantService, role, validator, sanitizer),
 		RoleService:     role,
 		MerchantService: merchantService,
 		ClientService:   client.NewClientService(repo, validator, sanitizer),
-		ProductService:  product.NewProductService(repo, validator, sanitizer, counterService),
-		OrderService:    order.NewOrderService(repo, counterService, validator, sanitizer),
+		ProductService:  productService,
+		OrderService:    order.NewOrderService(repo, productService, counterService, validator, sanitizer),
 	}
 }

@@ -24,6 +24,7 @@ func (h *handler) GetOrders(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
 	prods, clients, err := h.getMerchantProdsAndClients(claims)
 	if err != nil {
 		return err
