@@ -488,24 +488,151 @@ func TestCreateOrder(t *testing.T) {
 	})
 
 	t.Run("calculations", func(t *testing.T) {
+		orderId := "665dbe5ac352603c7e73da4b"
+		merId := "665dbe5ac352603c7e73da5d"
+
+		prod := product.Product{
+			ID: "665dbe5ac352603c7e68fa5a",
+			Variants: []product.Variant{{
+				ID:    "665dbe5ac352610c7e73fa5f",
+				Price: 300,
+			}, {
+				ID:    "665dbe5ac352610c7e73fa4f",
+				Price: 200,
+			}},
+		}
+
+		ord := order.Order{
+			ID:       orderId,
+			ClientID: "665dbe5ac352603c7e73fa5c",
+			Status:   order.StatusPendingConfirmation.String(),
+			Timeline: order.Timeline{
+				IssuanceDate: time.Now(),
+			},
+			Items: []order.Item{
+				{ProductID: prod.ID, VariantID: prod.Variants[0].ID},
+				{ProductID: prod.ID, VariantID: prod.Variants[0].ID},
+				{ProductID: prod.ID, VariantID: prod.Variants[1].ID},
+			},
+		}
+
+		claims := jwtadapter.JwtAccessClaims{
+			Role:          role.Role{Name: role.Admin.String()},
+			CraftsmanInfo: user.Craftsman{MerchantID: merId},
+		}
+
 		t.Run("sum items prices without price addons", func(t *testing.T) {
-			// TODO:
-			assert.False(t, true)
+			ord2 := ord
+
+			mockProdS.On("GetProductByIDAndVariantID", &claims, prod.ID, prod.Variants[0].ID).Return(&prod, nil)
+			mockProdS.On("GetProductByIDAndVariantID", &claims, prod.ID, prod.Variants[1].ID).Return(&prod, nil)
+			mockCounterS.On("AddOneToOrder", &claims).Return(uint(32), nil)
+
+			mockRepo.On("CreateOrder", &ord2).Return(nil)
+
+			err := s.CreateOrder(&claims, &ord2)
+			assert.Nil(t, err)
+
+			assert.Equal(t, float64(800), ord2.Subtotal)
 		})
 
 		t.Run("calculate subtotal with items and absolute addons", func(t *testing.T) {
-			// TODO:
-			assert.False(t, true)
+			ord2 := ord
+
+			ord2.PriceAddons = append(ord2.PriceAddons, order.PriceAddon{
+				Kind:         "fees",
+				Amount:       50,
+				IsPercentage: false,
+			}, order.PriceAddon{
+				Kind:         "taxes",
+				Amount:       100,
+				IsPercentage: false,
+			}, order.PriceAddon{
+				Kind:         "shipping",
+				Amount:       60,
+				IsPercentage: false,
+			}, order.PriceAddon{
+				Kind:         "discount",
+				Amount:       100,
+				IsPercentage: false,
+			})
+
+			mockProdS.On("GetProductByIDAndVariantID", &claims, prod.ID, prod.Variants[0].ID).Return(&prod, nil)
+			mockProdS.On("GetProductByIDAndVariantID", &claims, prod.ID, prod.Variants[1].ID).Return(&prod, nil)
+			mockCounterS.On("AddOneToOrder", &claims).Return(uint(32), nil)
+
+			mockRepo.On("CreateOrder", &ord2).Return(nil)
+
+			err := s.CreateOrder(&claims, &ord2)
+			assert.Nil(t, err)
+
+			assert.Equal(t, float64(910), ord2.Subtotal)
 		})
 
 		t.Run("calculate subtotal with items and percentage addons", func(t *testing.T) {
-			// TODO:
-			assert.False(t, true)
+			ord2 := ord
+			ord2.Items = []order.Item{
+				{ProductID: prod.ID, VariantID: prod.Variants[0].ID},
+			}
+
+			ord2.PriceAddons = append(ord2.PriceAddons, order.PriceAddon{
+				Kind:         "fees",
+				Amount:       10,
+				IsPercentage: true,
+			}, order.PriceAddon{
+				Kind:         "taxes",
+				Amount:       20,
+				IsPercentage: true,
+			}, order.PriceAddon{
+				Kind:         "shipping",
+				Amount:       5,
+				IsPercentage: true,
+			}, order.PriceAddon{
+				Kind:         "discount",
+				Amount:       30,
+				IsPercentage: true,
+			})
+
+			mockProdS.On("GetProductByIDAndVariantID", &claims, prod.ID, prod.Variants[0].ID).Return(&prod, nil)
+			mockCounterS.On("AddOneToOrder", &claims).Return(uint(32), nil)
+
+			mockRepo.On("CreateOrder", &ord2).Return(nil)
+
+			err := s.CreateOrder(&claims, &ord2)
+			assert.Nil(t, err)
+
+			assert.Equal(t, float64(306), ord2.Subtotal)
 		})
 
 		t.Run("calculate subtotal with items and absolute and percentage addons", func(t *testing.T) {
-			// TODO:
-			assert.False(t, true)
+			ord2 := ord
+			ord2.Items = []order.Item{
+				{ProductID: prod.ID, VariantID: prod.Variants[0].ID},
+			}
+
+			ord2.PriceAddons = append(ord2.PriceAddons, order.PriceAddon{
+				Kind:         "fees",
+				Amount:       10,
+				IsPercentage: true,
+			}, order.PriceAddon{
+				Kind:         "shipping",
+				Amount:       60,
+				IsPercentage: false,
+			}, order.PriceAddon{
+				Kind:         "discount",
+				Amount:       50,
+				IsPercentage: false,
+			})
+
+			mockProdS.On("GetProductByIDAndVariantID", &claims, prod.ID, prod.Variants[0].ID).Return(&prod, nil)
+			mockCounterS.On("AddOneToOrder", &claims).Return(uint(32), nil)
+
+			mockRepo.On("CreateOrder", &ord2).Return(nil)
+
+			err := s.CreateOrder(&claims, &ord2)
+			assert.Nil(t, err)
+
+			assert.Equal(t, float64(340), ord2.Subtotal)
 		})
 	})
 }

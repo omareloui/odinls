@@ -119,9 +119,11 @@ func (o *Order) calcSubtotal() float64 {
 		}
 	}
 
-	total += total * feesPercentage
-	total += total * shippingPercentage
-	total -= total * discountsPercentage
+	total += itemsTotal
+	total += itemsTotal * feesPercentage
+	total += itemsTotal * shippingPercentage
+	total -= itemsTotal * discountsPercentage
+
 	total += total * taxesPercentage
 
 	return total
