@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: db
     image: mongo
     restart: always
     environment:
@@ -22,6 +23,7 @@ services:
     attach: false
 
   odinls:
+    container_name: odinls
     build:
       context: .
       dockerfile: ./build/package/Dockerfile
@@ -39,6 +41,7 @@ services:
       - prod
 
   odinls-dev:
+    container_name: odinls-dev
     build:
       context: .
       dockerfile: ./build/package/dev.Dockerfile
@@ -67,6 +70,9 @@ services:
         - action: sync
           path: ./cmd
           target: /usr/src/cmd
+        - action: sync
+          path: ./Makefile
+          target: /usr/src/Makefile
         - action: sync
           path: ./config
           target: /usr/src/config

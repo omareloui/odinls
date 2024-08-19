@@ -1,21 +1,30 @@
 FROM golang:1.22-bullseye
 
+# To bash the bash commands work
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 WORKDIR /usr/src/
 
-RUN go install github.com/air-verse/air@latest && \
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -  && \
+    apt-get -y --no-install-recommends install nodejs && \
+    npm i -g tailwindcss && \
+    \
+    go install github.com/air-verse/air@latest && \
     go install github.com/a-h/templ/cmd/templ@latest
 
 COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY ./.env ./.env
-COPY ./cmd ./cmd
-COPY ./config ./config
-COPY ./internal ./internal
-COPY ./web ./web
+COPY Makefile .
+COPY .env .
+COPY cmd cmd
+COPY config config
+COPY internal internal
+COPY web web
 
-RUN templ generate && \
-    go mod tidy
+RUN templ generate && go mod tidy
 
-CMD ["air", "-c", "config/.air.toml"]
+
+ENTRYPOINT [ "air" ]
+CMD ["-c", "config/.air.toml"]

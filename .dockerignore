@@ -5,8 +5,6 @@ docker-compose.yaml
 .git
 .gitignore
 
-Makefile
-
 README.md
 
 **/tmp

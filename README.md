@@ -6,14 +6,31 @@ More details soon...
 
 ## Develop
 
-Run this command to start the server and watching for change
+Run this command to start the server and watching for change go and templ
+changes
 
 ```bash
-make watch
+docker compose --profile dev up --watch
 ```
 
-And run this in a separate shell to watch CSS files for changes
+And to watch CSS, **inside the container** you might need to run `make css-dev` outside the container too
 
 ```bash
+# Enter the container
+docker exec -it odinls-dev bash
+
+# Run the tailwind css generator
 make css-dev
+```
+
+### Seed the database
+
+You might need to seed the database with the roles and such. To do so run:
+
+```bash
+# Enter the container
+docker exec -it odinls-dev bash
+
+# Seed the database
+go run cmd/seeder/main.go
 ```
