@@ -19,6 +19,7 @@ services:
         required: true
     networks:
       - default
+    attach: false
 
   odinls:
     build:
@@ -34,6 +35,8 @@ services:
         required: true
     networks:
       - default
+    profiles:
+      - prod
 
   odinls-dev:
     build:
@@ -47,6 +50,8 @@ services:
         required: true
     networks:
       - default
+    profiles:
+      - dev
     depends_on:
       - db
     develop:
