@@ -215,6 +215,7 @@ func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) 
 		{Key: "name", Value: u.Name},
 		{Key: "username", Value: u.Username},
 		{Key: "email", Value: u.Email},
+		{Key: "password", Value: u.Password},
 		{Key: "role", Value: roleID},
 		{Key: "created_at", Value: u.CreatedAt},
 		{Key: "updated_at", Value: u.UpdatedAt},

@@ -65,21 +65,20 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
 	var err error
 
 	emailOrUsername := r.FormValue("email_or_username")
-	usr := &user.User{
-		Email:    emailOrUsername,
-		Password: r.FormValue("password"),
-	}
+	password := r.FormValue("password")
+	inpUser := &user.User{Email: emailOrUsername, Password: password}
 
-	usr, err = h.app.UserService.GetUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole, user.WithPopulatedMerchant)
+	usr, err := h.app.UserService.GetUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole, user.WithPopulatedMerchant)
 	if err != nil {
-		e := mapLoginToFormData(usr, &errs.ValidationError{})
+		e := mapLoginToFormData(inpUser, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"
 		return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(usr.Password))
+	// TODO: move this to the business logic
+	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(password))
 	if err != nil {
-		e := mapLoginToFormData(usr, &errs.ValidationError{})
+		e := mapLoginToFormData(inpUser, &errs.ValidationError{})
 		e.Password.Error = "Invalid password"
 		return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
 	}
