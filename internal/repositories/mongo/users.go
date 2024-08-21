@@ -206,7 +206,20 @@ func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) 
 	// TODO(security): make sure to prevent to create multiple emails with +
 	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
 
-	res, err := r.usersColl.InsertOne(ctx, u)
+	roleID, err := primitive.ObjectIDFromHex(u.RoleID)
+	if err != nil {
+		return errs.ErrInvalidID
+	}
+
+	doc := bson.D{
+		{Key: "name", Value: u.Name},
+		{Key: "username", Value: u.Username},
+		{Key: "email", Value: u.Email},
+		{Key: "role", Value: roleID},
+		{Key: "created_at", Value: u.CreatedAt},
+		{Key: "updated_at", Value: u.UpdatedAt},
+	}
+	res, err := r.usersColl.InsertOne(ctx, doc)
 
 	if err == nil {
 		u.ID = res.InsertedID.(primitive.ObjectID).Hex()
