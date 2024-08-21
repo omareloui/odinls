@@ -55,7 +55,7 @@ func (s *orderService) GetOrderByID(claims *jwtadapter.JwtAccessClaims, id strin
 }
 
 func (s *orderService) GetCurrentMerchantOrders(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Order, error) {
-	if claims == nil && !claims.IsCraftsman() {
+	if claims == nil || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
 

@@ -64,7 +64,7 @@ func (s *productService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccess
 }
 
 func (s *productService) GetCurrentMerchantProducts(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Product, error) {
-	if claims == nil && !claims.IsCraftsman() {
+	if claims == nil || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
 
