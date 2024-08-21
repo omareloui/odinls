@@ -137,15 +137,24 @@ func (r *repository) CreateClient(cli *client.Client, options ...client.Retrieve
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	res, err := r.clientsColl.InsertOne(ctx, bson.M{
+	doc := bson.M{
 		"merchant":             mrId,
 		"name":                 cli.Name,
-		"notes":                cli.Notes,
-		"contact_info":         cli.ContactInfo,
 		"wholesale_as_default": cli.WholesaleAsDefault,
 		"created_at":           cli.CreatedAt,
 		"updated_at":           cli.UpdatedAt,
-	})
+	}
+
+	if cli.Notes != "" {
+		doc["notes"] = cli.Notes
+	}
+
+	if len(cli.ContactInfo.Links) != 0 || len(cli.ContactInfo.Emails) != 0 ||
+		len(cli.ContactInfo.PhoneNumbers) != 0 || len(cli.ContactInfo.Locations) != 0 {
+		doc["contact_info"] = cli.ContactInfo
+	}
+
+	res, err := r.clientsColl.InsertOne(ctx, doc)
 
 	if err == nil {
 		cli.ID = res.InsertedID.(primitive.ObjectID).Hex()
