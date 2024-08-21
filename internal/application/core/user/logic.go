@@ -63,6 +63,12 @@ func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
 		return errs.ErrSanitizer
 	}
 
+	r, err := s.roleService.GetRoleByName(role.NoAuthority.String())
+	if err != nil {
+		return err
+	}
+	usr.RoleID = r.ID
+
 	if err := s.validator.Validate(usr); err != nil {
 		return s.validator.ParseError(err)
 	}

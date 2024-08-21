@@ -36,6 +36,10 @@ func (s *roleService) GetRoleByID(id string) (*Role, error) {
 	return s.roleRepository.FindRole(id)
 }
 
+func (s *roleService) GetRoleByName(name string) (*Role, error) {
+	return s.roleRepository.FindRoleByName(name)
+}
+
 func (s *roleService) CreateRole(role *Role) error {
 	err := s.sanitizer.SanitizeStruct(role)
 	if err != nil {
@@ -67,7 +71,7 @@ func (s *roleService) SeedRoles() error {
 	return s.roleRepository.SeedRoles(rolestrs)
 }
 
-func (s *roleService) GetRoleByName(role string) (*RoleEnum, error) {
+func (s *roleService) MapRoleNameToRoleEnum(role string) (*RoleEnum, error) {
 	var r RoleEnum
 	var err error
 
