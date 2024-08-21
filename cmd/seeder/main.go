@@ -7,6 +7,7 @@ import (
 	"github.com/omareloui/odinls/config"
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/repositories/mongo"
+	"github.com/omareloui/odinls/internal/sanitizer/conformadaptor"
 	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
 )
 
@@ -27,8 +28,9 @@ func main() {
 	}
 
 	validator := playgroundvalidator.NewValidator()
+	sanitizer := conformadaptor.NewSanitizer()
 
-	roleService := role.NewRoleService(repo, validator)
+	roleService := role.NewRoleService(repo, validator, sanitizer)
 
 	err = roleService.SeedRoles()
 	if err != nil {
