@@ -57,7 +57,6 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 			}
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateOrderForm(ord, prods, clients, mapOrderToFormData(ord, &valerr)))
 		}
-		fmt.Println(err)
 		return err
 	}
 

@@ -32,7 +32,7 @@ func (a *APIAdapter) Run() {
 	a.Post("/login", a.handler.Login, withHasToNotBeSigned)
 	a.Get("/register", a.handler.GetRegister, withHasToNotBeSigned)
 	a.Post("/register", a.handler.Register, withHasToNotBeSigned)
-	a.Post("/logout", a.handler.Logout, withHasToNotBeSigned)
+	a.Post("/logout", a.handler.Logout)
 
 	a.Get("/users", a.handler.GetUsers, withProtection)
 	a.Get("/users/{id}", a.passParam("id", a.handler.GetUser))

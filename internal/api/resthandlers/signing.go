@@ -96,11 +96,8 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *handler) Logout(w http.ResponseWriter, r *http.Request) error {
-	emptyRefreshCookie := newCookie(refreshTokenCookieName, "", time.Unix(0, 0))
-	emptyAccessCookie := newCookie(accessTokenCookieName, "", time.Unix(0, 0))
-
-	http.SetCookie(w, emptyAccessCookie)
-	http.SetCookie(w, emptyRefreshCookie)
+	unsetCookie(w, refreshTokenCookieName)
+	unsetCookie(w, accessTokenCookieName)
 
 	return hxRespondWithRedirect(w, "/")
 }
@@ -125,6 +122,16 @@ func newCookie(name, value string, exp time.Time) *http.Cookie {
 		Expires:  exp,
 		Path:     "/",
 	}
+}
+
+func unsetCookie(w http.ResponseWriter, name string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    "",
+		HttpOnly: true,
+		Expires:  time.Unix(0, 0),
+		Path:     "/",
+	})
 }
 
 func mapLoginToFormData(usr *user.User, valerr *errs.ValidationError) *views.LoginFormData {
