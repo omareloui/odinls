@@ -230,7 +230,7 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 func mapOrderToMongoDoc(ord *order.Order) (bson.M, error) {
 	var merId primitive.ObjectID
 	var cliId primitive.ObjectID
-	var crafsmenIds []primitive.ObjectID
+	var craftsmenIds []primitive.ObjectID
 
 	var err error
 
@@ -249,10 +249,10 @@ func mapOrderToMongoDoc(ord *order.Order) (bson.M, error) {
 	}
 
 	if ord.CraftsmenIDs != nil {
-		crafsmenIds = make([]primitive.ObjectID, len(ord.CraftsmenIDs))
+		craftsmenIds = make([]primitive.ObjectID, len(ord.CraftsmenIDs))
 		for _, id := range ord.CraftsmenIDs {
 			crafId, err := primitive.ObjectIDFromHex(id)
-			crafsmenIds = append(crafsmenIds, crafId)
+			craftsmenIds = append(craftsmenIds, crafId)
 			if err != nil {
 				return nil, errs.ErrInvalidID
 			}
@@ -264,7 +264,7 @@ func mapOrderToMongoDoc(ord *order.Order) (bson.M, error) {
 	items := make(bson.A, len(ord.Items))
 
 	doc := bson.M{
-		"craftsmen":        crafsmenIds,
+		"craftsmen":        craftsmenIds,
 		"ref":              ord.Ref,
 		"number":           ord.Number,
 		"status":           ord.Status,
@@ -272,10 +272,12 @@ func mapOrderToMongoDoc(ord *order.Order) (bson.M, error) {
 		"price_addons":     ord.PriceAddons,
 		"received_amounts": ord.ReceivedAmounts,
 		"timeline":         ord.Timeline,
+		"subtotal":         ord.Subtotal,
 		"updated_at":       now,
 	}
 
 	if ord.CreatedAt.IsZero() {
+		// TODO: does this work with update?
 		doc["created_at"] = now
 	}
 	if !merId.IsZero() {
