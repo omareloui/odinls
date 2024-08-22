@@ -70,7 +70,7 @@ func (h *handler) EditMerchant(id string) HandlerFunc {
 			return err
 		}
 
-		return respondWithTemplate(w, r, http.StatusOK, views.Merchant(mer))
+		return h.GetMerchant(id)(w, r)
 	}
 }
 
