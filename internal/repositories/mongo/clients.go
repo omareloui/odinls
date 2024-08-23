@@ -132,7 +132,7 @@ func (r *repository) CreateClient(cli *client.Client, options ...client.Retrieve
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	doc, err := r.bu.MarshalBsonD(cli, r.bu.AddObjectIDKey("merchant"), r.bu.RemoveKey("notes"))
+	doc, err := r.bu.MarshalBsonD(cli, r.bu.WithObjectID("merchant"), r.bu.WithFieldToRemove("notes"))
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,10 @@ func (r *repository) UpdateClientByID(id string, cli *client.Client, options ...
 
 	filter := bson.M{"_id": objId}
 
-	doc, err := r.bu.MarshalBsonD(cli, r.bu.RemoveKey("_id"), r.bu.RemoveKey("merchant"), r.bu.RemoveKey("created_at"))
+	doc, err := r.bu.MarshalBsonD(cli,
+		r.bu.WithFieldToRemove("_id"),
+		r.bu.WithFieldToRemove("merchant"),
+		r.bu.WithFieldToRemove("created_at"))
 	if err != nil {
 		return err
 	}

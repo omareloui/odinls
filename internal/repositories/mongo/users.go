@@ -6,6 +6,7 @@ import (
 
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
+	"github.com/omareloui/odinls/internal/repositories/mongo/bson_utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -206,20 +207,11 @@ func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) 
 	// TODO(security): make sure to prevent to create multiple emails with +
 	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
 
-	roleID, err := primitive.ObjectIDFromHex(u.RoleID)
+	doc, err := r.bu.MarshalBsonD(u, r.bu.WithObjectID("role"))
 	if err != nil {
-		return errs.ErrInvalidID
+		return err
 	}
 
-	doc := bson.D{
-		{Key: "name", Value: u.Name},
-		{Key: "username", Value: u.Username},
-		{Key: "email", Value: u.Email},
-		{Key: "password", Value: u.Password},
-		{Key: "role", Value: roleID},
-		{Key: "created_at", Value: u.CreatedAt},
-		{Key: "updated_at", Value: u.UpdatedAt},
-	}
 	res, err := r.usersColl.InsertOne(ctx, doc)
 
 	if err == nil {
@@ -258,32 +250,27 @@ func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.Ret
 		return errs.ErrInvalidID
 	}
 
-	roleId, err := primitive.ObjectIDFromHex(u.RoleID)
+	var doc primitive.D
+
+	optsFuncs := []bson_utils.OptsFunc{
+		r.bu.WithObjectID("role"),
+		r.bu.WithFieldToRemove("_id"),
+		r.bu.WithFieldToRemove("password"),
+		r.bu.WithFieldToRemove("created_at"),
+	}
+
+	if u.Craftsman != nil {
+		optsFuncs = append(optsFuncs, r.bu.WithObjectID("craftsman.merchant"))
+	}
+
+	doc, err = r.bu.MarshalBsonD(u, optsFuncs...)
 	if err != nil {
-		return errs.ErrInvalidID
+		return err
 	}
 
 	filter := bson.D{{Key: "_id", Value: objId}}
 	update := bson.M{
-		"$set": bson.M{
-			"name":       u.Name,
-			"email":      u.Email,
-			"username":   u.Username,
-			"role":       roleId,
-			"updated_at": time.Now(),
-		},
-	}
-
-	if u.Craftsman != nil {
-		merId, err := primitive.ObjectIDFromHex(u.Craftsman.MerchantID)
-		if err != nil {
-			return errs.ErrInvalidID
-		}
-
-		(update["$set"]).(bson.M)["craftsman"] = map[string]interface{}{
-			"merchant":    merId,
-			"hourly_rate": u.Craftsman.HourlyRate,
-		}
+		"$set": doc,
 	}
 
 	updated, err := r.usersColl.UpdateOne(ctx, filter, update)

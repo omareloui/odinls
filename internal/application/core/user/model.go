@@ -34,7 +34,7 @@ type Craftsman struct {
 	HourlyRate float64 `json:"hourly_rate" bson:"hourly_rate,omitempty" validate:"required,number"`
 	MerchantID string  `json:"merchant_id" bson:"merchant,omitempty" validate:"required,mongodb"`
 
-	Merchant *merchant.Merchant `json:"merchant" bson:"populatedMerchant"`
+	Merchant *merchant.Merchant `json:"merchant" bson:"populatedMerchant,omitempty"`
 }
 
 func (u User) IsCraftsman() bool {

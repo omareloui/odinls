@@ -1,8 +1,6 @@
 package mongo
 
 import (
-	"time"
-
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -71,16 +69,14 @@ func (r *repository) UpdateMerchantByID(id string, mer *merchant.Merchant) error
 		return errs.ErrInvalidID
 	}
 
+	doc, err := r.bu.MarshalBsonD(mer, r.bu.RemoveKey("_id"), r.bu.RemoveKey("created_at"))
+	if err != nil {
+		return err
+	}
+
 	filter := bson.D{{Key: "_id", Value: objId}}
-	update := bson.D{
-		{
-			Key: "$set",
-			Value: bson.M{
-				"name":       mer.Name,
-				"logo":       mer.Logo,
-				"updated_at": time.Now(),
-			},
-		},
+	update := bson.M{
+		"$set": doc,
 	}
 
 	updated, err := r.merchantsColl.UpdateOne(ctx, filter, update)

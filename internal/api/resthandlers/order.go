@@ -83,13 +83,31 @@ func (h *handler) GetOrder(id string) HandlerFunc {
 
 func (h *handler) GetEditOrder(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		return nil
+		claims, err := h.getAuthFromContext(r)
+		if err != nil {
+			return err
+		}
+
+		ord, err := h.app.OrderService.GetOrderByID(claims, id)
+		if err != nil {
+			return err
+		}
+
+		prods, clients, err := h.getMerchantProdsAndClients(claims)
+		if err != nil {
+			return err
+		}
+
+		return respondWithTemplate(w, r, http.StatusOK,
+			views.EditOrder(ord, prods, clients,
+				views.NewDefaultOrderFormData()))
 	}
 }
 
 func (h *handler) EditOrder(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		return nil
+		// TODO: implement!!!!!!!!!!!!
+		return h.GetOrder(id)(w, r)
 	}
 }
 

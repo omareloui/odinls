@@ -133,6 +133,8 @@ func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsF
 		}
 	}
 
+	usr.UpdatedAt = time.Now()
+
 	return s.userRepository.UpdateUserByID(id, usr, opts...)
 }
 

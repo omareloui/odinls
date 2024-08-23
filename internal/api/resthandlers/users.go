@@ -79,7 +79,7 @@ func (h *handler) EditUser(id string) HandlerFunc {
 
 		// TODO: if the updated user is the current user, update the cookie
 
-		return respondWithTemplate(w, r, http.StatusOK, views.User(usr))
+		return h.GetUser(id)(w, r)
 	}
 }
 
@@ -90,14 +90,9 @@ func (h *handler) UnsetCraftsman(id string) HandlerFunc {
 			return err
 		}
 
-		usr, err := h.app.UserService.GetUserByID(id, user.WithPopulatedRole)
-		if err != nil {
-			return err
-		}
-
 		// TODO: if the updated user is the current user, update the cookie
 
-		return respondWithTemplate(w, r, http.StatusOK, views.User(usr))
+		return h.GetUser(id)(w, r)
 	}
 }
 

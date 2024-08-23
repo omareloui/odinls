@@ -3,6 +3,7 @@ package bson_utils
 import (
 	"errors"
 	"slices"
+	"strings"
 
 	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,15 +17,16 @@ type BsonUtils struct{}
 type opts struct {
 	objIDKeys  []string
 	removeKeys []string
+	append     bson.D
 }
 
-type optsFunc func(*opts)
+type OptsFunc func(*opts)
 
 func NewBsonUtils() *BsonUtils {
 	return &BsonUtils{}
 }
 
-func (bu *BsonUtils) MarshalBsonD(rec any, opts ...optsFunc) (bson.D, error) {
+func (bu *BsonUtils) MarshalBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
 	o := bu.parseOpts(opts...)
 	bdoc, err := bson.Marshal(rec)
 	if err != nil {
@@ -35,6 +37,10 @@ func (bu *BsonUtils) MarshalBsonD(rec any, opts ...optsFunc) (bson.D, error) {
 	err = bson.Unmarshal(bdoc, &doc)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, e := range o.append {
+		doc = bu.append(doc, e)
 	}
 
 	for _, k := range o.objIDKeys {
@@ -52,7 +58,7 @@ func (bu *BsonUtils) MarshalBsonD(rec any, opts ...optsFunc) (bson.D, error) {
 	return doc, nil
 }
 
-func (bu *BsonUtils) AddObjectIDKey(key string) optsFunc {
+func (bu *BsonUtils) WithObjectID(key string) OptsFunc {
 	return func(opts *opts) {
 		if opts.objIDKeys == nil {
 			opts.objIDKeys = []string{}
@@ -61,7 +67,16 @@ func (bu *BsonUtils) AddObjectIDKey(key string) optsFunc {
 	}
 }
 
-func (bu *BsonUtils) RemoveKey(key string) optsFunc {
+func (bu *BsonUtils) WithFieldToAdd(key string, val any) OptsFunc {
+	return func(opts *opts) {
+		if opts.append == nil {
+			opts.append = bson.D{}
+		}
+		opts.append = append(opts.append, bson.E{Key: key, Value: val})
+	}
+}
+
+func (bu *BsonUtils) WithFieldToRemove(key string) OptsFunc {
 	return func(opts *opts) {
 		if opts.removeKeys == nil {
 			opts.removeKeys = []string{}
@@ -71,7 +86,14 @@ func (bu *BsonUtils) RemoveKey(key string) optsFunc {
 }
 
 func (bu *BsonUtils) setKeyAsObjectID(doc bson.D, key string) error {
+	path := strings.Split(key, ".")
 	for i, obj := range doc {
+		if len(path) > 1 && obj.Key == path[0] {
+			if subdoc, ok := obj.Value.(bson.D); ok {
+				return bu.setKeyAsObjectID(subdoc, path[1])
+			}
+		}
+
 		if obj.Key == key {
 			strval, ok := obj.Value.(string)
 			if !ok {
@@ -89,6 +111,11 @@ func (bu *BsonUtils) setKeyAsObjectID(doc bson.D, key string) error {
 	return ErrInvalidBsonKey
 }
 
+func (bu *BsonUtils) append(doc bson.D, e bson.E) bson.D {
+	doc, _ = bu.removeKey(doc, e.Key)
+	return append(doc, e)
+}
+
 func (bu *BsonUtils) removeKey(doc bson.D, key string) (bson.D, error) {
 	for i, obj := range doc {
 		if obj.Key == key {
@@ -98,7 +125,7 @@ func (bu *BsonUtils) removeKey(doc bson.D, key string) (bson.D, error) {
 	return doc, ErrInvalidBsonKey
 }
 
-func (bu *BsonUtils) parseOpts(funcs ...optsFunc) *opts {
+func (bu *BsonUtils) parseOpts(funcs ...OptsFunc) *opts {
 	o := &opts{objIDKeys: []string{}, removeKeys: []string{}}
 	for _, fun := range funcs {
 		fun(o)

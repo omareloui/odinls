@@ -38,6 +38,8 @@ func (s *merchantService) UpdateMerchantByID(id string, merchant *Merchant) erro
 		return s.validator.ParseError(err)
 	}
 
+	merchant.UpdatedAt = time.Now()
+
 	return s.merchantRepository.UpdateMerchantByID(id, merchant)
 }
 
