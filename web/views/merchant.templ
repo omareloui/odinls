@@ -9,8 +9,10 @@ import (
 )
 
 type MerchantFormData struct {
-	Name FormInputData
-	Logo FormInputData
+	Name             FormInputData
+	Logo             FormInputData
+	HourlyRate       FormInputData
+	ProfitPercentage FormInputData
 }
 
 templ MerchantPage(accessClaims *jwtadapter.JwtAccessClaims, merchants []merchant.Merchant, formdata *MerchantFormData) {
@@ -70,6 +72,8 @@ templ MerchantOOB(merchant *merchant.Merchant) {
 }
 
 templ merchantFormBody(mer *merchant.Merchant, formdata *MerchantFormData) {
-	@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", mer.Name, formdata.Name)
-	@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", mer.Logo, formdata.Logo)
+	@input("Merchant Name", "text", "name", "e.g. Odin Leather Store", mer.ID, formdata.Name)
+	@input("Merchant Logo URL", "url", "logo", "e.g. https://odinleahter.store/logo.png", mer.ID, formdata.Logo)
+	@moneyInput("Merchant Hourly Rate", "hourly_rate", mer.ID, formdata.HourlyRate)
+	@percentageInput("Merchant Profit Percentage", "profit_percentage", mer.ID, formdata.ProfitPercentage)
 }

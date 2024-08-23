@@ -1,7 +1,9 @@
 package resthandlers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/errs"
@@ -16,7 +18,7 @@ func (h *handler) GetMerchants(w http.ResponseWriter, r *http.Request) error {
 
 	accessClaims, _ := h.getAuthFromContext(r)
 	return respondWithTemplate(w, r, http.StatusOK,
-		views.MerchantPage(accessClaims, merchants, mapMerchantToFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+		views.MerchantPage(accessClaims, merchants, mapMerchantToFormData(defaultMerchant(), &errs.ValidationError{})))
 }
 
 func (h *handler) GetMerchant(id string) HandlerFunc {
@@ -30,10 +32,14 @@ func (h *handler) GetMerchant(id string) HandlerFunc {
 }
 
 func (h *handler) CreateMerchant(w http.ResponseWriter, r *http.Request) error {
-	mer := mapFormToMerchant(r)
-	err := h.app.MerchantService.CreateMerchant(mer)
+	mer, err := mapFormToMerchant(r)
+	if err != nil {
+		return err
+	}
+	err = h.app.MerchantService.CreateMerchant(mer)
 	if err != nil {
 		if valerr, ok := err.(errs.ValidationError); ok {
+			fmt.Println(valerr.Errors)
 			e := mapMerchantToFormData(mer, &valerr)
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateMerchantForm(e))
 		}
@@ -43,7 +49,7 @@ func (h *handler) CreateMerchant(w http.ResponseWriter, r *http.Request) error {
 	if err := renderToBody(w, r, views.MerchantOOB(mer)); err != nil {
 		return err
 	}
-	return respondWithTemplate(w, r, http.StatusCreated, views.CreateMerchantForm(mapMerchantToFormData(&merchant.Merchant{}, &errs.ValidationError{})))
+	return respondWithTemplate(w, r, http.StatusCreated, views.CreateMerchantForm(mapMerchantToFormData(defaultMerchant(), &errs.ValidationError{})))
 }
 
 func (h *handler) GetEditMerchant(id string) HandlerFunc {
@@ -60,9 +66,12 @@ func (h *handler) GetEditMerchant(id string) HandlerFunc {
 
 func (h *handler) EditMerchant(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		mer := mapFormToMerchant(r)
+		mer, err := mapFormToMerchant(r)
+		if err != nil {
+			return err
+		}
 
-		err := h.app.MerchantService.UpdateMerchantByID(id, mer)
+		err = h.app.MerchantService.UpdateMerchantByID(id, mer)
 		if err != nil {
 			if valerr, ok := err.(errs.ValidationError); ok {
 				return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditMerchant(mer, mapMerchantToFormData(mer, &valerr)))
@@ -76,14 +85,32 @@ func (h *handler) EditMerchant(id string) HandlerFunc {
 
 func mapMerchantToFormData(merchant *merchant.Merchant, valerr *errs.ValidationError) *views.MerchantFormData {
 	return &views.MerchantFormData{
-		Name: views.FormInputData{Value: merchant.Name, Error: valerr.Errors.MsgFor("Name")},
-		Logo: views.FormInputData{Value: merchant.Logo, Error: valerr.Errors.MsgFor("Logo")},
+		Name:             views.FormInputData{Value: merchant.Name, Error: valerr.Errors.MsgFor("Name")},
+		Logo:             views.FormInputData{Value: merchant.Logo, Error: valerr.Errors.MsgFor("Logo")},
+		HourlyRate:       views.FormInputData{Value: strconv.FormatFloat(merchant.HourlyRate, 'f', -1, 64), Error: valerr.Errors.MsgFor("HourlyRate")},
+		ProfitPercentage: views.FormInputData{Value: strconv.FormatFloat(merchant.ProfitPercentage, 'f', -1, 64), Error: valerr.Errors.MsgFor("ProfitPercentage")},
 	}
 }
 
-func mapFormToMerchant(r *http.Request) *merchant.Merchant {
-	return &merchant.Merchant{
-		Name: r.FormValue("name"),
-		Logo: r.FormValue("logo"),
+func mapFormToMerchant(r *http.Request) (*merchant.Merchant, error) {
+	hourlyRate, err := parseFloatIfExists(r.FormValue("hourly_rate"))
+	if err != nil {
+		return nil, err
 	}
+
+	profitPercentage, err := parseFloatIfExists(r.FormValue("profit_percentage"))
+	if err != nil {
+		return nil, err
+	}
+
+	return &merchant.Merchant{
+		Name:             r.FormValue("name"),
+		Logo:             r.FormValue("logo"),
+		HourlyRate:       hourlyRate,
+		ProfitPercentage: profitPercentage,
+	}, nil
+}
+
+func defaultMerchant() *merchant.Merchant {
+	return &merchant.Merchant{ProfitPercentage: 100.00, HourlyRate: 60}
 }

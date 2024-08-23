@@ -69,7 +69,7 @@ func (r *repository) UpdateMerchantByID(id string, mer *merchant.Merchant) error
 		return errs.ErrInvalidID
 	}
 
-	doc, err := r.bu.MarshalBsonD(mer, r.bu.RemoveKey("_id"), r.bu.RemoveKey("created_at"))
+	doc, err := r.bu.MarshalBsonD(mer, r.bu.WithFieldToRemove("_id"), r.bu.WithFieldToRemove("created_at"))
 	if err != nil {
 		return err
 	}

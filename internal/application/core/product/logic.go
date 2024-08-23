@@ -97,6 +97,8 @@ func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod 
 
 	for i := range prod.Variants {
 		prod.Variants[i].ProductRef = prod.Ref()
+		// TODO: if the price wasn't provided, set the estPrice
+		// prod.Variants[i].estPrice(claims.HourlyRate(), 1)
 	}
 
 	return s.repo.CreateProduct(prod, options...)

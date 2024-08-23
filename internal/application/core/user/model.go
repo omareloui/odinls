@@ -30,7 +30,6 @@ type User struct {
 }
 
 type Craftsman struct {
-	// TODO: add `defaultHourlyRate` to the merchant
 	HourlyRate float64 `json:"hourly_rate" bson:"hourly_rate,omitempty" validate:"required,number"`
 	MerchantID string  `json:"merchant_id" bson:"merchant,omitempty" validate:"required,mongodb"`
 

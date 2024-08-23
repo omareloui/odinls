@@ -73,6 +73,21 @@ templ alpineMoneyInput(label, nameKey, idSuffixKey, dataKey string, classes ...s
 	</div>
 }
 
+templ percentageInput(label, name, idSuffix string, data FormInputData) {
+	<div>
+		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
+		<input
+			id={ join(name, idSuffix) }
+			name={ name }
+			class="input-field"
+			value={ data.Value }
+			placeholder="100.00%"
+			x-mask:dynamic="$money($input, '.', ',') + '%'"
+		/>
+		@errorMessage(data.Error)
+	</div>
+}
+
 templ textarea(label, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
