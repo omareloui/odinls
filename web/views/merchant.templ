@@ -41,7 +41,7 @@ templ MerchantsList(merchants []merchant.Merchant) {
 }
 
 templ Merchant(mer *merchant.Merchant) {
-	<div hx-target="this">
+	<div hx-target="this" class="entry-container">
 		<p>ID: { mer.ID }</p>
 		<p>Name: { mer.Name }</p>
 		<p>Logo: { mer.Logo }</p>

@@ -237,7 +237,7 @@ templ creationForm(title, postTo, submitStr string, close ...bool) {
 
 templ form(action, path string, attrs ...templ.Attributes) {
 	<form
-		class="grid gap-2"
+		class="grid gap-2 entry-container"
 		{ templ.Attributes{fmt.Sprintf("hx-%s", action): string(templ.SafeURL(path))}... }
 		hx-swap="outerHTML"
 		if attrs != nil {

@@ -28,7 +28,7 @@ templ RolesList(roles []role.Role) {
 }
 
 templ Role(role *role.Role) {
-	<div hx-target="this">
+	<div hx-target="this" class="entry-container">
 		<p>ID: { role.ID }</p>
 		<p>Name: { role.Name }</p>
 		<p>Created At: { role.CreatedAt.Format(time.RFC1123) }</p>

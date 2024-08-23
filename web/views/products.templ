@@ -117,7 +117,7 @@ templ ProductsList(prods []product.Product, hourlyRate float64) {
 }
 
 templ Product(prod *product.Product, hourlyRate float64) {
-	<div hx-target="this">
+	<div hx-target="this" class="entry-container">
 		<p>ID: { prod.ID }</p>
 		<p>MerchantID: { prod.MerchantID }</p>
 		<p>CraftsmanID: { prod.CraftsmanID }</p>

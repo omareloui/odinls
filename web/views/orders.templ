@@ -216,7 +216,7 @@ templ OrdersList(ords []order.Order) {
 }
 
 templ Order(ord *order.Order) {
-	<div hx-target="this">
+	<div hx-target="this" class="entry-container">
 		<p>ID: { ord.ID }</p>
 		<p>MerchantID: { ord.MerchantID }</p>
 		for _, crafmanId := range ord.CraftsmenIDs {

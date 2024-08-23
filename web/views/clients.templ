@@ -46,7 +46,7 @@ templ ClientsList(clients []client.Client) {
 }
 
 templ Client(client *client.Client) {
-	<div hx-target="this">
+	<div hx-target="this" class="entry-container">
 		<p>ID: { client.ID }</p>
 		<p>Name: { client.Name }</p>
 		<p>MerchantID: { client.MerchantID }</p>
