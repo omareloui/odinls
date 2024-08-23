@@ -34,20 +34,17 @@ templ UserPage(accessClaims *jwtadapter.JwtAccessClaims, users []user.User) {
 	@baseLayout(accessClaims, "Users | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Users</h2>
-			@UsersList(users)
+			@usersList(users)
 		}
 	}
 }
 
-templ UsersList(users []user.User) {
-	<div id="usersList" class="grid no-entries">
-		for i, m := range users {
-			if i > 0 {
-				<br/>
-			}
+templ usersList(users []user.User) {
+	@list("usersList") {
+		for _, m := range users {
 			@User(&m)
 		}
-	</div>
+	}
 }
 
 templ User(user *user.User) {

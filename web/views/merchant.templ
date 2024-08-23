@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"time"
+	"strconv"
 
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/merchant"
@@ -32,14 +33,11 @@ templ CreateMerchantForm(formdata *MerchantFormData, close ...bool) {
 }
 
 templ MerchantsList(merchants []merchant.Merchant) {
-	<div id="merchantsList" class="grid no-entries">
-		for i, m := range merchants {
-			if i > 0 {
-				<br/>
-			}
+	@list("merchantsList") {
+		for _, m := range merchants {
 			@Merchant(&m)
 		}
-	</div>
+	}
 }
 
 templ Merchant(mer *merchant.Merchant) {
@@ -47,6 +45,8 @@ templ Merchant(mer *merchant.Merchant) {
 		<p>ID: { mer.ID }</p>
 		<p>Name: { mer.Name }</p>
 		<p>Logo: { mer.Logo }</p>
+		<p>Hourly Rate: E£ { strconv.FormatFloat(mer.HourlyRate, 'f', -1, 64) }</p>
+		<p>Profit Percentage: { strconv.FormatFloat(mer.ProfitPercentage, 'f', -1, 64) }%</p>
 		<p>Created At: { mer.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { mer.UpdatedAt.Format(time.RFC1123) }</p>
 		<button

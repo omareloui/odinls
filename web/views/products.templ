@@ -33,7 +33,7 @@ templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) 
 		@container() {
 			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate(), true)
 			<h2 class="text-3xl font-bold mb-3">Products</h2>
-			@ProductsList(prods, claims.HourlyRate())
+			@productsList(prods, claims.HourlyRate())
 		}
 	}
 }
@@ -105,15 +105,12 @@ templ productVariantFormBody() {
 	</div>
 }
 
-templ ProductsList(prods []product.Product, hourlyRate float64) {
-	<div id="productsList" class="grid no-entries">
-		for i, prod := range prods {
-			if i > 0 {
-				<br/>
-			}
+templ productsList(prods []product.Product, hourlyRate float64) {
+	@list("productsList") {
+		for _, prod := range prods {
 			@Product(&prod, hourlyRate)
 		}
-	</div>
+	}
 }
 
 templ Product(prod *product.Product, hourlyRate float64) {

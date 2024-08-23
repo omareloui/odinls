@@ -23,7 +23,7 @@ templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, f
 		@container() {
 			@CreateClientForm(formdata, true)
 			<h2 class="text-3xl font-bold mb-3">Clients</h2>
-			@ClientsList(clients)
+			@clientsList(clients)
 		}
 	}
 }
@@ -34,15 +34,12 @@ templ CreateClientForm(formdata *ClientFormData, close ...bool) {
 	}
 }
 
-templ ClientsList(clients []client.Client) {
-	<div id="clientsList" class="grid no-entries">
-		for i, m := range clients {
-			if i > 0 {
-				<br/>
-			}
+templ clientsList(clients []client.Client) {
+	@list("clientsList") {
+		for _, m := range clients {
 			@Client(&m)
 		}
-	</div>
+	}
 }
 
 templ Client(client *client.Client) {

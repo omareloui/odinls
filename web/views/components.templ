@@ -13,6 +13,12 @@ type SelectOptions struct {
 	View  string `json:"view"`
 }
 
+templ list(id string) {
+	<div id={ id } class="grid gap-4 no-entries">
+		{ children... }
+	</div>
+}
+
 templ input(label, kind, name, placeholder, idSuffix string, data FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>

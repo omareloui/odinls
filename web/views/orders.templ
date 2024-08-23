@@ -68,7 +68,7 @@ templ OrdersPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product, cl
 			@CreateOrderForm(&order.Order{}, prods, clients,
 				NewDefaultOrderFormData(), true)
 			<h2 class="text-3xl font-bold mb-3">Orders</h2>
-			@OrdersList(ords)
+			@ordersList(ords)
 		}
 	}
 }
@@ -204,15 +204,12 @@ templ orderPriceAddonFormBody() {
 	</div>
 }
 
-templ OrdersList(ords []order.Order) {
-	<div id="ordersList" class="grid no-entries">
-		for i, ord := range ords {
-			if i > 0 {
-				<br/>
-			}
+templ ordersList(ords []order.Order) {
+	@list("ordersList") {
+		for _, ord := range ords {
 			@Order(&ord)
 		}
-	</div>
+	}
 }
 
 templ Order(ord *order.Order) {

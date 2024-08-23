@@ -17,14 +17,11 @@ templ RolesPage(accessClaims *jwtadapter.JwtAccessClaims, roles []role.Role) {
 }
 
 templ RolesList(roles []role.Role) {
-	<div id="rolesList" class="grid no-entries">
-		for i, m := range roles {
-			if i > 0 {
-				<br/>
-			}
+	@list("rolesList") {
+		for _, m := range roles {
 			@Role(&m)
 		}
-	</div>
+	}
 }
 
 templ Role(role *role.Role) {
