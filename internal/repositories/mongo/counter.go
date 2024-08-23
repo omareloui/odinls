@@ -3,7 +3,6 @@ package mongo
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/omareloui/odinls/internal/application/core/counter"
 	"github.com/omareloui/odinls/internal/errs"
@@ -18,26 +17,12 @@ func (r *repository) CreateCounter(cntr *counter.Counter) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	now := time.Now()
-
-	if cntr.MerchantID == "" {
-		return errs.ErrInvalidID
-	}
-
-	merId, err := primitive.ObjectIDFromHex(cntr.MerchantID)
+	doc, err := r.bu.MarshalBsonD(cntr, r.bu.WithObjectID("merchant"))
 	if err != nil {
-		return errs.ErrInvalidID
+		return err
 	}
 
-	document := bson.M{
-		"merchant":       merId,
-		"orders_number":  cntr.OrdersNumber,
-		"products_codes": cntr.ProductsCodes,
-		"created_at":     now,
-		"updated_at":     now,
-	}
-
-	res, err := r.countersColl.InsertOne(ctx, document)
+	res, err := r.countersColl.InsertOne(ctx, doc)
 
 	if err == nil {
 		cntr.ID = res.InsertedID.(primitive.ObjectID).Hex()

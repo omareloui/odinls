@@ -2,6 +2,7 @@ package counter
 
 import (
 	"errors"
+	"time"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/errs"
@@ -64,10 +65,15 @@ func (s *counterService) createCounter(claims *jwtadapter.JwtAccessClaims, categ
 	}
 
 	merId := claims.CraftsmanInfo.MerchantID
+
+	now := time.Now()
+
 	cntr := &Counter{
 		MerchantID:    merId,
 		OrdersNumber:  0,
 		ProductsCodes: ProductsCodes{},
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	for _, cat := range categories {
