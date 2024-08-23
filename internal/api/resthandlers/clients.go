@@ -87,10 +87,7 @@ func (h *handler) EditClient(id string) HandlerFunc {
 			return err
 		}
 
-		if err := renderToBody(w, r, views.ClientOOB(cli)); err != nil {
-			return err
-		}
-		return respondWithTemplate(w, r, http.StatusOK, views.Client(cli))
+		return h.GetClient(id)(w, r)
 	}
 }
 
@@ -106,16 +103,16 @@ func mapClientToFormData(client *client.Client, valerr *errs.ValidationError) *v
 		formData.WholesaleAsDefault = views.FormInputData{Value: "", Error: valerr.Errors.MsgFor("WholesaleAsDefault")}
 	}
 
-	if client.ContactInfo.PhoneNumbers != nil && len(client.ContactInfo.PhoneNumbers) > 0 {
+	if client.ContactInfo.PhoneNumbers != nil {
 		formData.Phone = views.FormInputData{Value: client.ContactInfo.PhoneNumbers["default"], Error: valerr.Errors.MsgFor("ContactInfo.PhoneNumbers")}
 	}
-	if client.ContactInfo.Emails != nil && len(client.ContactInfo.Emails) > 0 {
+	if client.ContactInfo.Emails != nil {
 		formData.Email = views.FormInputData{Value: client.ContactInfo.Emails["default"], Error: valerr.Errors.MsgFor("ContactInfo.Emails")}
 	}
-	if client.ContactInfo.Locations != nil && len(client.ContactInfo.Locations) > 0 {
+	if client.ContactInfo.Locations != nil {
 		formData.Location = views.FormInputData{Value: client.ContactInfo.Locations["default"], Error: valerr.Errors.MsgFor("ContactInfo.Locations")}
 	}
-	if client.ContactInfo.Links != nil && len(client.ContactInfo.Links) > 0 {
+	if client.ContactInfo.Links != nil {
 		formData.Link = views.FormInputData{Value: client.ContactInfo.Links["default"], Error: valerr.Errors.MsgFor("ContactInfo.Links")}
 	}
 

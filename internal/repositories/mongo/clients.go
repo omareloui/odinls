@@ -129,29 +129,12 @@ func (r *repository) GetClientByID(id string, options ...client.RetrieveOptsFunc
 func (r *repository) CreateClient(cli *client.Client, options ...client.RetrieveOptsFunc) error {
 	opts := client.ParseRetrieveOpts(options...)
 
-	mrId, err := primitive.ObjectIDFromHex(cli.MerchantID)
-	if err != nil {
-		return errs.ErrInvalidID
-	}
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	doc := bson.M{
-		"merchant":             mrId,
-		"name":                 cli.Name,
-		"wholesale_as_default": cli.WholesaleAsDefault,
-		"created_at":           cli.CreatedAt,
-		"updated_at":           cli.UpdatedAt,
-	}
-
-	if cli.Notes != "" {
-		doc["notes"] = cli.Notes
-	}
-
-	if len(cli.ContactInfo.Links) != 0 || len(cli.ContactInfo.Emails) != 0 ||
-		len(cli.ContactInfo.PhoneNumbers) != 0 || len(cli.ContactInfo.Locations) != 0 {
-		doc["contact_info"] = cli.ContactInfo
+	doc, err := r.bu.MarshalBsonD(cli, r.bu.AddObjectIDKey("merchant"), r.bu.RemoveKey("notes"))
+	if err != nil {
+		return err
 	}
 
 	res, err := r.clientsColl.InsertOne(ctx, doc)
@@ -187,16 +170,12 @@ func (r *repository) UpdateClientByID(id string, cli *client.Client, options ...
 
 	filter := bson.M{"_id": objId}
 
-	res := r.clientsColl.FindOneAndUpdate(ctx, filter, bson.M{
-		"$set": bson.M{
-			"name":                 cli.Name,
-			"notes":                cli.Notes,
-			"contact_info":         cli.ContactInfo,
-			"wholesale_as_default": cli.WholesaleAsDefault,
-			"created_at":           cli.CreatedAt,
-			"updated_at":           cli.UpdatedAt,
-		},
-	})
+	doc, err := r.bu.MarshalBsonD(cli, r.bu.RemoveKey("_id"), r.bu.RemoveKey("merchant"), r.bu.RemoveKey("created_at"))
+	if err != nil {
+		return err
+	}
+
+	res := r.clientsColl.FindOneAndUpdate(ctx, filter, bson.M{"$set": doc})
 
 	err = res.Err()
 	if err == nil {

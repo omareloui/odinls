@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	r "github.com/omareloui/odinls/internal/repositories"
+	"github.com/omareloui/odinls/internal/repositories/mongo/bson_utils"
 )
 
 const (
@@ -36,6 +37,8 @@ type repository struct {
 	countersColl  *mongo.Collection
 	productsColl  *mongo.Collection
 	ordersColl    *mongo.Collection
+
+	bu *bson_utils.BsonUtils
 }
 
 func (r *repository) newCtx() (context.Context, context.CancelFunc) {
@@ -96,6 +99,8 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "merchant", Value: 1}}})
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "client", Value: 1}}})
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "items._id", Value: 1}}, Options: options.Index().SetUnique(true)})
+
+	repo.bu = bson_utils.NewBsonUtils()
 
 	return repo, nil
 }
