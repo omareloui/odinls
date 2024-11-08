@@ -38,12 +38,7 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = r.ParseForm()
-	if err != nil {
-		return err
-	}
-
-	ord, err := mapFormToOrder(r.PostForm)
+	ord, err := mapFormToOrder(r)
 	if err != nil {
 		return err
 	}
@@ -77,7 +72,21 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 
 func (h *handler) GetOrder(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		return nil
+		claims, err := h.getAuthFromContext(r)
+		if err != nil {
+			return err
+		}
+
+		ord, err := h.app.OrderService.GetOrderByID(claims, id)
+		// order.WithPopulatedClient,
+		// order.WithPopulatedMerchant,
+		// order.WithPopulatedCraftsman,
+		// order.WithPopulatedItemProducts)
+		if err != nil {
+			return err
+		}
+
+		return respondWithTemplate(w, r, http.StatusOK, views.Order(ord))
 	}
 }
 
@@ -98,15 +107,39 @@ func (h *handler) GetEditOrder(id string) HandlerFunc {
 			return err
 		}
 
+		ordFormdata := mapOrderToFormData(ord, &errs.ValidationError{})
+
 		return respondWithTemplate(w, r, http.StatusOK,
-			views.EditOrder(ord, prods, clients,
-				views.NewDefaultOrderFormData()))
+			views.EditOrder(ord, prods, clients, ordFormdata))
 	}
 }
 
 func (h *handler) EditOrder(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		// TODO: implement!!!!!!!!!!!!
+		claims, err := h.getAuthFromContext(r)
+		if err != nil {
+			return err
+		}
+
+		ord, err := mapFormToOrder(r)
+		if err != nil {
+			return err
+		}
+
+		err = h.app.OrderService.UpdateOrderByID(claims, id, ord)
+		if err != nil {
+			if valerr, ok := err.(errs.ValidationError); ok {
+				prods, clients, err := h.getMerchantProdsAndClients(claims)
+				if err != nil {
+					return err
+				}
+				ordFormdata := mapOrderToFormData(ord, &valerr)
+				return respondWithTemplate(w, r, http.StatusUnprocessableEntity,
+					views.EditOrder(ord, prods, clients, ordFormdata))
+			}
+			return err
+		}
+
 		return h.GetOrder(id)(w, r)
 	}
 }
@@ -124,8 +157,13 @@ func (h *handler) getMerchantProdsAndClients(claims *jwtadapter.JwtAccessClaims)
 	return prods, clients, nil
 }
 
-func mapFormToOrder(f url.Values) (*order.Order, error) {
-	var err error
+func mapFormToOrder(r *http.Request) (*order.Order, error) {
+	err := r.ParseForm()
+	if err != nil {
+		return nil, err
+	}
+
+	f := r.PostForm
 
 	o := &order.Order{
 		ClientID: f["client_id"][0],

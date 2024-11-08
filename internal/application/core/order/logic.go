@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"slices"
+	"time"
 
 	"github.com/aidarkhanov/nanoid"
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
@@ -106,6 +107,10 @@ func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Orde
 	}
 	ord.Number = num
 
+	now := time.Now()
+	ord.CreatedAt = now
+	ord.UpdatedAt = now
+
 	return s.repo.CreateOrder(ord, options...)
 }
 
@@ -123,14 +128,7 @@ func (s *orderService) UpdateOrderByID(claims *jwtadapter.JwtAccessClaims, id st
 		return s.validator.ParseError(err)
 	}
 
-	ord, err := s.repo.GetOrderByID(id)
-	if err != nil {
-		return err
-	}
-
-	uord.ID = id
-	uord.MerchantID = ord.MerchantID
-	uord.CreatedAt = ord.CreatedAt
+	uord.UpdatedAt = time.Now()
 
 	return s.repo.UpdateOrderByID(id, uord, options...)
 }

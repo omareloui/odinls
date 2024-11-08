@@ -46,7 +46,10 @@ func (jwt *JwtAccessClaims) IsCraftsman() bool {
 }
 
 func (jwt *JwtAccessClaims) HourlyRate() float64 {
-	return jwt.CraftsmanInfo.HourlyRate
+	if jwt.CraftsmanInfo.HourlyRate > 0 {
+		return jwt.CraftsmanInfo.HourlyRate
+	}
+	return jwt.CraftsmanInfo.Merchant.HourlyRate
 }
 
 func newRefreshClaimsFromMapClaims(claims *jwt.MapClaims) *JwtRefreshClaims {

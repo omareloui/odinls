@@ -14,11 +14,11 @@ const splitRefOnIdx = 4
 
 type Order struct {
 	ID     string `json:"id" bson:"_id,omitempty"`
-	Ref    string `json:"ref" bson:"ref"`
-	Number uint   `json:"number" bson:"number"`
+	Ref    string `json:"ref" bson:"ref,omitempty"`
+	Number uint   `json:"number" bson:"number,omitempty"`
 
-	MerchantID   string   `json:"merchant_id" bson:"merchant" validate:"omitempty,mongodb"`
-	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen" validate:"omitempty,mongodb"`
+	MerchantID   string   `json:"merchant_id" bson:"merchant,omitempty" validate:"omitempty,mongodb"`
+	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen,omitempty" validate:"omitempty,mongodb"`
 	ClientID     string   `json:"client_id" bson:"client" validate:"required,mongodb"`
 
 	Status      string       `json:"status" bson:"status" validate:"required,oneof=pending_confirmation confirmed in_progress pending_shipment shipping pending_payment completed canceled expired"`
@@ -30,10 +30,10 @@ type Order struct {
 	Timeline Timeline `json:"timeline" bson:"timeline"`
 	Note     string   `json:"note" bson:"note,omitempty"`
 
-	Subtotal float64 `json:"subtotal" bson:"subtotal"`
+	Subtotal float64 `json:"subtotal" bson:"subtotal,omitempty"`
 
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at,omitempty"`
 
 	Merchant  *merchant.Merchant `json:"merchant" bson:"populatedMerchant,omitempty"`
 	Client    *client.Client     `json:"client" bson:"populatedClient,omitempty"`

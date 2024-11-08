@@ -90,20 +90,30 @@ func (bu *BsonUtils) setKeyAsObjectID(doc bson.D, key string) error {
 	for i, obj := range doc {
 		if len(path) > 1 && obj.Key == path[0] {
 			if subdoc, ok := obj.Value.(bson.D); ok {
-				return bu.setKeyAsObjectID(subdoc, path[1])
+				// FIXME: won't work with array?
+				return bu.setKeyAsObjectID(subdoc, strings.Join(path[1:], "."))
+			}
+		}
+
+		if arr, ok := obj.Value.(bson.A); ok {
+			for j, v := range arr {
+				for k, subObj := range v.(bson.D) {
+					if subObj.Key == key {
+						objId, err := getObjectID(obj.Value)
+						if err != nil {
+							return err
+						}
+						doc[i].Value.(bson.A)[j].(bson.D)[k].Value = objId
+					}
+				}
 			}
 		}
 
 		if obj.Key == key {
-			strval, ok := obj.Value.(string)
-			if !ok {
-				return errs.ErrInvalidID
-			}
-			objId, err := primitive.ObjectIDFromHex(strval)
+			objId, err := getObjectID(obj.Value)
 			if err != nil {
-				return errs.ErrInvalidID
+				return err
 			}
-
 			doc[i].Value = objId
 			return nil
 		}
@@ -131,4 +141,17 @@ func (bu *BsonUtils) parseOpts(funcs ...OptsFunc) *opts {
 		fun(o)
 	}
 	return o
+}
+
+func getObjectID(val any) (primitive.ObjectID, error) {
+	strval, ok := val.(string)
+	if !ok {
+		return primitive.ObjectID{}, errs.ErrInvalidID
+	}
+	objId, err := primitive.ObjectIDFromHex(strval)
+	if err != nil {
+		return primitive.ObjectID{}, errs.ErrInvalidID
+	}
+
+	return objId, nil
 }

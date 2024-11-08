@@ -1,10 +1,9 @@
 package mongo
 
 import (
-	"time"
-
 	"github.com/omareloui/odinls/internal/application/core/order"
 	"github.com/omareloui/odinls/internal/errs"
+	"github.com/omareloui/odinls/internal/repositories/mongo/bson_utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,7 +91,7 @@ func (r *repository) CreateOrder(ord *order.Order, options ...order.RetrieveOpts
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	doc, err := mapOrderToMongoDoc(ord)
+	doc, err := mapOrderToMongoDoc(r.bu, ord)
 	if err != nil {
 		return err
 	}
@@ -119,7 +118,7 @@ func (r *repository) UpdateOrderByID(id string, ord *order.Order, options ...ord
 		return errs.ErrInvalidID
 	}
 
-	doc, err := mapOrderToMongoDoc(ord)
+	doc, err := mapOrderToMongoDoc(r.bu, ord)
 	if err != nil {
 		return err
 	}
@@ -227,94 +226,14 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 	}
 }
 
-func mapOrderToMongoDoc(ord *order.Order) (bson.M, error) {
-	var merId primitive.ObjectID
-	var cliId primitive.ObjectID
-	var craftsmenIds []primitive.ObjectID
-
-	var err error
-
-	if ord.MerchantID != "" {
-		merId, err = primitive.ObjectIDFromHex(ord.MerchantID)
-		if err != nil {
-			return nil, errs.ErrInvalidID
-		}
-	}
-
-	if ord.ClientID != "" {
-		cliId, err = primitive.ObjectIDFromHex(ord.ClientID)
-		if err != nil {
-			return nil, errs.ErrInvalidID
-		}
-	}
-
-	if ord.CraftsmenIDs != nil {
-		craftsmenIds = make([]primitive.ObjectID, len(ord.CraftsmenIDs))
-		for _, id := range ord.CraftsmenIDs {
-			crafId, err := primitive.ObjectIDFromHex(id)
-			craftsmenIds = append(craftsmenIds, crafId)
-			if err != nil {
-				return nil, errs.ErrInvalidID
-			}
-		}
-	}
-
-	now := time.Now()
-
-	items := make(bson.A, len(ord.Items))
-
-	doc := bson.M{
-		"craftsmen":        craftsmenIds,
-		"ref":              ord.Ref,
-		"number":           ord.Number,
-		"status":           ord.Status,
-		"items":            items,
-		"price_addons":     ord.PriceAddons,
-		"received_amounts": ord.ReceivedAmounts,
-		"timeline":         ord.Timeline,
-		"subtotal":         ord.Subtotal,
-		"updated_at":       now,
-	}
-
-	if ord.CreatedAt.IsZero() {
-		// TODO: does this work with update?
-		doc["created_at"] = now
-	}
-	if !merId.IsZero() {
-		doc["merchant"] = merId
-	}
-	if !cliId.IsZero() {
-		doc["client"] = cliId
-	}
-	if ord.Note != "" {
-		doc["note"] = ord.Note
-	}
-
-	for i, item := range ord.Items {
-		prodObjId, err := primitive.ObjectIDFromHex(item.ProductID)
-		if err != nil {
-			return nil, errs.ErrInvalidID
-		}
-		varObjId, err := primitive.ObjectIDFromHex(item.VariantID)
-		if err != nil {
-			return nil, errs.ErrInvalidID
-		}
-		doc["items"].(bson.A)[i] = bson.M{
-			"product":      prodObjId,
-			"variant":      varObjId,
-			"price":        item.Price,
-			"custom_price": item.CustomPrice,
-			"progress":     item.Progress,
-		}
-		if item.ID == "" {
-			doc["items"].(bson.A)[i].(bson.M)["_id"] = primitive.NewObjectID()
-		} else {
-			doc["items"].(bson.A)[i].(bson.M)["_id"], err = primitive.ObjectIDFromHex(item.ID)
-			if err != nil {
-				return nil, errs.ErrInvalidID
-			}
-		}
-	}
-
-	return doc, nil
+func mapOrderToMongoDoc(bu *bson_utils.BsonUtils, ord *order.Order) (bson.D, error) {
+	return bu.MarshalBsonD(ord,
+		bu.WithObjectID("merchant"),
+		bu.WithObjectID("client"),
+		bu.WithObjectID("craftsmen"),
+		// TODO: does it work?
+		bu.WithObjectID("items._id"),
+		bu.WithObjectID("items.product"),
+		bu.WithObjectID("items.variant"),
+	)
 }
