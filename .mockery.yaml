@@ -1,6 +1,7 @@
-quiet: False
-disable-version-string: True
-with-expecter: False
+---
+quiet: false
+disable-version-string: true
+with-expecter: false
 
 # NOTE: on external packages set this value to "{{.PackagePath}}"
 dir: "{{.InterfaceDir}}/mocks"
