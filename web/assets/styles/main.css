@@ -1,7 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@tailwind variants;
+@import "tailwindcss" source("../../views");
 
 .no-entries:empty:before {
   content: "No entries yet!";

@@ -16,10 +16,10 @@ start: build
 	@./tmp/main
 
 css-dev:
-	@tailwindcss -c ./config/.tailwind.config.js -i ./web/assets/styles/main.css -o ./web/public/styles/main.css --minify --watch
+	@pnpm css:dev
 
 css:
-	@tailwindcss -c ./config/.tailwind.config.js -i ./web/assets/styles/main.css -o ./web/public/styles/main.css --minify
+	@pnpm css
 
 
 seed:

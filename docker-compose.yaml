@@ -1,3 +1,4 @@
+---
 services:
   db:
     container_name: db
@@ -80,8 +81,11 @@ services:
           path: ./internal
           target: /usr/src/internal
         - action: sync
-          path: ./web
-          target: /usr/src/web
+          path: ./web/public
+          target: /usr/src/web/public
+        - action: sync
+          path: ./web/views
+          target: /usr/src/web/views
 
 networks:
   default:

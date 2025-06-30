@@ -3,3 +3,5 @@ tmp
 
 web/public/styles/main.css
 web/views/**/*_templ.go
+
+node_modules
