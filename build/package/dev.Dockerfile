@@ -1,6 +1,6 @@
-FROM golang:1.22-bullseye
+FROM golang:1.24-bullseye
 
-# To bash the bash commands work
+# For the bash commands to work properly
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /usr/src/
@@ -9,8 +9,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -  && \
     apt-get -y --no-install-recommends install nodejs && \
     npm i -g tailwindcss && \
     \
-    go install github.com/air-verse/air@latest && \
-    go install github.com/a-h/templ/cmd/templ@latest
+    go install github.com/air-verse/air@v1.62.0 && \
+    go install github.com/a-h/templ/cmd/templ@v0.3.906
 
 COPY go.mod go.sum ./
 
