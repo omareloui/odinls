@@ -21,6 +21,7 @@ var (
 
 func main() {
 	hourlyRate := "60"
+	var timeToCraft string
 
 	var leatherUsageInFeet string
 	var leatherPricePerFeet string
@@ -29,15 +30,16 @@ func main() {
 	var thread string
 
 	form := huh.NewForm(
-		// huh.NewGroup(
-		// 	huh.NewInput().Title("Hourly Rate").Value(&hourlyRate),
-		// ),
 		huh.NewGroup(
 			huh.NewInput().Title("Leather Usage In Feet").Value(&leatherUsageInFeet),
-			huh.NewInput().Title("Leather EGP/feet^2").Value(&leatherPricePerFeet),
+			huh.NewInput().Title("Leather £E/feet^2").Value(&leatherPricePerFeet),
 			huh.NewInput().Title("Hardware Cost").Value(&hardware),
 			huh.NewInput().Title("Transportation Cost").Value(&transportation),
 			huh.NewInput().Title("Thread Cost").Value(&thread),
+		),
+		huh.NewGroup(
+			huh.NewInput().Title("Time to craft").Value(&timeToCraft),
+			huh.NewInput().Title("Hourly Rate").Value(&hourlyRate),
 		),
 	)
 
@@ -47,12 +49,20 @@ func main() {
 	}
 
 	v := product.Variant{
-		TimeToCraft:   time.Hour * 9,
+		TimeToCraft:   floatToDuration(parseFloat(timeToCraft)),
 		MaterialsCost: parseFloat(leatherUsageInFeet)*parseFloat(leatherPricePerFeet) + parseFloat(hardware) + parseFloat(thread) + parseFloat(transportation),
 	}
 
-	fmt.Printf("Estimated Price: EGP %s\n", formatNum(v.EstPrice(parseFloat(hourlyRate))))
-	fmt.Printf("Estimated Wholesale Price: EGP %s\n", formatNum(v.EstWholesalePrice(parseFloat(hourlyRate))))
+	fmt.Printf("Estimated Price: £E %s\n", formatNum(v.EstPrice(parseFloat(hourlyRate))))
+	fmt.Printf("Estimated Wholesale Price: £E %s\n", formatNum(v.EstWholesalePrice(parseFloat(hourlyRate))))
+}
+
+func floatToDuration(f float64) time.Duration {
+	d := time.Duration(f * float64(time.Hour))
+	if d < 0 {
+		log.Fatalf("negative duration: %f", f)
+	}
+	return d
 }
 
 func formatNum[T ~int | ~int64 | ~int32 | ~int16 | ~int8 | ~float64 | ~float32](num T) string {
