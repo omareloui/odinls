@@ -29,8 +29,8 @@ type ContactInfo struct {
 }
 
 func (c Client) HasContactInfo() bool {
-	return (c.ContactInfo.Emails != nil && len(c.ContactInfo.Emails) > 0) ||
-		(c.ContactInfo.Locations != nil && len(c.ContactInfo.Locations) > 0) ||
-		(c.ContactInfo.Links != nil && len(c.ContactInfo.Links) > 0) ||
-		(c.ContactInfo.PhoneNumbers != nil && len(c.ContactInfo.PhoneNumbers) > 0)
+	return len(c.ContactInfo.Emails) > 0 ||
+		len(c.ContactInfo.Locations) > 0 ||
+		len(c.ContactInfo.Links) > 0 ||
+		len(c.ContactInfo.PhoneNumbers) > 0
 }
