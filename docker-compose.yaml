@@ -58,6 +58,8 @@ services:
       - dev
     depends_on:
       - db
+    volumes:
+      - ./logs:/usr/src/logs
     develop:
       watch:
         - action: rebuild

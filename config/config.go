@@ -28,3 +28,7 @@ func GetMongoCred() options.Credential {
 		Password: getEnvironmentValue("MONGO_DB_PASSWORD"),
 	}
 }
+
+func GetLogLevel() int {
+	return getEnvironmentIntWithDefault("LOG_LEVEL", 0)
+}
