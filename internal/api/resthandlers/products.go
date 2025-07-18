@@ -16,7 +16,7 @@ import (
 
 func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
-	prods, err := h.app.ProductService.GetCurrentMerchantProducts(claims)
+	prods, err := h.app.ProductService.GetProducts(claims)
 	if err != nil {
 		return err
 	}

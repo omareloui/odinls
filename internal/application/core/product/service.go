@@ -7,7 +7,6 @@ type ProductService interface {
 	GetProductByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...RetrieveOptsFunc) (*Product, error)
 	GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, opts ...RetrieveOptsFunc) (*Product, error)
 	GetProductByIDAndVariantID(claims *jwtadapter.JwtAccessClaims, id string, variantId string, options ...RetrieveOptsFunc) (*Product, error)
-	GetCurrentMerchantProducts(claims *jwtadapter.JwtAccessClaims, opts ...RetrieveOptsFunc) ([]Product, error)
 	CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, opts ...RetrieveOptsFunc) error
 	UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, prod *Product, opts ...RetrieveOptsFunc) error
 }

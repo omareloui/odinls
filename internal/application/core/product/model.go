@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
@@ -80,10 +79,8 @@ func CategoriesCodes() []string {
 }
 
 type Product struct {
-	ID          string `json:"id" bson:"_id,omitempty"`
-	MerchantID  string `json:"merchant_id" bson:"merchant,omitempty"`
-	CraftsmanID string `json:"craftsman_id" bson:"craftsman,omitempty"`
-	Number      uint8  `json:"number" bson:"number,omitempty"`
+	ID     string `json:"id" bson:"_id,omitempty"`
+	Number uint8  `json:"number" bson:"number,omitempty"`
 
 	Name        string `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
 	Description string `json:"description" bson:"description,omitempty" conform:"trim"`
@@ -94,8 +91,7 @@ type Product struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 
-	Craftsman *user.User         `json:"craftsman" bson:"populatedCraftsman,omitempty"`
-	Merchant  *merchant.Merchant `json:"merchant" bson:"populatedMerchant,omitempty"`
+	Craftsman *user.User `json:"craftsman" bson:"populatedCraftsman,omitempty"`
 }
 
 func (p *Product) Ref() string {

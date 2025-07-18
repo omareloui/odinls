@@ -8,10 +8,7 @@ import (
 	"github.com/omareloui/odinls/internal/errs"
 )
 
-var (
-	ErrCounterNotFound        = errors.New("counter not found")
-	ErrAlreadyExistingCounter = errors.New("already existing counter for this merchant")
-)
+var ErrCounterNotFound = errors.New("counter not found")
 
 type counterService struct {
 	repo CounterRepository
@@ -28,8 +25,7 @@ func (s *counterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims, cat
 		return 0, errs.ErrForbidden
 	}
 
-	merId := claims.CraftsmanInfo.MerchantID
-	count, err := s.repo.AddOneToProduct(merId, category)
+	count, err := s.repo.AddOneToProduct(category)
 	if errors.Is(ErrCounterNotFound, err) {
 		_, err := s.createCounter(claims, category)
 		if err != nil {
@@ -46,8 +42,7 @@ func (s *counterService) AddOneToOrder(claims *jwtadapter.JwtAccessClaims) (uint
 		return 0, errs.ErrForbidden
 	}
 
-	merId := claims.CraftsmanInfo.MerchantID
-	count, err := s.repo.AddOneToOrder(merId)
+	count, err := s.repo.AddOneToOrder()
 	if errors.Is(ErrCounterNotFound, err) {
 		_, err := s.createCounter(claims)
 		if err != nil {
@@ -64,12 +59,9 @@ func (s *counterService) createCounter(claims *jwtadapter.JwtAccessClaims, categ
 		return nil, errs.ErrForbidden
 	}
 
-	merId := claims.CraftsmanInfo.MerchantID
-
 	now := time.Now()
 
 	cntr := &Counter{
-		MerchantID:    merId,
 		OrdersNumber:  0,
 		ProductsCodes: ProductsCodes{},
 		CreatedAt:     now,

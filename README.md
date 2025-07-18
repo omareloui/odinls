@@ -9,7 +9,13 @@ More details soon...
 Start the server and watching for change go and templ changes
 
 ```bash
-docker compose --profile dev up --watch
+docker compose --profile dev up --watch --build
+```
+
+To generate mock files for development, you can run:
+
+```bash
+mockery
 ```
 
 Install node dependencies then generate the CSS files and watch for changes

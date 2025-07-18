@@ -3,14 +3,9 @@ package product
 type (
 	RetrieveOptsFunc func(*RetrieveOpts)
 	RetrieveOpts     struct {
-		PopulateMerchant  bool
 		PopulateCraftsman bool
 	}
 )
-
-func WithPopulatedMerchant(opts *RetrieveOpts) {
-	opts.PopulateMerchant = true
-}
 
 func WithPopulatedCraftsman(opts *RetrieveOpts) {
 	opts.PopulateCraftsman = true

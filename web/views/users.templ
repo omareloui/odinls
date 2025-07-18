@@ -8,7 +8,6 @@ import (
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/application/core/role"
-	"github.com/omareloui/odinls/internal/application/core/merchant"
 )
 
 type NameFormData struct {
@@ -22,12 +21,10 @@ type UserFormData struct {
 	Username   FormInputData
 	Role       FormInputData
 	HourlyRate FormInputData
-	MerchantID FormInputData
 }
 
 type EditUserOpts struct {
 	WithCraftsmanInfo bool
-	Merchants         []merchant.Merchant
 }
 
 templ UserPage(accessClaims *jwtadapter.JwtAccessClaims, users []user.User) {
@@ -53,18 +50,9 @@ templ User(user *user.User) {
 		<p>Name: { user.Name.First } { user.Name.Last }</p>
 		<p>Username: { user.Username }</p>
 		<p>Email: { user.Email }</p>
-		if user.Role != nil {
-			<p>Role: { user.Role.Name }</p>
-		} else {
-			<p>RoleID: { user.RoleID }</p>
-		}
+		<p>Role: { user.Role.String() }</p>
 		if user.Craftsman != nil {
 			<p>Hourly Rate: { strconv.FormatFloat(user.Craftsman.HourlyRate, 'f', -1, 64) }EGP</p>
-			if user.Craftsman.Merchant != nil {
-				<p>Merchant: { user.Craftsman.Merchant.Name }</p>
-			} else {
-				<p>MerchantID: { user.Craftsman.MerchantID }</p>
-			}
 		}
 		<p>Created At: { user.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { user.UpdatedAt.Format(time.RFC1123) }</p>
@@ -97,7 +85,7 @@ templ EditUser(user *user.User, roles []role.Role, data *UserFormData, opts ...*
 		@input("Email", "email", "email", "e.g. contact@omareloui.com", "", data.Email)
 		@selectInput("Role", "role", "Select a role", "", getRolesMap(roles), data.Role)
 		if opts != nil && opts[0] != nil && opts[0].WithCraftsmanInfo {
-			@CraftsmanForm(opts[0].Merchants, data)
+			@CraftsmanForm(data)
 		} else {
 			<button
 				type="button"
@@ -117,9 +105,8 @@ templ UserOOB(user *user.User) {
 	</div>
 }
 
-templ CraftsmanForm(merchants []merchant.Merchant, data *UserFormData) {
+templ CraftsmanForm(data *UserFormData) {
 	@input("Hourly Rate", "number", "hourly_rate", "e.g. 45", "", data.HourlyRate)
-	@selectInput("Merchant", "merchant", "Select the craftsman merchant", "", getMerchantsMap(merchants), data.MerchantID)
 }
 
 func getRolesMap(roles []role.Role) map[string]string {
@@ -128,12 +115,4 @@ func getRolesMap(roles []role.Role) map[string]string {
 		m[r.ID] = r.Name
 	}
 	return m
-}
-
-func getMerchantsMap(merchants []merchant.Merchant) map[string]string {
-	ma := make(map[string]string)
-	for _, m := range merchants {
-		ma[m.ID] = m.Name
-	}
-	return ma
 }

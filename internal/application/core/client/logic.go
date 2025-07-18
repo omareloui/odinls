@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrClientNotFound          = errors.New("client not found")
-	ErrClientExistsForMerchant = errors.New("client exists for that merchant")
+	ErrClientNotFound = errors.New("client not found")
+	ErrClientExists   = errors.New("client exists")
 )
 
 type clientService struct {
@@ -36,14 +36,6 @@ func (s *clientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts ...R
 	return s.repo.GetClients(opts...)
 }
 
-func (s *clientService) GetCurrentMerchantClients(claims *jwtadapter.JwtAccessClaims, opts ...RetrieveOptsFunc) ([]Client, error) {
-	if claims == nil || !claims.IsCraftsman() || !claims.Role.IsModerator() {
-		return nil, errs.ErrForbidden
-	}
-
-	return s.repo.GetClientsByMerchantID(claims.CraftsmanInfo.MerchantID, opts...)
-}
-
 func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...RetrieveOptsFunc) (*Client, error) {
 	if claims == nil || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
@@ -65,8 +57,6 @@ func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client 
 	if err := s.validator.Validate(client); err != nil {
 		return s.validator.ParseError(err)
 	}
-
-	client.MerchantID = claims.CraftsmanInfo.MerchantID
 
 	now := time.Now()
 	client.CreatedAt = now

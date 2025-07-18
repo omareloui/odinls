@@ -3,12 +3,12 @@ package client
 import (
 	"time"
 
-	"github.com/omareloui/odinls/internal/application/core/merchant"
+	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
 type Client struct {
-	ID         string `json:"id" bson:"_id,omitempty"`
-	MerchantID string `json:"merchant_id" bson:"merchant,omitempty"`
+	ID     string `json:"id" bson:"_id,omitempty"`
+	UserID string `json:"user_id" bson:"user,omitempty"`
 
 	Name               string      `json:"name" bson:"name" conform:"title,trim" validate:"required,min=3,max=255,not_blank"`
 	Notes              string      `json:"notes" conform:"trim" bson:"notes,omitempty"`
@@ -18,14 +18,15 @@ type Client struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 
-	Merchant *merchant.Merchant `json:"merchant" bson:"populatedMerchant,omitempty"`
+	User *user.User `json:"user" bson:"populatedUser,omitempty"`
 }
 
 type ContactInfo struct {
 	PhoneNumbers map[string]string `json:"phone_number" bson:"phone_number,omitempty" conform:"num" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,min=3,max=255,not_blank"`
-	Emails       map[string]string `json:"emails" bson:"emails,omitempty" conform:"email" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,email"`
-	Links        map[string]string `json:"links" bson:"links,omitempty" conform:"trim" validate:"dive,keys,required,min=3,max=255,not_blank,min=3,max=255,endkeys,required,http_url"`
-	Locations    map[string]string `json:"locations" bson:"locations,omitempty" conform:"trim" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required"`
+	// TODO: when you set the email, connect it with the user
+	Emails    map[string]string `json:"emails" bson:"emails,omitempty" conform:"email" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required,email"`
+	Links     map[string]string `json:"links" bson:"links,omitempty" conform:"trim" validate:"dive,keys,required,min=3,max=255,not_blank,min=3,max=255,endkeys,required,http_url"`
+	Locations map[string]string `json:"locations" bson:"locations,omitempty" conform:"trim" validate:"dive,keys,required,min=3,max=255,not_blank,endkeys,required"`
 }
 
 func (c Client) HasContactInfo() bool {

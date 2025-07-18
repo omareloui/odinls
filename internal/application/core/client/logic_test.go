@@ -7,7 +7,6 @@ import (
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/client"
 	client_mock "github.com/omareloui/odinls/internal/application/core/client/mocks"
-	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/sanitizer/conformadaptor"
@@ -27,12 +26,7 @@ func TestGetClients(t *testing.T) {
 
 	t.Run("with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role: role.Role{
-				Name: role.OPAdmin.String(),
-			},
-			CraftsmanInfo: user.Craftsman{
-				MerchantID: "1234",
-			},
+			CraftsmanInfo: &user.Craftsman{},
 		}
 
 		actualClients, err := s.GetClients(&claims)
@@ -42,11 +36,7 @@ func TestGetClients(t *testing.T) {
 	})
 
 	t.Run("without permissions", func(t *testing.T) {
-		claims := jwtadapter.JwtAccessClaims{
-			Role: role.Role{
-				Name: role.Admin.String(),
-			},
-		}
+		claims := jwtadapter.JwtAccessClaims{}
 
 		actualClients, err := s.GetClients(&claims)
 		mockRepo.AssertExpectations(t)
@@ -62,78 +52,12 @@ func TestGetClients(t *testing.T) {
 	})
 }
 
-func TestGetCurrentMerchantClients(t *testing.T) {
-	mockRepo := new(client_mock.MockClientRepository)
-
-	merId := "1234"
-
-	clients := []client.Client{{MerchantID: merId}}
-	mockRepo.On("GetClientsByMerchantID", merId).Return(clients, nil)
-
-	v := playgroundvalidator.NewValidator()
-	sani := conformadaptor.NewSanitizer()
-	s := client.NewClientService(mockRepo, v, sani)
-
-	t.Run("is craftsman and with permissions", func(t *testing.T) {
-		claims := jwtadapter.JwtAccessClaims{
-			Role: role.Role{
-				Name: role.Moderator.String(),
-			},
-			CraftsmanInfo: user.Craftsman{
-				MerchantID: merId,
-			},
-		}
-
-		actualClients, err := s.GetCurrentMerchantClients(&claims)
-		mockRepo.AssertExpectations(t)
-		assert.Nil(t, err)
-		assert.Equal(t, clients, actualClients)
-	})
-
-	t.Run("is craftsman and without permissions", func(t *testing.T) {
-		claims := jwtadapter.JwtAccessClaims{
-			Role: role.Role{
-				Name: role.NoAuthority.String(),
-			},
-			CraftsmanInfo: user.Craftsman{
-				MerchantID: merId,
-			},
-		}
-
-		actualClients, err := s.GetCurrentMerchantClients(&claims)
-		mockRepo.AssertExpectations(t)
-		assert.ErrorIs(t, errs.ErrForbidden, err)
-		assert.Nil(t, actualClients)
-	})
-
-	t.Run("not craftsman and with permissions", func(t *testing.T) {
-		claims := jwtadapter.JwtAccessClaims{
-			Role: role.Role{
-				Name: role.NoAuthority.String(),
-			},
-		}
-
-		actualClients, err := s.GetCurrentMerchantClients(&claims)
-		mockRepo.AssertExpectations(t)
-		assert.ErrorIs(t, errs.ErrForbidden, err)
-		assert.Nil(t, actualClients)
-	})
-
-	t.Run("no claims", func(t *testing.T) {
-		actualClients, err := s.GetCurrentMerchantClients(nil)
-		mockRepo.AssertExpectations(t)
-		assert.ErrorIs(t, errs.ErrForbidden, err)
-		assert.Nil(t, actualClients)
-	})
-}
-
 func TestGetClientByID(t *testing.T) {
 	mockRepo := new(client_mock.MockClientRepository)
 
 	clientId := "11"
-	merId := "1234"
 
-	cli := client.Client{ID: clientId, MerchantID: merId}
+	cli := client.Client{ID: clientId}
 	mockRepo.On("GetClientByID", clientId).Return(&cli, nil)
 
 	v := playgroundvalidator.NewValidator()
@@ -142,9 +66,7 @@ func TestGetClientByID(t *testing.T) {
 
 	t.Run("is craftsman", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			CraftsmanInfo: user.Craftsman{
-				MerchantID: merId,
-			},
+			CraftsmanInfo: &user.Craftsman{},
 		}
 
 		actualClient, err := s.GetClientByID(&claims, clientId)
@@ -174,7 +96,6 @@ func TestCreateClient(t *testing.T) {
 	mockRepo := new(client_mock.MockClientRepository)
 
 	clientId := "11"
-	merId := "1234"
 
 	cli := client.Client{
 		ID:    clientId,
@@ -199,15 +120,13 @@ func TestCreateClient(t *testing.T) {
 
 		t.Run("with permissions", func(t *testing.T) {
 			claims := jwtadapter.JwtAccessClaims{
-				Role:          role.Role{Name: role.Admin.String()},
-				CraftsmanInfo: user.Craftsman{MerchantID: merId},
+				CraftsmanInfo: &user.Craftsman{},
 			}
 
 			err := s.CreateClient(&claims, &cli2)
 			mockRepo.AssertExpectations(t)
 
 			assert.Nil(t, err)
-			assert.Equal(t, merId, cli2.MerchantID)
 			assert.Equal(t, clientId, cli2.ID)
 		})
 
@@ -230,8 +149,7 @@ func TestCreateClient(t *testing.T) {
 
 	t.Run("validation and sanitization", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role:          role.Role{Name: role.Admin.String()},
-			CraftsmanInfo: user.Craftsman{MerchantID: merId},
+			CraftsmanInfo: &user.Craftsman{},
 		}
 
 		t.Run("valid inputs", func(t *testing.T) {
@@ -241,7 +159,6 @@ func TestCreateClient(t *testing.T) {
 			mockRepo.AssertExpectations(t)
 
 			assert.Nil(t, err)
-			assert.Equal(t, merId, cli2.MerchantID)
 			assert.Equal(t, clientId, cli2.ID)
 		})
 
@@ -254,7 +171,6 @@ func TestCreateClient(t *testing.T) {
 			mockRepo.AssertExpectations(t)
 
 			assert.Nil(t, err)
-			assert.Equal(t, merId, cli2.MerchantID)
 			assert.Equal(t, clientId, cli2.ID)
 		})
 
@@ -355,7 +271,6 @@ func TestUpdateClient(t *testing.T) {
 	mockRepo := new(client_mock.MockClientRepository)
 
 	clientId := "11"
-	merId := "1234"
 
 	cli := client.Client{
 		ID:    clientId,
@@ -376,8 +291,8 @@ func TestUpdateClient(t *testing.T) {
 
 	t.Run("with permissions", func(t *testing.T) {
 		claims := jwtadapter.JwtAccessClaims{
-			Role:          role.Role{Name: role.Admin.String()},
-			CraftsmanInfo: user.Craftsman{MerchantID: merId},
+			Role:          user.Admin,
+			CraftsmanInfo: &user.Craftsman{},
 		}
 
 		cli2 := cli

@@ -1,9 +1,12 @@
-package bson_utils
+// Package bsonutils provides utility functions for working with BSON documents in MongoDB.
+package bsonutils
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,9 +18,10 @@ var ErrInvalidBsonKey = errors.New("invalid bson key")
 type BsonUtils struct{}
 
 type opts struct {
-	objIDKeys  []string
-	removeKeys []string
-	append     bson.D
+	objIDKeys     []string
+	removeKeys    []string
+	stringifyKeys []string
+	append        bson.D
 }
 
 type OptsFunc func(*opts)
@@ -49,6 +53,12 @@ func (bu *BsonUtils) MarshalBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
 		}
 	}
 
+	for _, k := range o.stringifyKeys {
+		if err := bu.setKeyAsString(doc, k); err != nil {
+			return nil, err
+		}
+	}
+
 	for _, k := range o.removeKeys {
 		if doc, err = bu.removeKey(doc, k); err != nil && !errors.Is(err, ErrInvalidBsonKey) {
 			return nil, err
@@ -60,19 +70,25 @@ func (bu *BsonUtils) MarshalBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
 
 func (bu *BsonUtils) WithObjectID(key string) OptsFunc {
 	return func(opts *opts) {
-		if opts.objIDKeys == nil {
-			opts.objIDKeys = []string{}
-		}
 		opts.objIDKeys = append(opts.objIDKeys, key)
+	}
+}
+
+func (bu *BsonUtils) WithStringfied(key string) OptsFunc {
+	return func(opts *opts) {
+		opts.stringifyKeys = append(opts.objIDKeys, key)
 	}
 }
 
 func (bu *BsonUtils) WithFieldToAdd(key string, val any) OptsFunc {
 	return func(opts *opts) {
-		if opts.append == nil {
-			opts.append = bson.D{}
-		}
 		opts.append = append(opts.append, bson.E{Key: key, Value: val})
+	}
+}
+
+func (bu *BsonUtils) WithUpdatedAt() OptsFunc {
+	return func(opts *opts) {
+		opts.append = append(opts.append, bson.E{Key: "updated_at", Value: time.Now()})
 	}
 }
 
@@ -85,36 +101,40 @@ func (bu *BsonUtils) WithFieldToRemove(key string) OptsFunc {
 	}
 }
 
-func (bu *BsonUtils) setKeyAsObjectID(doc bson.D, key string) error {
+func diveAndOverride[T any, K any](doc bson.D, key string, cb func(currValue T) (K, error)) error {
 	path := strings.Split(key, ".")
+
 	for i, obj := range doc {
 		if len(path) > 1 && obj.Key == path[0] {
 			if subdoc, ok := obj.Value.(bson.D); ok {
-				// FIXME: won't work with array?
-				return bu.setKeyAsObjectID(subdoc, strings.Join(path[1:], "."))
+				return diveAndOverride(subdoc, strings.Join(path[1:], "."), cb)
 			}
 		}
 
 		if arr, ok := obj.Value.(bson.A); ok {
 			for j, v := range arr {
-				for k, subObj := range v.(bson.D) {
+				arrObj, isSubDoc := v.(bson.D)
+				if !isSubDoc {
+					continue
+				}
+				for k, subObj := range arrObj {
 					if subObj.Key == key {
-						objId, err := getObjectID(obj.Value)
+						newValue, err := cb(subObj.Value.(T))
 						if err != nil {
 							return err
 						}
-						doc[i].Value.(bson.A)[j].(bson.D)[k].Value = objId
+						doc[i].Value.(bson.A)[j].(bson.D)[k].Value = newValue
 					}
 				}
 			}
 		}
 
 		if obj.Key == key {
-			objId, err := getObjectID(obj.Value)
+			newValue, err := cb(obj.Value.(T))
 			if err != nil {
 				return err
 			}
-			doc[i].Value = objId
+			doc[i].Value = newValue
 			return nil
 		}
 	}
@@ -135,12 +155,24 @@ func (bu *BsonUtils) removeKey(doc bson.D, key string) (bson.D, error) {
 	return doc, ErrInvalidBsonKey
 }
 
+func (bu *BsonUtils) setKeyAsObjectID(doc bson.D, key string) error {
+	return diveAndOverride(doc, key, getObjectID)
+}
+
+func (bu *BsonUtils) setKeyAsString(doc bson.D, key string) error {
+	return diveAndOverride(doc, key, getStringified)
+}
+
 func (bu *BsonUtils) parseOpts(funcs ...OptsFunc) *opts {
-	o := &opts{objIDKeys: []string{}, removeKeys: []string{}}
+	o := &opts{}
 	for _, fun := range funcs {
 		fun(o)
 	}
 	return o
+}
+
+func getStringified(val fmt.Stringer) (string, error) {
+	return val.String(), nil
 }
 
 func getObjectID(val any) (primitive.ObjectID, error) {
@@ -148,10 +180,10 @@ func getObjectID(val any) (primitive.ObjectID, error) {
 	if !ok {
 		return primitive.ObjectID{}, errs.ErrInvalidID
 	}
-	objId, err := primitive.ObjectIDFromHex(strval)
+	objID, err := primitive.ObjectIDFromHex(strval)
 	if err != nil {
 		return primitive.ObjectID{}, errs.ErrInvalidID
 	}
 
-	return objId, nil
+	return objID, nil
 }

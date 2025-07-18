@@ -3,17 +3,12 @@ package order
 type (
 	RetrieveOptsFunc func(*RetrieveOpts)
 	RetrieveOpts     struct {
-		PopulateMerchant     bool
 		PopulateCraftsmen    bool
 		PopulateClient       bool
 		PopulateItemProducts bool
 		PopulateItemVariants bool
 	}
 )
-
-func WithPopulatedMerchant(opts *RetrieveOpts) {
-	opts.PopulateMerchant = true
-}
 
 func WithPopulatedCraftsman(opts *RetrieveOpts) {
 	opts.PopulateCraftsmen = true

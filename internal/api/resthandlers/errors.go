@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
-	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/order"
 	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/application/core/user"
@@ -29,7 +28,6 @@ func (h *handler) ErrorHandler(w http.ResponseWriter, r *http.Request, err error
 
 	if errors.Is(order.ErrOrderNotFound, err) ||
 		errors.Is(user.ErrUserNotFound, err) ||
-		errors.Is(merchant.ErrMerchantNotFound, err) ||
 		errors.Is(product.ErrProductNotFound, err) ||
 		errors.Is(product.ErrVariantNotFound, err) ||
 		errors.Is(client.ErrClientNotFound, err) {

@@ -3,7 +3,7 @@ package mongo
 import (
 	"github.com/omareloui/odinls/internal/application/core/order"
 	"github.com/omareloui/odinls/internal/errs"
-	"github.com/omareloui/odinls/internal/repositories/mongo/bson_utils"
+	"github.com/omareloui/odinls/internal/repositories/mongo/bsonutils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,33 +16,6 @@ func (r *repository) GetOrders(options ...order.RetrieveOptsFunc) ([]order.Order
 	defer cancel()
 
 	pipeline := bson.A{}
-	buildPipelineForOrdersFromOpts(&pipeline, opts)
-
-	cur, err := r.ordersColl.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-
-	ords := new([]order.Order)
-	if err := cur.All(ctx, ords); err != nil {
-		return nil, err
-	}
-
-	return *ords, nil
-}
-
-func (r *repository) GetOrdersByMerchantID(merchantId string, options ...order.RetrieveOptsFunc) ([]order.Order, error) {
-	opts := order.ParseRetrieveOpts(options...)
-
-	ctx, cancel := r.newCtx()
-	defer cancel()
-
-	merId, err := primitive.ObjectIDFromHex(merchantId)
-	if err != nil {
-		return nil, errs.ErrInvalidID
-	}
-
-	pipeline := bson.A{bson.M{"$match": bson.M{"merchant": merId}}}
 	buildPipelineForOrdersFromOpts(&pipeline, opts)
 
 	cur, err := r.ordersColl.Aggregate(ctx, pipeline)
@@ -151,13 +124,6 @@ func (r *repository) populateCraftsmenForOrder(ord *order.Order) {
 	}
 }
 
-func (r *repository) populateMerchantForOrder(ord *order.Order) {
-	merchant, err := r.FindMerchant(ord.MerchantID)
-	if err == nil {
-		ord.Merchant = merchant
-	}
-}
-
 func (r *repository) populateOrder(ord *order.Order, opts *order.RetrieveOpts) {
 	if opts.PopulateClient {
 		r.populateClientForOrder(ord)
@@ -165,22 +131,9 @@ func (r *repository) populateOrder(ord *order.Order, opts *order.RetrieveOpts) {
 	if opts.PopulateCraftsmen {
 		r.populateCraftsmenForOrder(ord)
 	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForOrder(ord)
-	}
 }
 
 func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) {
-	if opts.PopulateMerchant {
-		*pipeline = append(*pipeline, bson.M{
-			"$lookup": bson.M{
-				"from":         merchantsCollectionName,
-				"localField":   "merchant",
-				"foreignField": "_id",
-				"as":           "populatedMerchant",
-			},
-		}, bson.M{"$unwind": bson.M{"path": "$populatedMerchant", "preserveNullAndEmptyArrays": true}})
-	}
 	if opts.PopulateCraftsmen {
 		*pipeline = append(*pipeline, bson.M{
 			"$lookup": bson.M{
@@ -226,9 +179,8 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 	}
 }
 
-func mapOrderToMongoDoc(bu *bson_utils.BsonUtils, ord *order.Order) (bson.D, error) {
+func mapOrderToMongoDoc(bu *bsonutils.BsonUtils, ord *order.Order) (bson.D, error) {
 	return bu.MarshalBsonD(ord,
-		bu.WithObjectID("merchant"),
 		bu.WithObjectID("client"),
 		bu.WithObjectID("craftsmen"),
 		// TODO: does it work?

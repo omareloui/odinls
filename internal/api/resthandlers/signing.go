@@ -27,7 +27,7 @@ func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) error {
 func (h *handler) Register(w http.ResponseWriter, r *http.Request) error {
 	usr := mapFormToUser(r)
 
-	err := h.app.UserService.CreateUser(usr, user.WithPopulatedRole, user.WithPopulatedMerchant)
+	err := h.app.UserService.CreateUser(usr)
 	if err != nil {
 		if valerr, ok := err.(errs.ValidationError); ok {
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.RegisterForm(mapRegisterToFormData(usr, &valerr)))
@@ -68,7 +68,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
 	password := r.FormValue("password")
 	inpUser := &user.User{Email: emailOrUsername, Password: password}
 
-	usr, err := h.app.UserService.GetUserByEmailOrUsername(emailOrUsername, user.WithPopulatedRole, user.WithPopulatedMerchant)
+	usr, err := h.app.UserService.GetUserByEmailOrUsername(emailOrUsername)
 	if err != nil {
 		e := mapLoginToFormData(inpUser, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"

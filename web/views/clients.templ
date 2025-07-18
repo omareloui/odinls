@@ -46,7 +46,6 @@ templ Client(client *client.Client) {
 	<div hx-target="this" class="entry-container">
 		<p>ID: { client.ID }</p>
 		<p>Name: { client.Name }</p>
-		<p>MerchantID: { client.MerchantID }</p>
 		if client.WholesaleAsDefault {
 			<p>Sell as Wholesale by Default: <span class="font-bold">YES</span></p>
 		} else {

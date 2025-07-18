@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
-	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
 type jwtContextKeyType string
@@ -60,7 +59,7 @@ func (h *handler) refreshTokensAndGetContext(w http.ResponseWriter, r *http.Requ
 		return nil
 	}
 
-	usr, err := h.app.UserService.GetUserByID(parsed.ID, user.WithPopulatedRole, user.WithPopulatedMerchant)
+	usr, err := h.app.UserService.GetUserByID(parsed.ID)
 	if err != nil {
 		return nil
 	}

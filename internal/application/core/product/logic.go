@@ -63,14 +63,6 @@ func (s *productService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccess
 	return s.repo.GetProductByIDAndVariantID(id, variantId, options...)
 }
 
-func (s *productService) GetCurrentMerchantProducts(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Product, error) {
-	if claims == nil || !claims.IsCraftsman() {
-		return nil, errs.ErrForbidden
-	}
-
-	return s.repo.GetProductsByMerchantID(claims.CraftsmanInfo.MerchantID, options...)
-}
-
 func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, options ...RetrieveOptsFunc) error {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return errs.ErrForbidden
@@ -91,9 +83,6 @@ func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod 
 	}
 
 	prod.Number = num
-
-	prod.CraftsmanID = claims.ID
-	prod.MerchantID = claims.CraftsmanInfo.MerchantID
 
 	for i := range prod.Variants {
 		prod.Variants[i].ProductRef = prod.Ref()
@@ -134,8 +123,6 @@ func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, i
 	}
 
 	uprod.ID = id
-	uprod.MerchantID = prod.MerchantID
-	uprod.CraftsmanID = prod.CraftsmanID
 	uprod.CreatedAt = prod.CreatedAt
 
 	for i := range uprod.Variants {

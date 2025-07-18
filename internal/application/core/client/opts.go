@@ -2,14 +2,8 @@ package client
 
 type (
 	RetrieveOptsFunc func(*RetrieveOpts)
-	RetrieveOpts     struct {
-		PopulateMerchant bool
-	}
+	RetrieveOpts     struct{}
 )
-
-func WithPopulatedMerchant(opts *RetrieveOpts) {
-	opts.PopulateMerchant = true
-}
 
 func ParseRetrieveOpts(funcs ...RetrieveOptsFunc) *RetrieveOpts {
 	o := &RetrieveOpts{}

@@ -1,7 +1,6 @@
 package resthandlers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
@@ -26,12 +25,6 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) error {
 
 	err := h.app.ClientService.CreateClient(claims, cli)
 	if err != nil {
-		if errors.Is(client.ErrClientExistsForMerchant, err) {
-			formdata := mapClientToFormData(cli, &errs.ValidationError{})
-			// TODO(research): make the email unique if it exists, not the name?
-			formdata.Name.Error = "You already have a client with this name"
-			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateClientForm(formdata))
-		}
 		if valerr, ok := err.(errs.ValidationError); ok {
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateClientForm(mapClientToFormData(cli, &valerr)))
 		}
@@ -78,11 +71,6 @@ func (h *handler) EditClient(id string) HandlerFunc {
 		if err != nil {
 			if valerr, ok := err.(errs.ValidationError); ok {
 				return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditClient(cli, mapClientToFormData(cli, &valerr)))
-			}
-			if errors.Is(client.ErrClientExistsForMerchant, err) {
-				formdata := mapClientToFormData(cli, &errs.ValidationError{})
-				formdata.Name.Error = "You already have a client with this name"
-				return respondWithTemplate(w, r, http.StatusConflict, views.EditClient(cli, formdata))
 			}
 			return err
 		}

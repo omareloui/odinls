@@ -1,11 +1,9 @@
 package mongo
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/omareloui/odinls/internal/application/core/counter"
-	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,7 +15,7 @@ func (r *repository) CreateCounter(cntr *counter.Counter) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	doc, err := r.bu.MarshalBsonD(cntr, r.bu.WithObjectID("merchant"))
+	doc, err := r.bu.MarshalBsonD(cntr)
 	if err != nil {
 		return err
 	}
@@ -29,30 +27,19 @@ func (r *repository) CreateCounter(cntr *counter.Counter) error {
 	}
 
 	if ok := mongo.IsDuplicateKeyError(err); ok {
-		if se := mongo.ServerError(nil); errors.As(err, &se) {
-			if se.HasErrorMessage(" merchant: ") {
-				return counter.ErrAlreadyExistingCounter
-			}
-		}
+		return counter.ErrAlreadyExistingCounter
 	}
 
 	return err
 }
 
-func (r *repository) GetCounterByID(id string) (*counter.Counter, error) {
+func (r *repository) GetCounter() (*counter.Counter, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	objId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errs.ErrInvalidID
-	}
-
-	filter := bson.M{"_id": objId}
-
 	cntr := &counter.Counter{}
 
-	err = r.countersColl.FindOne(ctx, filter).Decode(cntr)
+	err := r.countersColl.FindOne(ctx, bson.M{}).Decode(cntr)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, counter.ErrCounterNotFound
@@ -63,45 +50,16 @@ func (r *repository) GetCounterByID(id string) (*counter.Counter, error) {
 	return cntr, nil
 }
 
-func (r *repository) GetCounterByMerchantID(merchantId string) (*counter.Counter, error) {
+func (r *repository) AddOneToProduct(category string) (uint8, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	mrId, err := primitive.ObjectIDFromHex(merchantId)
-	if err != nil {
-		return nil, errs.ErrInvalidID
-	}
-
-	filter := bson.M{"merchant": mrId}
-
-	cntr := &counter.Counter{}
-
-	err = r.countersColl.FindOne(ctx, filter).Decode(cntr)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, counter.ErrCounterNotFound
-		}
-		return nil, err
-	}
-
-	return cntr, nil
-}
-
-func (r *repository) AddOneToProduct(merchantId, category string) (uint8, error) {
-	ctx, cancel := r.newCtx()
-	defer cancel()
-
-	merId, err := primitive.ObjectIDFromHex(merchantId)
-	if err != nil {
-		return 0, errs.ErrInvalidID
-	}
-
-	cntr, err := r.GetCounterByMerchantID(merchantId)
+	cntr, err := r.GetCounter()
 	if err != nil {
 		return 0, err
 	}
 
-	filter := bson.M{"merchant": merId}
+	filter := bson.M{}
 	update := bson.M{
 		"$inc": bson.M{fmt.Sprintf("products_codes.%s", category): amountToIncrement},
 	}
@@ -117,21 +75,16 @@ func (r *repository) AddOneToProduct(merchantId, category string) (uint8, error)
 	return cntr.ProductsCodes[category] + amountToIncrement, nil
 }
 
-func (r *repository) AddOneToOrder(merchantId string) (uint, error) {
+func (r *repository) AddOneToOrder() (uint, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	merId, err := primitive.ObjectIDFromHex(merchantId)
-	if err != nil {
-		return 0, errs.ErrInvalidID
-	}
-
-	cntr, err := r.GetCounterByMerchantID(merchantId)
+	cntr, err := r.GetCounter()
 	if err != nil {
 		return 0, err
 	}
 
-	filter := bson.D{{Key: "merchant", Value: merId}}
+	filter := bson.M{}
 	update := bson.M{
 		"$inc": bson.M{"orders_number": amountToIncrement},
 	}

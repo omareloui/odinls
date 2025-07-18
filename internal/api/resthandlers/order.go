@@ -20,12 +20,12 @@ import (
 
 func (h *handler) GetOrders(w http.ResponseWriter, r *http.Request) error {
 	claims, _ := h.getAuthFromContext(r)
-	ords, err := h.app.OrderService.GetCurrentMerchantOrders(claims)
+	ords, err := h.app.OrderService.GetOrders(claims)
 	if err != nil {
 		return err
 	}
 
-	prods, clients, err := h.getMerchantProdsAndClients(claims)
+	prods, clients, err := h.getProdsAndClients(claims)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 	err = h.app.OrderService.CreateOrder(claims, ord)
 	if err != nil {
 		if valerr, ok := err.(errs.ValidationError); ok {
-			prods, clients, err := h.getMerchantProdsAndClients(claims)
+			prods, clients, err := h.getProdsAndClients(claims)
 			if err != nil {
 				return err
 			}
@@ -55,7 +55,7 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	prods, clients, err := h.getMerchantProdsAndClients(claims)
+	prods, clients, err := h.getProdsAndClients(claims)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,6 @@ func (h *handler) GetOrder(id string) HandlerFunc {
 
 		ord, err := h.app.OrderService.GetOrderByID(claims, id)
 		// order.WithPopulatedClient,
-		// order.WithPopulatedMerchant,
 		// order.WithPopulatedCraftsman,
 		// order.WithPopulatedItemProducts)
 		if err != nil {
@@ -102,7 +101,7 @@ func (h *handler) GetEditOrder(id string) HandlerFunc {
 			return err
 		}
 
-		prods, clients, err := h.getMerchantProdsAndClients(claims)
+		prods, clients, err := h.getProdsAndClients(claims)
 		if err != nil {
 			return err
 		}
@@ -129,7 +128,7 @@ func (h *handler) EditOrder(id string) HandlerFunc {
 		err = h.app.OrderService.UpdateOrderByID(claims, id, ord)
 		if err != nil {
 			if valerr, ok := err.(errs.ValidationError); ok {
-				prods, clients, err := h.getMerchantProdsAndClients(claims)
+				prods, clients, err := h.getProdsAndClients(claims)
 				if err != nil {
 					return err
 				}
@@ -144,12 +143,12 @@ func (h *handler) EditOrder(id string) HandlerFunc {
 	}
 }
 
-func (h *handler) getMerchantProdsAndClients(claims *jwtadapter.JwtAccessClaims) ([]product.Product, []client.Client, error) {
-	prods, err := h.app.ProductService.GetCurrentMerchantProducts(claims)
+func (h *handler) getProdsAndClients(claims *jwtadapter.JwtAccessClaims) ([]product.Product, []client.Client, error) {
+	prods, err := h.app.ProductService.GetProducts(claims)
 	if err != nil {
 		return nil, nil, err
 	}
-	clients, err := h.app.ClientService.GetCurrentMerchantClients(claims)
+	clients, err := h.app.ClientService.GetClients(claims)
 	if err != nil {
 		return nil, nil, err
 	}

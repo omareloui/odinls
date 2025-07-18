@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/omareloui/odinls/internal/application/core/client"
-	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
@@ -17,7 +16,6 @@ type Order struct {
 	Ref    string `json:"ref" bson:"ref,omitempty"`
 	Number uint   `json:"number" bson:"number,omitempty"`
 
-	MerchantID   string   `json:"merchant_id" bson:"merchant,omitempty" validate:"omitempty,mongodb"`
 	CraftsmenIDs []string `json:"craftsmen_ids" bson:"craftsmen,omitempty" validate:"omitempty,mongodb"`
 	ClientID     string   `json:"client_id" bson:"client" validate:"required,mongodb"`
 
@@ -35,9 +33,8 @@ type Order struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at,omitempty"`
 
-	Merchant  *merchant.Merchant `json:"merchant" bson:"populatedMerchant,omitempty"`
-	Client    *client.Client     `json:"client" bson:"populatedClient,omitempty"`
-	Craftsmen []user.User        `json:"craftsmen" bson:"populatedCraftsmen,omitempty"`
+	Client    *client.Client `json:"client" bson:"populatedClient,omitempty"`
+	Craftsmen []user.User    `json:"craftsmen" bson:"populatedCraftsmen,omitempty"`
 }
 
 func (o *Order) RefView() string {

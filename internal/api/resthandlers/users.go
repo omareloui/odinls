@@ -53,11 +53,10 @@ func (h *handler) EditUser(id string) HandlerFunc {
 			return err
 		}
 
-		err = h.app.UserService.UpdateUserByID(id, usr, user.WithPopulatedRole)
+		err = h.app.UserService.UpdateUserByID(id, usr)
 		if err != nil {
 			if valerr, ok := err.(errs.ValidationError); ok {
-				isCraftsman := usr.Craftsman.MerchantID != "" || usr.Craftsman.HourlyRate != 0
-				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, mapUserToFormData(usr, &valerr), isCraftsman)
+				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, mapUserToFormData(usr, &valerr), usr.IsCraftsman())
 			}
 
 			emailExists := errors.Is(err, user.ErrEmailAlreadyExists)
@@ -97,22 +96,16 @@ func (h *handler) UnsetCraftsman(id string) HandlerFunc {
 }
 
 func (h *handler) GetCraftsmanForm(w http.ResponseWriter, r *http.Request) error {
-	merchants, err := h.app.MerchantService.GetMerchants()
-	if err != nil {
-		return err
-	}
-	return respondWithTemplate(w, r, http.StatusOK, views.CraftsmanForm(merchants, &views.UserFormData{}))
+	return respondWithTemplate(w, r, http.StatusOK, views.CraftsmanForm(&views.UserFormData{}))
 }
 
 func mapUserToFormData(user *user.User, valerr *errs.ValidationError) *views.UserFormData {
 	var hourlyRateStr string
-	var merId string
 
 	if user.Craftsman != nil {
 		if user.Craftsman.HourlyRate != 0.00 {
 			hourlyRateStr = strconv.FormatFloat(user.Craftsman.HourlyRate, 'f', -1, 64)
 		}
-		merId = user.Craftsman.MerchantID
 	}
 
 	return &views.UserFormData{
@@ -122,9 +115,8 @@ func mapUserToFormData(user *user.User, valerr *errs.ValidationError) *views.Use
 		},
 		Email:      views.FormInputData{Value: user.Email, Error: valerr.Errors.MsgFor("Email")},
 		Username:   views.FormInputData{Value: user.Username, Error: valerr.Errors.MsgFor("Username")},
-		Role:       views.FormInputData{Value: user.RoleID, Error: valerr.Errors.MsgFor("RoleID")},
+		Role:       views.FormInputData{Value: user.Role.String(), Error: valerr.Errors.MsgFor("Role")},
 		HourlyRate: views.FormInputData{Value: hourlyRateStr, Error: valerr.Errors.MsgFor("HourlyRate")},
-		MerchantID: views.FormInputData{Value: merId, Error: valerr.Errors.MsgFor("MerchantID")},
 	}
 }
 
@@ -134,7 +126,6 @@ func mapEditUserFormToUser(id string, r *http.Request) (*user.User, error) {
 	email := r.FormValue("email")
 	username := r.FormValue("username")
 	role := r.FormValue("role")
-	merId := r.FormValue("merchant")
 	hourlyRate := r.FormValue("hourly_rate")
 
 	usr := &user.User{
@@ -142,12 +133,12 @@ func mapEditUserFormToUser(id string, r *http.Request) (*user.User, error) {
 		Name:     user.Name{First: firstName, Last: lastName},
 		Email:    email,
 		Username: username,
-		RoleID:   role,
+		Role:     user.RoleFromString(role),
 	}
 
-	isCraftsman := merId != "" || hourlyRate != ""
+	isCraftsman := hourlyRate != ""
 	if isCraftsman {
-		usr.Craftsman = &user.Craftsman{MerchantID: merId}
+		usr.Craftsman = &user.Craftsman{}
 		hourlyRate, err := strconv.ParseFloat(hourlyRate, 64)
 		if err != nil {
 			return usr, errs.ErrInvalidFloat
@@ -158,18 +149,6 @@ func mapEditUserFormToUser(id string, r *http.Request) (*user.User, error) {
 	return usr, nil
 }
 
-func (h *handler) responseWithEditUser(w http.ResponseWriter, r *http.Request, status int, usr *user.User, formdata *views.UserFormData, withCraftsmanInfo bool) error {
-	opts := &views.EditUserOpts{WithCraftsmanInfo: withCraftsmanInfo}
-	roles, err := h.app.RoleService.GetRoles()
-	if err != nil {
-		return err
-	}
-	if withCraftsmanInfo {
-		merchants, err := h.app.MerchantService.GetMerchants()
-		if err != nil {
-			return err
-		}
-		opts.Merchants = merchants
-	}
-	return respondWithTemplate(w, r, status, views.EditUser(usr, roles, formdata, opts))
+func (h *handler) responseWithEditUser(w http.ResponseWriter, r *http.Request, status int, usr *user.User, formdata *views.UserFormData) error {
+	return respondWithTemplate(w, r, status, views.EditUser(usr, formdata))
 }

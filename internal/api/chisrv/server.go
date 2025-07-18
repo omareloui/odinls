@@ -43,13 +43,6 @@ func (a *APIAdapter) Run() {
 
 	a.Get("/roles", a.handler.GetRoles, withProtection)
 
-	a.Get("/merchants", a.handler.GetMerchants, withProtection)
-	a.Post("/merchants", a.handler.CreateMerchant, withProtection)
-
-	a.Get("/merchants/{id}", a.passParam("id", a.handler.GetMerchant), withProtection)
-	a.Put("/merchants/{id}", a.passParam("id", a.handler.EditMerchant), withProtection)
-	a.Get("/merchants/{id}/edit", a.passParam("id", a.handler.GetEditMerchant), withProtection)
-
 	a.Get("/clients", a.handler.GetClients, withProtection)
 	a.Post("/clients", a.handler.CreateClient, withProtection)
 	a.Get("/clients/{id}", a.passParam("id", a.handler.GetClient), withProtection)

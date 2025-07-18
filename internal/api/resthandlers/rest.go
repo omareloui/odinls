@@ -36,12 +36,6 @@ type Handler interface {
 
 	GetRoles(w http.ResponseWriter, r *http.Request) error
 
-	GetMerchants(w http.ResponseWriter, r *http.Request) error
-	CreateMerchant(w http.ResponseWriter, r *http.Request) error
-	GetMerchant(id string) HandlerFunc
-	GetEditMerchant(id string) HandlerFunc
-	EditMerchant(id string) HandlerFunc
-
 	GetClients(w http.ResponseWriter, r *http.Request) error
 	CreateClient(w http.ResponseWriter, r *http.Request) error
 	GetClient(id string) HandlerFunc

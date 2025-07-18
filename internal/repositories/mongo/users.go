@@ -6,15 +6,12 @@ import (
 
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
-	"github.com/omareloui/odinls/internal/repositories/mongo/bson_utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func (r *repository) GetUsers(options ...user.RetrieveOptsFunc) ([]user.User, error) {
-	opts := user.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -23,39 +20,7 @@ func (r *repository) GetUsers(options ...user.RetrieveOptsFunc) ([]user.User, er
 
 	filter := bson.M{}
 
-	if !opts.PopulateRole && !opts.PopulateMerchant {
-		cursor, err = r.usersColl.Find(ctx, filter)
-	} else {
-		pipeline := []interface{}{}
-
-		if opts.PopulateRole {
-			pipeline = append(pipeline, bson.M{
-				"$lookup": bson.M{
-					"from":         rolesCollectionName,
-					"localField":   "role",
-					"foreignField": "_id",
-					"as":           "populatedRole",
-				},
-			},
-				bson.M{"$unwind": "$populatedRole"},
-			)
-		}
-		if opts.PopulateMerchant {
-			pipeline = append(pipeline, bson.M{
-				"$lookup": bson.M{
-					"from":         merchantsCollectionName,
-					"localField":   "merchant",
-					"foreignField": "_id",
-					"as":           "populatedMerchant",
-				},
-			},
-				bson.M{"$unwind": "$populatedMerchant"},
-			)
-		}
-
-		cursor, err = r.usersColl.Aggregate(ctx, pipeline)
-	}
-
+	cursor, err = r.usersColl.Find(ctx, filter)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, user.ErrUserNotFound
@@ -105,8 +70,6 @@ func (r *repository) FindUsersByIDs(ids []string) ([]user.User, error) {
 }
 
 func (r *repository) FindUser(id string, options ...user.RetrieveOptsFunc) (*user.User, error) {
-	opts := user.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -124,19 +87,10 @@ func (r *repository) FindUser(id string, options ...user.RetrieveOptsFunc) (*use
 		return nil, err
 	}
 
-	if opts.PopulateRole {
-		r.populateRoleForUser(u)
-	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForUser(u)
-	}
-
 	return u, nil
 }
 
 func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User, options ...user.RetrieveOptsFunc) (*user.User, error) {
-	opts := user.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -155,59 +109,22 @@ func (r *repository) FindUserByEmailOrUsernameFromUser(usr *user.User, options .
 		}
 		return nil, err
 	}
-
-	if opts.PopulateRole {
-		r.populateRoleForUser(u)
-	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForUser(u)
-	}
-
 	return u, nil
 }
 
 func (r *repository) FindUserByEmailOrUsername(emailOrUsername string, options ...user.RetrieveOptsFunc) (*user.User, error) {
-	opts := user.ParseRetrieveOpts(options...)
-
-	ctx, cancel := r.newCtx()
-	defer cancel()
-
-	u := &user.User{}
-	filter := bson.M{
-		"$or": bson.A{
-			bson.M{"email": emailOrUsername},
-			bson.M{"username": emailOrUsername},
-		},
-	}
-
-	err := r.usersColl.FindOne(ctx, filter).Decode(u)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, user.ErrUserNotFound
-		}
-		return nil, err
-	}
-
-	if opts.PopulateRole {
-		r.populateRoleForUser(u)
-	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForUser(u)
-	}
-
-	return u, nil
+	u := &user.User{Email: emailOrUsername, Username: emailOrUsername}
+	return r.FindUserByEmailOrUsernameFromUser(u, options...)
 }
 
 func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) error {
-	opts := user.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
 	// TODO(security): make sure to prevent to create multiple emails with +
 	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
 
-	doc, err := r.bu.MarshalBsonD(u, r.bu.WithObjectID("role"))
+	doc, err := r.bu.MarshalBsonD(u, r.bu.WithStringfied("role"))
 	if err != nil {
 		return err
 	}
@@ -229,19 +146,10 @@ func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) 
 		}
 	}
 
-	if opts.PopulateRole {
-		r.populateRoleForUser(u)
-	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForUser(u)
-	}
-
 	return err
 }
 
 func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.RetrieveOptsFunc) error {
-	opts := user.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -252,26 +160,19 @@ func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.Ret
 
 	var doc primitive.D
 
-	optsFuncs := []bson_utils.OptsFunc{
-		r.bu.WithObjectID("role"),
+	doc, err = r.bu.MarshalBsonD(u,
 		r.bu.WithFieldToRemove("_id"),
+		r.bu.WithStringfied("role"),
 		r.bu.WithFieldToRemove("password"),
 		r.bu.WithFieldToRemove("created_at"),
-	}
-
-	if u.Craftsman != nil {
-		optsFuncs = append(optsFuncs, r.bu.WithObjectID("craftsman.merchant"))
-	}
-
-	doc, err = r.bu.MarshalBsonD(u, optsFuncs...)
+		r.bu.WithUpdatedAt(),
+	)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.D{{Key: "_id", Value: objId}}
-	update := bson.M{
-		"$set": doc,
-	}
+	update := bson.M{"$set": doc}
 
 	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -279,13 +180,6 @@ func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.Ret
 	}
 	if updated.ModifiedCount == 0 {
 		return user.ErrUserNotFound
-	}
-
-	if opts.PopulateRole {
-		r.populateRoleForUser(u)
-	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForUser(u)
 	}
 
 	return nil
@@ -315,22 +209,4 @@ func (r *repository) UnsetCraftsmanByID(id string) error {
 	}
 
 	return nil
-}
-
-func (r *repository) populateMerchantForUser(u *user.User) {
-	if u.Craftsman == nil || u.Craftsman.MerchantID == "" {
-		return
-	}
-
-	merchant, err := r.FindMerchant(u.Craftsman.MerchantID)
-	if err == nil {
-		u.Craftsman.Merchant = merchant
-	}
-}
-
-func (r *repository) populateRoleForUser(u *user.User) {
-	role, err := r.FindRole(u.RoleID)
-	if err == nil {
-		u.Role = role
-	}
 }

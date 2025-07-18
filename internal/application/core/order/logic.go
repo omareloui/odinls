@@ -55,14 +55,6 @@ func (s *orderService) GetOrderByID(claims *jwtadapter.JwtAccessClaims, id strin
 	return s.repo.GetOrderByID(id, options...)
 }
 
-func (s *orderService) GetCurrentMerchantOrders(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Order, error) {
-	if claims == nil || !claims.IsCraftsman() {
-		return nil, errs.ErrForbidden
-	}
-
-	return s.repo.GetOrdersByMerchantID(claims.CraftsmanInfo.MerchantID, options...)
-}
-
 func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Order, options ...RetrieveOptsFunc) error {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return errs.ErrForbidden
@@ -76,8 +68,6 @@ func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Orde
 	if err := s.validator.Validate(ord); err != nil {
 		return s.validator.ParseError(err)
 	}
-
-	ord.MerchantID = claims.CraftsmanInfo.MerchantID
 
 	for i, item := range ord.Items {
 		// Set the price

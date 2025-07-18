@@ -5,7 +5,6 @@
 - calculate the product's price from the time it takes and the materials cost
 - print the order's invoice
 - fix the bugs with authorization
-- design how the multi-merchant thing would go
 - make the order updatable
 - make a page to view the order status (and a page for the craftsmen to update
   the status)
@@ -17,11 +16,9 @@
 
 - on creating the order get the new created order (the variant id doesn't show-up)
 - updating the order doesn't work
-- add claims to updating (and creating?) a merchant
 
 ## Far future
 
-- upload pictures for the product and the merchant logo
 - add inventory
 - connect the inventory with the product and calculate the total products i can
   do with my current inventory

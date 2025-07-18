@@ -16,13 +16,12 @@ import (
 )
 
 const (
-	merchantsCollectionName = "merchants"
-	usersCollectionName     = "users"
-	rolesCollectionName     = "roles"
-	clientsCollectionName   = "clients"
-	countersCollectionName  = "counters"
-	productsCollectionName  = "products"
-	ordersCollectionName    = "orders"
+	usersCollectionName    = "users"
+	rolesCollectionName    = "roles"
+	clientsCollectionName  = "clients"
+	countersCollectionName = "counters"
+	productsCollectionName = "products"
+	ordersCollectionName   = "orders"
 )
 
 type repository struct {
@@ -30,13 +29,12 @@ type repository struct {
 	timeout time.Duration
 	db      *mongo.Database
 
-	merchantsColl *mongo.Collection
-	usersColl     *mongo.Collection
-	rolesColl     *mongo.Collection
-	clientsColl   *mongo.Collection
-	countersColl  *mongo.Collection
-	productsColl  *mongo.Collection
-	ordersColl    *mongo.Collection
+	usersColl    *mongo.Collection
+	rolesColl    *mongo.Collection
+	clientsColl  *mongo.Collection
+	countersColl *mongo.Collection
+	productsColl *mongo.Collection
+	ordersColl   *mongo.Collection
 
 	bu *bson_utils.BsonUtils
 }
@@ -79,24 +77,19 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true)})
 	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)})
 
-	repo.merchantsColl = repo.db.Collection(merchantsCollectionName)
-
 	repo.rolesColl = repo.db.Collection(rolesCollectionName)
 	createIndex(repo.rolesColl, mongo.IndexModel{Keys: bson.D{{Key: "name", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	repo.clientsColl = repo.db.Collection(clientsCollectionName)
-	createIndex(repo.clientsColl, mongo.IndexModel{Keys: bson.D{{Key: "name", Value: 1}, {Key: "merchant", Value: 1}}, Options: options.Index().SetUnique(true)})
+	createIndex(repo.clientsColl, mongo.IndexModel{Keys: bson.D{{Key: "name", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	repo.countersColl = repo.db.Collection(countersCollectionName)
-	createIndex(repo.countersColl, mongo.IndexModel{Keys: bson.D{{Key: "merchant", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	repo.productsColl = repo.db.Collection(productsCollectionName)
-	createIndex(repo.productsColl, mongo.IndexModel{Keys: bson.D{{Key: "merchant", Value: 1}}})
 	createIndex(repo.productsColl, mongo.IndexModel{Keys: bson.D{{Key: "variants._id", Value: 1}}, Options: options.Index().SetUnique(true)})
 
 	repo.ordersColl = repo.db.Collection(ordersCollectionName)
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "ref", Value: 1}}, Options: options.Index().SetUnique(true)})
-	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "merchant", Value: 1}}})
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "client", Value: 1}}})
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "items._id", Value: 1}}, Options: options.Index().SetUnique(true)})
 

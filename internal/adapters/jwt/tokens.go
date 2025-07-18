@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/omareloui/odinls/internal/application/core/merchant"
 	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
@@ -37,19 +36,16 @@ type (
 		Username      string
 		Name          string
 		Role          role.Role
-		CraftsmanInfo user.Craftsman
+		CraftsmanInfo *user.Craftsman
 	}
 )
 
 func (jwt *JwtAccessClaims) IsCraftsman() bool {
-	return jwt.CraftsmanInfo.MerchantID != ""
+	return jwt.CraftsmanInfo != nil
 }
 
 func (jwt *JwtAccessClaims) HourlyRate() float64 {
-	if jwt.CraftsmanInfo.HourlyRate > 0 {
-		return jwt.CraftsmanInfo.HourlyRate
-	}
-	return jwt.CraftsmanInfo.Merchant.HourlyRate
+	return jwt.CraftsmanInfo.HourlyRate
 }
 
 func newRefreshClaimsFromMapClaims(claims *jwt.MapClaims) *JwtRefreshClaims {
@@ -75,20 +71,8 @@ func newAccessClaimsFromMapClaims(claims *jwt.MapClaims) *JwtAccessClaims {
 		}
 	}
 	if ci, ok := (*claims)["craftsmanInfo"].(map[string]interface{}); ok {
-		c.CraftsmanInfo = user.Craftsman{
-			MerchantID: ci["merchant_id"].(string),
+		c.CraftsmanInfo = &user.Craftsman{
 			HourlyRate: ci["hourly_rate"].(float64),
-		}
-		if m, ok := ci["merchant"].(map[string]interface{}); ok {
-			createdAt, _ := time.Parse(time.RFC3339, m["created_at"].(string))
-			updatedAt, _ := time.Parse(time.RFC3339, m["updated_at"].(string))
-			c.CraftsmanInfo.Merchant = &merchant.Merchant{
-				ID:        m["id"].(string),
-				Name:      m["name"].(string),
-				Logo:      m["logo"].(string),
-				CreatedAt: createdAt,
-				UpdatedAt: updatedAt,
-			}
 		}
 	}
 

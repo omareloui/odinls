@@ -4,8 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/omareloui/odinls/internal/application/core/merchant"
-	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
 	"golang.org/x/crypto/bcrypt"
@@ -20,20 +18,16 @@ var (
 )
 
 type userService struct {
-	userRepository  UserRepository
-	roleService     role.RoleService
-	merchantService merchant.MerchantService
-	validator       interfaces.Validator
-	sanitizer       interfaces.Sanitizer
+	userRepository UserRepository
+	validator      interfaces.Validator
+	sanitizer      interfaces.Sanitizer
 }
 
-func NewUserService(userRepository UserRepository, merchantService merchant.MerchantService, roleService role.RoleService, validator interfaces.Validator, sanitizer interfaces.Sanitizer) UserService {
+func NewUserService(userRepository UserRepository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) UserService {
 	return &userService{
-		userRepository:  userRepository,
-		roleService:     roleService,
-		merchantService: merchantService,
-		validator:       validator,
-		sanitizer:       sanitizer,
+		userRepository: userRepository,
+		validator:      validator,
+		sanitizer:      sanitizer,
 	}
 }
 
@@ -62,12 +56,6 @@ func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
 	if err != nil {
 		return errs.ErrSanitizer
 	}
-
-	r, err := s.roleService.GetRoleByName(role.NoAuthority.String())
-	if err != nil {
-		return err
-	}
-	usr.RoleID = r.ID
 
 	if err := s.validator.Validate(usr); err != nil {
 		return s.validator.ParseError(err)
@@ -121,16 +109,6 @@ func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsF
 	}
 	if sameUsernameUsr != nil && sameUsernameUsr.ID != id {
 		return ErrUsernameAlreadyExists
-	}
-
-	if _, err = s.roleService.GetRoleByID(usr.RoleID); err != nil {
-		return err
-	}
-
-	if usr.Craftsman != nil {
-		if _, err = s.merchantService.GetMerchantByID(usr.Craftsman.MerchantID); err != nil {
-			return err
-		}
 	}
 
 	usr.UpdatedAt = time.Now()

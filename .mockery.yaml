@@ -19,18 +19,10 @@ packages:
     interfaces:
       ClientService:
       ClientRepository:
-  github.com/omareloui/odinls/internal/application/core/role:
-    interfaces:
-      RoleService:
-      RoleRepository:
   github.com/omareloui/odinls/internal/application/core/user:
     interfaces:
       UserService:
       UserRepository:
-  github.com/omareloui/odinls/internal/application/core/merchant:
-    interfaces:
-      MerchantService:
-      MerchantRepository:
   github.com/omareloui/odinls/internal/application/core/counter:
     interfaces:
       CounterService:

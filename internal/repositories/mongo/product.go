@@ -18,16 +18,6 @@ func (r *repository) GetProducts(options ...product.RetrieveOptsFunc) ([]product
 
 	pipeline := bson.A{}
 
-	if opts.PopulateMerchant {
-		pipeline = append(pipeline, bson.M{
-			"$lookup": bson.M{
-				"from":         merchantsCollectionName,
-				"localField":   "merchant",
-				"foreignField": "_id",
-				"as":           "populatedMerchant",
-			},
-		}, bson.M{"$unwind": "$populatedMerchant"})
-	}
 	if opts.PopulateCraftsman {
 		pipeline = append(pipeline, bson.M{
 			"$lookup": bson.M{
@@ -78,9 +68,6 @@ func (r *repository) GetProductByID(id string, options ...product.RetrieveOptsFu
 	if opts.PopulateCraftsman {
 		r.populateCraftsmanForProduct(prod)
 	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForProduct(prod)
-	}
 
 	return prod, nil
 }
@@ -110,9 +97,6 @@ func (r *repository) GetProductByVariantID(id string, options ...product.Retriev
 
 	if opts.PopulateCraftsman {
 		r.populateCraftsmanForProduct(prod)
-	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForProduct(prod)
 	}
 
 	return prod, nil
@@ -149,58 +133,8 @@ func (r *repository) GetProductByIDAndVariantID(id string, variantId string, opt
 	if opts.PopulateCraftsman {
 		r.populateCraftsmanForProduct(prod)
 	}
-	if opts.PopulateMerchant {
-		r.populateMerchantForProduct(prod)
-	}
 
 	return prod, nil
-}
-
-func (r *repository) GetProductsByMerchantID(merchantId string, options ...product.RetrieveOptsFunc) ([]product.Product, error) {
-	opts := product.ParseRetrieveOpts(options...)
-
-	ctx, cancel := r.newCtx()
-	defer cancel()
-
-	merId, err := primitive.ObjectIDFromHex(merchantId)
-	if err != nil {
-		return nil, errs.ErrInvalidID
-	}
-
-	pipeline := bson.A{bson.M{"$match": bson.M{"merchant": merId}}}
-
-	if opts.PopulateMerchant {
-		pipeline = append(pipeline, bson.M{
-			"$lookup": bson.M{
-				"from":         merchantsCollectionName,
-				"localField":   "merchant",
-				"foreignField": "_id",
-				"as":           "populatedMerchant",
-			},
-		}, bson.M{"$unwind": "$populatedMerchant"})
-	}
-	if opts.PopulateCraftsman {
-		pipeline = append(pipeline, bson.M{
-			"$lookup": bson.M{
-				"from":         usersCollectionName,
-				"localField":   "craftsman",
-				"foreignField": "_id",
-				"as":           "populatedCraftsman",
-			},
-		}, bson.M{"$unwind": "$populatedCraftsman"})
-	}
-
-	cur, err := r.productsColl.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-
-	prods := new([]product.Product)
-	if err := cur.All(ctx, prods); err != nil {
-		return nil, err
-	}
-
-	return *prods, nil
 }
 
 func (r *repository) CreateProduct(prod *product.Product, options ...product.RetrieveOptsFunc) error {
@@ -220,9 +154,6 @@ func (r *repository) CreateProduct(prod *product.Product, options ...product.Ret
 		prod.ID = res.InsertedID.(primitive.ObjectID).Hex()
 		if opts.PopulateCraftsman {
 			r.populateCraftsmanForProduct(prod)
-		}
-		if opts.PopulateMerchant {
-			r.populateMerchantForProduct(prod)
 		}
 	}
 
@@ -252,50 +183,15 @@ func (r *repository) UpdateProductByID(id string, prod *product.Product, options
 
 	err = res.Err()
 	if err == nil {
-		if opts.PopulateCraftsman {
-			r.populateCraftsmanForProduct(prod)
-		}
-		if opts.PopulateMerchant {
-			r.populateMerchantForProduct(prod)
-		}
 	}
 
 	return err
 }
 
-func (r *repository) populateCraftsmanForProduct(prod *product.Product) {
-	craftsman, err := r.FindUser(prod.CraftsmanID)
-	if err == nil {
-		prod.Craftsman = craftsman
-	}
-}
-
-func (r *repository) populateMerchantForProduct(prod *product.Product) {
-	merchant, err := r.FindMerchant(prod.MerchantID)
-	if err == nil {
-		prod.Merchant = merchant
-	}
-}
-
 func mapProductToMongoDoc(prod *product.Product) (bson.M, error) {
-	var merId primitive.ObjectID
 	var crafId primitive.ObjectID
 
 	var err error
-
-	if prod.MerchantID != "" {
-		merId, err = primitive.ObjectIDFromHex(prod.MerchantID)
-		if err != nil {
-			return nil, errs.ErrInvalidID
-		}
-	}
-
-	if prod.CraftsmanID != "" {
-		crafId, err = primitive.ObjectIDFromHex(prod.CraftsmanID)
-		if err != nil {
-			return nil, errs.ErrInvalidID
-		}
-	}
 
 	variants := make(bson.A, len(prod.Variants))
 
@@ -314,9 +210,6 @@ func mapProductToMongoDoc(prod *product.Product) (bson.M, error) {
 	}
 	if !crafId.IsZero() {
 		doc["craftsman"] = crafId
-	}
-	if !merId.IsZero() {
-		doc["merchant"] = merId
 	}
 	if prod.Description != "" {
 		doc["description"] = prod.Description
