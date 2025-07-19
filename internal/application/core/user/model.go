@@ -43,15 +43,15 @@ func RoleFromString(role string) RoleEnum {
 }
 
 func (r RoleEnum) IsSuperAdmin() bool {
-	return r <= SuperAdmin
+	return r >= SuperAdmin
 }
 
 func (r RoleEnum) IsAdmin() bool {
-	return r <= Admin
+	return r >= Admin
 }
 
 func (r RoleEnum) IsModerator() bool {
-	return r <= Moderator
+	return r >= Moderator
 }
 
 type Name struct {
