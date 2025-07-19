@@ -33,5 +33,5 @@ test:
 test-cov:
 	@go test -v -converprofile=coverage.txt ./...
 
-gen-mocks:
+mocks:
 	@mockery

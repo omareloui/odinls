@@ -43,8 +43,6 @@ func (r *repository) GetProducts(options ...product.RetrieveOptsFunc) ([]product
 }
 
 func (r *repository) GetProductByID(id string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
-	opts := product.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -65,16 +63,10 @@ func (r *repository) GetProductByID(id string, options ...product.RetrieveOptsFu
 		return nil, err
 	}
 
-	if opts.PopulateCraftsman {
-		r.populateCraftsmanForProduct(prod)
-	}
-
 	return prod, nil
 }
 
 func (r *repository) GetProductByVariantID(id string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
-	opts := product.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -95,16 +87,10 @@ func (r *repository) GetProductByVariantID(id string, options ...product.Retriev
 		return nil, err
 	}
 
-	if opts.PopulateCraftsman {
-		r.populateCraftsmanForProduct(prod)
-	}
-
 	return prod, nil
 }
 
 func (r *repository) GetProductByIDAndVariantID(id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
-	opts := product.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -130,16 +116,10 @@ func (r *repository) GetProductByIDAndVariantID(id string, variantId string, opt
 		return nil, err
 	}
 
-	if opts.PopulateCraftsman {
-		r.populateCraftsmanForProduct(prod)
-	}
-
 	return prod, nil
 }
 
 func (r *repository) CreateProduct(prod *product.Product, options ...product.RetrieveOptsFunc) error {
-	opts := product.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
@@ -152,17 +132,12 @@ func (r *repository) CreateProduct(prod *product.Product, options ...product.Ret
 
 	if err == nil {
 		prod.ID = res.InsertedID.(primitive.ObjectID).Hex()
-		if opts.PopulateCraftsman {
-			r.populateCraftsmanForProduct(prod)
-		}
 	}
 
 	return err
 }
 
 func (r *repository) UpdateProductByID(id string, prod *product.Product, options ...product.RetrieveOptsFunc) error {
-	opts := product.ParseRetrieveOpts(options...)
-
 	ctx, cancel := r.newCtx()
 	defer cancel()
 

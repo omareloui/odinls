@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	r "github.com/omareloui/odinls/internal/repositories"
-	"github.com/omareloui/odinls/internal/repositories/mongo/bson_utils"
+	"github.com/omareloui/odinls/internal/repositories/mongo/bsonutils"
 )
 
 const (
@@ -36,7 +36,7 @@ type repository struct {
 	productsColl *mongo.Collection
 	ordersColl   *mongo.Collection
 
-	bu *bson_utils.BsonUtils
+	bu *bsonutils.BsonUtils
 }
 
 func (r *repository) newCtx() (context.Context, context.CancelFunc) {
@@ -77,9 +77,6 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true)})
 	createIndex(repo.usersColl, mongo.IndexModel{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)})
 
-	repo.rolesColl = repo.db.Collection(rolesCollectionName)
-	createIndex(repo.rolesColl, mongo.IndexModel{Keys: bson.D{{Key: "name", Value: 1}}, Options: options.Index().SetUnique(true)})
-
 	repo.clientsColl = repo.db.Collection(clientsCollectionName)
 	createIndex(repo.clientsColl, mongo.IndexModel{Keys: bson.D{{Key: "name", Value: 1}}, Options: options.Index().SetUnique(true)})
 
@@ -93,7 +90,7 @@ func NewRepository(mongoURL, dbName string, mongoTimeout int) (r.Repository, err
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "client", Value: 1}}})
 	createIndex(repo.ordersColl, mongo.IndexModel{Keys: bson.D{{Key: "items._id", Value: 1}}, Options: options.Index().SetUnique(true)})
 
-	repo.bu = bson_utils.NewBsonUtils()
+	repo.bu = bsonutils.NewBsonUtils()
 
 	return repo, nil
 }

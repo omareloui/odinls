@@ -8,7 +8,10 @@ import (
 	"github.com/omareloui/odinls/internal/errs"
 )
 
-var ErrCounterNotFound = errors.New("counter not found")
+var (
+	ErrCounterNotFound        = errors.New("counter not found")
+	ErrAlreadyExistingCounter = errors.New("the counter already exists")
+)
 
 type counterService struct {
 	repo CounterRepository
@@ -18,6 +21,27 @@ func NewCounterService(repo CounterRepository) *counterService {
 	return &counterService{
 		repo: repo,
 	}
+}
+
+func (s *counterService) GetCounter(claims *jwtadapter.JwtAccessClaims) (*Counter, error) {
+	if claims == nil || !claims.IsCraftsman() || !claims.Role.IsAdmin() {
+		return nil, errs.ErrForbidden
+	}
+
+	counter, err := s.repo.GetCounter()
+	if errors.Is(ErrCounterNotFound, err) {
+		return nil, ErrCounterNotFound
+	}
+
+	return counter, err
+}
+
+func (s *counterService) CreateCounter() {
+	s.repo.CreateCounter(&Counter{
+		ProductsCodes: ProductsCodes{
+			"BKM": 1,
+		},
+	})
 }
 
 func (s *counterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims, category string) (uint8, error) {

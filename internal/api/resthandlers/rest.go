@@ -34,8 +34,6 @@ type Handler interface {
 	UnsetCraftsman(id string) HandlerFunc
 	GetCraftsmanForm(w http.ResponseWriter, r *http.Request) error
 
-	GetRoles(w http.ResponseWriter, r *http.Request) error
-
 	GetClients(w http.ResponseWriter, r *http.Request) error
 	CreateClient(w http.ResponseWriter, r *http.Request) error
 	GetClient(id string) HandlerFunc

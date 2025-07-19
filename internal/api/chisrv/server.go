@@ -41,8 +41,6 @@ func (a *APIAdapter) Run() {
 	a.Patch("/users/{id}/unset-craftsman", a.passParam("id", a.handler.UnsetCraftsman))
 	a.Get("/users/craftsman-form", a.handler.GetCraftsmanForm, withProtection)
 
-	a.Get("/roles", a.handler.GetRoles, withProtection)
-
 	a.Get("/clients", a.handler.GetClients, withProtection)
 	a.Post("/clients", a.handler.CreateClient, withProtection)
 	a.Get("/clients/{id}", a.passParam("id", a.handler.GetClient), withProtection)

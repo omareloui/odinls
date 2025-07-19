@@ -32,34 +32,18 @@ func NewProductService(repo ProductRepository, validator interfaces.Validator, s
 }
 
 func (s *productService) GetProducts(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Product, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
-		return nil, errs.ErrForbidden
-	}
-
 	return s.repo.GetProducts(options...)
 }
 
 func (s *productService) GetProductByID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
-		return nil, errs.ErrForbidden
-	}
-
 	return s.repo.GetProductByID(id, options...)
 }
 
 func (s *productService) GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
-		return nil, errs.ErrForbidden
-	}
-
 	return s.repo.GetProductByVariantID(id, options...)
 }
 
 func (s *productService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccessClaims, id string, variantId string, options ...RetrieveOptsFunc) (*Product, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
-		return nil, errs.ErrForbidden
-	}
-
 	return s.repo.GetProductByIDAndVariantID(id, variantId, options...)
 }
 

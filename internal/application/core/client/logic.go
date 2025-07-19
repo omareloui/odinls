@@ -29,7 +29,7 @@ func NewClientService(clientRepository ClientRepository, validator interfaces.Va
 }
 
 func (s *clientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts ...RetrieveOptsFunc) ([]Client, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
+	if claims == nil || (!claims.Role.IsModerator() && !claims.IsCraftsman()) {
 		return nil, errs.ErrForbidden
 	}
 

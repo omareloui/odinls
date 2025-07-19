@@ -11,7 +11,7 @@ import (
 )
 
 func (h *handler) GetUsers(w http.ResponseWriter, r *http.Request) error {
-	users, err := h.app.UserService.GetUsers(user.WithPopulatedRole)
+	users, err := h.app.UserService.GetUsers()
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func (h *handler) GetUsers(w http.ResponseWriter, r *http.Request) error {
 
 func (h *handler) GetUser(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		usr, err := h.app.UserService.GetUserByID(id, user.WithPopulatedRole)
+		usr, err := h.app.UserService.GetUserByID(id)
 		if err != nil {
 			return err
 		}
@@ -32,12 +32,12 @@ func (h *handler) GetUser(id string) HandlerFunc {
 
 func (h *handler) GetEditUser(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		usr, err := h.app.UserService.GetUserByID(id, user.WithPopulatedRole)
+		usr, err := h.app.UserService.GetUserByID(id)
 		if err != nil {
 			return err
 		}
 
-		return h.responseWithEditUser(w, r, http.StatusOK, usr, mapUserToFormData(usr, &errs.ValidationError{}), usr.IsCraftsman())
+		return h.responseWithEditUser(w, r, http.StatusOK, usr, mapUserToFormData(usr, &errs.ValidationError{}))
 	}
 }
 
@@ -48,7 +48,7 @@ func (h *handler) EditUser(id string) HandlerFunc {
 			if errors.Is(errs.ErrInvalidFloat, err) {
 				formdata := mapUserToFormData(usr, &errs.ValidationError{})
 				formdata.HourlyRate.Error = "Invalid number"
-				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, formdata, true)
+				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, formdata)
 			}
 			return err
 		}
@@ -56,7 +56,7 @@ func (h *handler) EditUser(id string) HandlerFunc {
 		err = h.app.UserService.UpdateUserByID(id, usr)
 		if err != nil {
 			if valerr, ok := err.(errs.ValidationError); ok {
-				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, mapUserToFormData(usr, &valerr), usr.IsCraftsman())
+				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, mapUserToFormData(usr, &valerr))
 			}
 
 			emailExists := errors.Is(err, user.ErrEmailAlreadyExists)
@@ -70,7 +70,7 @@ func (h *handler) EditUser(id string) HandlerFunc {
 				if usernameExists {
 					formdata.Username.Error = "Username already exists, try another one"
 				}
-				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, formdata, usr.IsCraftsman())
+				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, formdata)
 			}
 
 			return err

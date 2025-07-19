@@ -7,7 +7,6 @@ import (
 
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/user"
-	"github.com/omareloui/odinls/internal/application/core/role"
 )
 
 type NameFormData struct {
@@ -74,7 +73,7 @@ templ User(user *user.User) {
 	</div>
 }
 
-templ EditUser(user *user.User, roles []role.Role, data *UserFormData, opts ...*EditUserOpts) {
+templ EditUser(user *user.User, data *UserFormData, opts ...*EditUserOpts) {
 	@form("put", fmt.Sprintf("/users/%s", user.ID), templ.Attributes{"hx-target": "this"}) {
 		<p>ID: { user.ID }</p>
 		<div class="grid grid-cols-2 gap-2">
@@ -83,7 +82,7 @@ templ EditUser(user *user.User, roles []role.Role, data *UserFormData, opts ...*
 		</div>
 		@input("Username", "text", "username", "e.g. omareloui", "", data.Username)
 		@input("Email", "email", "email", "e.g. contact@omareloui.com", "", data.Email)
-		@selectInput("Role", "role", "Select a role", "", getRolesMap(roles), data.Role)
+		@selectInput("Role", "role", "Select a role", "", getRolesMap(), data.Role)
 		if opts != nil && opts[0] != nil && opts[0].WithCraftsmanInfo {
 			@CraftsmanForm(data)
 		} else {
@@ -109,10 +108,11 @@ templ CraftsmanForm(data *UserFormData) {
 	@input("Hourly Rate", "number", "hourly_rate", "e.g. 45", "", data.HourlyRate)
 }
 
-func getRolesMap(roles []role.Role) map[string]string {
-	m := make(map[string]string)
-	for _, r := range roles {
-		m[r.ID] = r.Name
+func getRolesMap() map[string]string {
+	return map[string]string{
+		"No Authorization": user.NoAuthority.String(),
+		"Moderator":        user.Moderator.String(),
+		"Admin":            user.Admin.String(),
+		"Super Admin":      user.SuperAdmin.String(),
 	}
-	return m
 }

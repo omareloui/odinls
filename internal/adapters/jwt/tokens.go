@@ -1,11 +1,9 @@
 package jwtadapter
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/omareloui/odinls/internal/application/core/role"
 	"github.com/omareloui/odinls/internal/application/core/user"
 )
 
@@ -34,8 +32,9 @@ type (
 		ID            string
 		Email         string
 		Username      string
-		Name          string
-		Role          role.Role
+		FirstName     string
+		LastName      string
+		Role          user.RoleEnum
 		CraftsmanInfo *user.Craftsman
 	}
 )
@@ -54,23 +53,15 @@ func newRefreshClaimsFromMapClaims(claims *jwt.MapClaims) *JwtRefreshClaims {
 
 func newAccessClaimsFromMapClaims(claims *jwt.MapClaims) *JwtAccessClaims {
 	c := &JwtAccessClaims{
-		ID:       (*claims)["id"].(string),
-		Name:     (*claims)["name"].(string),
-		Email:    (*claims)["email"].(string),
-		Username: (*claims)["username"].(string),
+		ID:        (*claims)["id"].(string),
+		FirstName: (*claims)["first_name"].(string),
+		LastName:  (*claims)["last_name"].(string),
+		Email:     (*claims)["email"].(string),
+		Username:  (*claims)["username"].(string),
+		Role:      (*claims)["role"].(user.RoleEnum),
 	}
 
-	if r, ok := (*claims)["role"].(map[string]interface{}); ok {
-		createdAt, _ := time.Parse(time.RFC3339, r["created_at"].(string))
-		updatedAt, _ := time.Parse(time.RFC3339, r["updated_at"].(string))
-		c.Role = role.Role{
-			ID:        r["id"].(string),
-			Name:      r["name"].(string),
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-		}
-	}
-	if ci, ok := (*claims)["craftsmanInfo"].(map[string]interface{}); ok {
+	if ci, ok := (*claims)["craftsmanInfo"].(map[string]any); ok {
 		c.CraftsmanInfo = &user.Craftsman{
 			HourlyRate: ci["hourly_rate"].(float64),
 		}
@@ -88,19 +79,17 @@ func newRefreshMapClaims(usr *user.User, exp time.Time) *jwt.MapClaims {
 
 func newAccessMapClaims(usr *user.User, exp time.Time) *jwt.MapClaims {
 	claims := jwt.MapClaims{
-		"id":       usr.ID,
-		"email":    usr.Email,
-		"username": usr.Username,
-		"name":     fmt.Sprintf("%s %s", usr.Name.First, usr.Name.Last),
-		"exp":      exp.Unix(),
+		"id":         usr.ID,
+		"first_name": usr.Name.First,
+		"last_name":  usr.Name.Last,
+		"email":      usr.Email,
+		"username":   usr.Username,
+		"role":       usr.Role,
+		"exp":        exp.Unix(),
 	}
 
 	if usr.Craftsman != nil {
 		claims["craftsmanInfo"] = *usr.Craftsman
-	}
-
-	if usr.Role != nil {
-		claims["role"] = *usr.Role
 	}
 
 	return &claims

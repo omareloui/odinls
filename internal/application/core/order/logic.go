@@ -40,7 +40,7 @@ func NewOrderService(repo OrderRepository, productService product.ProductService
 }
 
 func (s *orderService) GetOrders(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Order, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
+	if claims == nil || !claims.Role.IsModerator() {
 		return nil, errs.ErrForbidden
 	}
 
@@ -48,7 +48,7 @@ func (s *orderService) GetOrders(claims *jwtadapter.JwtAccessClaims, options ...
 }
 
 func (s *orderService) GetOrderByID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Order, error) {
-	if claims == nil || !claims.Role.IsOPAdmin() {
+	if claims == nil || !claims.Role.IsModerator() {
 		return nil, errs.ErrForbidden
 	}
 

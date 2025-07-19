@@ -73,7 +73,7 @@ func (a *JwtV5Adapter) ParseRefreshClaims(token string) (*JwtRefreshClaims, erro
 }
 
 func (a *JwtV5Adapter) parse(tokenStr string) (*jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidTokenMethod
 		}
