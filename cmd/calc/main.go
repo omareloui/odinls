@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/logger"
+	"go.uber.org/zap"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"golang.org/x/text/number"
@@ -47,7 +48,7 @@ func main() {
 	err := form.Run()
 	if err != nil {
 		l := logger.Get()
-		l.Fatalf("error running form: %v", err)
+		l.Fatal("error running form: %v", zap.Error(err))
 	}
 
 	v := product.Variant{
