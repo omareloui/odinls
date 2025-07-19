@@ -7,7 +7,9 @@ import (
 
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
+	"github.com/omareloui/odinls/internal/logger"
 	"github.com/omareloui/odinls/web/views"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,11 +27,15 @@ func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *handler) Register(w http.ResponseWriter, r *http.Request) error {
+	l := logger.FromCtx(r.Context())
+
 	usr := mapFormToUser(r)
 
 	err := h.app.UserService.CreateUser(usr)
 	if err != nil {
+		l.Warn("Error creating user", zap.Error(err), zap.Any("user", usr))
 		if valerr, ok := err.(errs.ValidationError); ok {
+			l.Warn("Validation errors", zap.Any("valerr", valerr.Errors))
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.RegisterForm(mapRegisterToFormData(usr, &valerr)))
 		}
 
@@ -37,6 +43,7 @@ func (h *handler) Register(w http.ResponseWriter, r *http.Request) error {
 		usernameExists := errors.Is(err, user.ErrUsernameAlreadyExists)
 
 		if emailExists || usernameExists {
+			l.Warn("Existing username or email", zap.Error(err))
 			e := mapRegisterToFormData(usr, &errs.ValidationError{})
 			if emailExists {
 				e.Email.Error = "Email already exists, try another one"
@@ -49,6 +56,8 @@ func (h *handler) Register(w http.ResponseWriter, r *http.Request) error {
 
 		return err
 	}
+
+	l.Info("Created the user", zap.Any("user", usr))
 
 	cookiesPair, err := h.newCookiesPairFromUser(usr)
 	if err != nil {

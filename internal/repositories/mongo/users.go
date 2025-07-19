@@ -43,12 +43,12 @@ func (r *repository) FindUsersByIDs(ids []string) ([]user.User, error) {
 	objIds := make([]primitive.ObjectID, len(ids))
 
 	for i, id := range ids {
-		objId, err := primitive.ObjectIDFromHex(id)
+		objID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			return nil, errs.ErrInvalidID
 		}
 
-		objIds[i] = objId
+		objIds[i] = objID
 	}
 
 	filter := bson.M{"_id": bson.M{"$in": objIds}}
@@ -74,11 +74,11 @@ func (r *repository) FindUser(id string, options ...user.RetrieveOptsFunc) (*use
 	defer cancel()
 
 	u := &user.User{}
-	objId, err := primitive.ObjectIDFromHex(id)
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errs.ErrInvalidID
 	}
-	filter := bson.M{"_id": objId}
+	filter := bson.M{"_id": objID}
 	err = r.usersColl.FindOne(ctx, filter).Decode(u)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -124,7 +124,7 @@ func (r *repository) CreateUser(u *user.User, options ...user.RetrieveOptsFunc) 
 	// TODO(security): make sure to prevent to create multiple emails with +
 	// eg. "contact@omareloui.com" is the same as "contact+whatever@omareloui.com"
 
-	doc, err := r.bu.MarshalBsonD(u, r.bu.WithStringfied("role"))
+	doc, err := r.bu.MarshalBsonD(u)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.Ret
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	objId, err := primitive.ObjectIDFromHex(id)
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errs.ErrInvalidID
 	}
@@ -162,7 +162,6 @@ func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.Ret
 
 	doc, err = r.bu.MarshalBsonD(u,
 		r.bu.WithFieldToRemove("_id"),
-		r.bu.WithStringfied("role"),
 		r.bu.WithFieldToRemove("password"),
 		r.bu.WithFieldToRemove("created_at"),
 		r.bu.WithUpdatedAt(),
@@ -171,7 +170,7 @@ func (r *repository) UpdateUserByID(id string, u *user.User, options ...user.Ret
 		return err
 	}
 
-	filter := bson.D{{Key: "_id", Value: objId}}
+	filter := bson.D{{Key: "_id", Value: objID}}
 	update := bson.M{"$set": doc}
 
 	updated, err := r.usersColl.UpdateOne(ctx, filter, update)
@@ -189,12 +188,12 @@ func (r *repository) UnsetCraftsmanByID(id string) error {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	objId, err := primitive.ObjectIDFromHex(id)
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errs.ErrInvalidID
 	}
 
-	filter := bson.D{{Key: "_id", Value: objId}}
+	filter := bson.D{{Key: "_id", Value: objID}}
 	update := bson.M{
 		"$unset": bson.M{"craftsman": ""},
 		"$set":   bson.M{"updated_at": time.Now()},

@@ -58,7 +58,7 @@ func newAccessClaimsFromMapClaims(claims *jwt.MapClaims) *JwtAccessClaims {
 		LastName:  (*claims)["last_name"].(string),
 		Email:     (*claims)["email"].(string),
 		Username:  (*claims)["username"].(string),
-		Role:      (*claims)["role"].(user.RoleEnum),
+		Role:      user.RoleEnum((*claims)["role"].(float64)),
 	}
 
 	if ci, ok := (*claims)["craftsmanInfo"].(map[string]any); ok {

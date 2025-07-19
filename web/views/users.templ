@@ -110,9 +110,9 @@ templ CraftsmanForm(data *UserFormData) {
 
 func getRolesMap() map[string]string {
 	return map[string]string{
-		"No Authorization": user.NoAuthority.String(),
-		"Moderator":        user.Moderator.String(),
-		"Admin":            user.Admin.String(),
-		"Super Admin":      user.SuperAdmin.String(),
+		user.NoAuthority.String(): user.NoAuthority.View(),
+		user.Moderator.String():   user.Moderator.View(),
+		user.Admin.String():       user.Admin.View(),
+		user.SuperAdmin.String():  user.SuperAdmin.View(),
 	}
 }

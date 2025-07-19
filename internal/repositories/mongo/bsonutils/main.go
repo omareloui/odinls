@@ -76,7 +76,7 @@ func (bu *BsonUtils) WithObjectID(key string) OptsFunc {
 
 func (bu *BsonUtils) WithStringfied(key string) OptsFunc {
 	return func(opts *opts) {
-		opts.stringifyKeys = append(opts.objIDKeys, key)
+		opts.stringifyKeys = append(opts.stringifyKeys, key)
 	}
 }
 

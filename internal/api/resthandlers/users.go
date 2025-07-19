@@ -45,7 +45,7 @@ func (h *handler) EditUser(id string) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		usr, err := mapEditUserFormToUser(id, r)
 		if err != nil {
-			if errors.Is(errs.ErrInvalidFloat, err) {
+			if errors.Is(err, errs.ErrInvalidFloat) {
 				formdata := mapUserToFormData(usr, &errs.ValidationError{})
 				formdata.HourlyRate.Error = "Invalid number"
 				return h.responseWithEditUser(w, r, http.StatusUnprocessableEntity, usr, formdata)

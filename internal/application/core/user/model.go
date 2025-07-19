@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type RoleEnum int
+type RoleEnum uint8
 
 const (
 	NoAuthority RoleEnum = iota
@@ -17,6 +17,13 @@ func (r RoleEnum) String() string {
 	return [...]string{
 		"NO_AUTHORITY", "MODERATOR",
 		"ADMIN", "SUPER_ADMIN",
+	}[r]
+}
+
+func (r RoleEnum) View() string {
+	return [...]string{
+		"No Authority", "Moderator",
+		"Admin", "Super Admin",
 	}[r]
 }
 
@@ -60,7 +67,7 @@ type User struct {
 	Password        string    `json:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
 	ConfirmPassword string    `json:"-" bson:"-" validate:"eqfield=Password"`
 	Phone           string    `json:"phone" bson:"phone,omitempty" conform:"num"`
-	Role            RoleEnum  `json:"role" bson:"role,omitempty" validate:"required,max=3"`
+	Role            RoleEnum  `json:"role" bson:"role"`
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
 
