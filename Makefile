@@ -21,7 +21,6 @@ css-dev:
 css:
 	@pnpm css
 
-
 seed:
 	@echo "Seeding..."
 	@go run ./cmd/seeder
