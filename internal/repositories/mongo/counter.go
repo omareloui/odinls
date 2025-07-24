@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	product "github.com/omareloui/odinls/internal/application/core/_product"
 	"github.com/omareloui/odinls/internal/application/core/counter"
+	"github.com/omareloui/odinls/internal/application/core/product"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
