@@ -11,9 +11,9 @@ import (
 type Material struct {
 	ID string `json:"id" bson:"_id,omitempty"`
 
-	Name        string               `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
-	Description string               `json:"description" bson:"description,omitempty" conform:"trim"`
-	Category    MaterialCategoryEnum `json:"category" bson:"category,omitempty" conform:"trim,upper"`
+	Name        string       `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
+	Description string       `json:"description" bson:"description,omitempty" conform:"trim"`
+	Category    CategoryEnum `json:"category" bson:"category,omitempty" conform:"trim,upper"`
 
 	Unit         Unit    `json:"unit" bson:"unit" conform:"trim,lower" validate:"required"`
 	PricePerUnit float64 `json:"price_per_unit" bson:"price_per_unit" validate:"required,min=0"`

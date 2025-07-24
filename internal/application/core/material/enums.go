@@ -1,8 +1,8 @@
 package material
 
 type (
-	Unit                 string
-	MaterialCategoryEnum string
+	Unit         string
+	CategoryEnum string
 )
 
 const (
@@ -16,44 +16,44 @@ const (
 )
 
 const (
-	MaterialCategoryUnknown       MaterialCategoryEnum = "UNKNOWN"
-	MaterialCategoryLeather       MaterialCategoryEnum = "LEATHER"
-	MaterialCategoryThread        MaterialCategoryEnum = "THREAD"
-	MaterialCategoryDye           MaterialCategoryEnum = "DYE"
-	MaterialCategoryHardware      MaterialCategoryEnum = "HARDWARE"
-	MaterialCategoryPaper         MaterialCategoryEnum = "PAPER"
-	MaterialCategoryAdhesive      MaterialCategoryEnum = "ADHESIVE"
-	MaterialCategoryFinish        MaterialCategoryEnum = "FINISH"
-	MaterialCategoryLining        MaterialCategoryEnum = "LINING"
-	MaterialCategoryPackaging     MaterialCategoryEnum = "PACKAGING"
-	MaterialCategoryEmbellishment MaterialCategoryEnum = "EMBELLISHMENT"
-	MaterialCategoryConsumable    MaterialCategoryEnum = "CONSUMABLE"
+	CategoryUnknown       CategoryEnum = "UNKNOWN"
+	CategoryLeather       CategoryEnum = "LEATHER"
+	CategoryThread        CategoryEnum = "THREAD"
+	CategoryDye           CategoryEnum = "DYE"
+	CategoryHardware      CategoryEnum = "HARDWARE"
+	CategoryPaper         CategoryEnum = "PAPER"
+	CategoryAdhesive      CategoryEnum = "ADHESIVE"
+	CategoryFinish        CategoryEnum = "FINISH"
+	CategoryLining        CategoryEnum = "LINING"
+	CategoryPackaging     CategoryEnum = "PACKAGING"
+	CategoryEmbellishment CategoryEnum = "EMBELLISHMENT"
+	CategoryConsumable    CategoryEnum = "CONSUMABLE"
 )
 
-func (c MaterialCategoryEnum) View() string {
-	return map[MaterialCategoryEnum]string{
-		MaterialCategoryUnknown:       "Unknown",
-		MaterialCategoryLeather:       "Leather",
-		MaterialCategoryThread:        "Thread",
-		MaterialCategoryDye:           "Dye",
-		MaterialCategoryHardware:      "Hardware",
-		MaterialCategoryPaper:         "Paper",
-		MaterialCategoryAdhesive:      "Adhesive",
-		MaterialCategoryFinish:        "Finish",
-		MaterialCategoryLining:        "Lining",
-		MaterialCategoryPackaging:     "Packaging",
-		MaterialCategoryEmbellishment: "Embellishment",
-		MaterialCategoryConsumable:    "Consumable",
+func (c CategoryEnum) View() string {
+	return map[CategoryEnum]string{
+		CategoryUnknown:       "Unknown",
+		CategoryLeather:       "Leather",
+		CategoryThread:        "Thread",
+		CategoryDye:           "Dye",
+		CategoryHardware:      "Hardware",
+		CategoryPaper:         "Paper",
+		CategoryAdhesive:      "Adhesive",
+		CategoryFinish:        "Finish",
+		CategoryLining:        "Lining",
+		CategoryPackaging:     "Packaging",
+		CategoryEmbellishment: "Embellishment",
+		CategoryConsumable:    "Consumable",
 	}[c]
 }
 
-func MaterialsCategoriesEnums() []MaterialCategoryEnum {
-	return []MaterialCategoryEnum{
-		MaterialCategoryUnknown, MaterialCategoryLeather,
-		MaterialCategoryThread, MaterialCategoryDye,
-		MaterialCategoryHardware, MaterialCategoryPaper,
-		MaterialCategoryAdhesive, MaterialCategoryFinish,
-		MaterialCategoryLining, MaterialCategoryPackaging,
-		MaterialCategoryEmbellishment, MaterialCategoryConsumable,
+func MaterialsCategoriesEnums() []CategoryEnum {
+	return []CategoryEnum{
+		CategoryUnknown, CategoryLeather,
+		CategoryThread, CategoryDye,
+		CategoryHardware, CategoryPaper,
+		CategoryAdhesive, CategoryFinish,
+		CategoryLining, CategoryPackaging,
+		CategoryEmbellishment, CategoryConsumable,
 	}
 }

@@ -1,8 +1,6 @@
 package material
 
 import (
-	"time"
-
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
@@ -57,25 +55,17 @@ func (s *materialService) CreateMaterial(claims *jwtadapter.JwtAccessClaims, mat
 
 func (s *materialService) UpdateMaterialByID(claims *jwtadapter.JwtAccessClaims, id string, umat *Material, options ...RetrieveOptsFunc) (*Material, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
-		return errs.ErrForbidden
+		return nil, errs.ErrForbidden
 	}
 
 	err := s.sanitizer.SanitizeStruct(umat)
 	if err != nil {
-		return errs.ErrSanitizer
+		return nil, errs.ErrSanitizer
 	}
 
 	if err := s.validator.Validate(umat); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
-
-	mat, err := s.repo.GetMaterialByID(id)
-	if err != nil {
-		return err
-	}
-
-	umat.CreatedAt = mat.CreatedAt
-	umat.UpdatedAt = time.Now()
 
 	return s.repo.UpdateMaterialByID(id, umat, options...)
 }
