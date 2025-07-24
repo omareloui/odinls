@@ -1,7 +1,6 @@
 package order
 
 import (
-	"errors"
 	"log"
 	"slices"
 	"time"
@@ -18,8 +17,6 @@ const (
 	refAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	refSize     = 8
 )
-
-var ErrOrderNotFound = errors.New("order not found")
 
 type orderService struct {
 	repo           OrderRepository

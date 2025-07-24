@@ -6,10 +6,11 @@ import (
 )
 
 var (
-	ErrInvalidID     = errors.New("invalid id")
-	ErrInvalidFloat  = errors.New("invalid float")
-	ErrInvalidNumber = errors.New("invalid number")
-	ErrInvalidDate   = errors.New("invalid date")
+	ErrInvalidID             = errors.New("invalid id")
+	ErrInvalidFloat          = errors.New("invalid float")
+	ErrInvalidNumber         = errors.New("invalid number")
+	ErrInvalidDate           = errors.New("invalid date")
+	ErrDocumentAlreadyExists = errors.New("this document already exists")
 )
 
 type ValidationErrors map[string]ValidationField

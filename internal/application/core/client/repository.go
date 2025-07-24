@@ -1,8 +1,8 @@
 package client
 
 type ClientRepository interface {
-	GetClients(opts ...RetrieveOptsFunc) ([]Client, error)
-	GetClientByID(id string, opts ...RetrieveOptsFunc) (*Client, error)
-	CreateClient(client *Client, opts ...RetrieveOptsFunc) error
-	UpdateClientByID(id string, client *Client, opts ...RetrieveOptsFunc) error
+	GetClients() ([]Client, error)
+	GetClientByID(id string) (*Client, error)
+	CreateClient(client *Client) (*Client, error)
+	UpdateClientByID(id string, client *Client) (*Client, error)
 }

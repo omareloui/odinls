@@ -1,18 +1,12 @@
 package product
 
 import (
-	"errors"
 	"slices"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/counter"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-)
-
-var (
-	ErrProductNotFound = errors.New("product not found")
-	ErrVariantNotFound = errors.New("variant not found")
 )
 
 type productService struct {
@@ -47,59 +41,65 @@ func (s *productService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccess
 	return s.repo.GetProductByIDAndVariantID(id, variantId, options...)
 }
 
-func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, options ...RetrieveOptsFunc) error {
+func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, options ...RetrieveOptsFunc) (*Product, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
-		return errs.ErrForbidden
+		return nil, errs.ErrForbidden
 	}
 
 	err := s.sanitizer.SanitizeStruct(prod)
 	if err != nil {
-		return errs.ErrSanitizer
+		return nil, errs.ErrSanitizer
 	}
 
 	if err := s.validator.Validate(prod); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
 
-	num, err := s.counterService.AddOneToProduct(claims, prod.Category)
+	num, err := s.counterService.AddOneToProduct(claims, prod.Category.Code())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	prod.Number = num
 
 	for i := range prod.Variants {
-		prod.Variants[i].ProductRef = prod.Ref()
-		// TODO: if the price wasn't provided, set the estPrice
-		// prod.Variants[i].estPrice(claims.HourlyRate(), 1)
+		prod.Variants[i].ProductSKU = prod.SKU()
+		if prod.Variants[i].Price == 0 {
+			// TODO: populate the used materials to set the price
+			prod.Variants[i].Price = prod.Variants[i].EstPrice()
+		}
+		if prod.Variants[i].WholesalePrice == 0 {
+			// TODO: populate the used materials to set the price
+			prod.Variants[i].Price = prod.Variants[i].EstWholesalePrice()
+		}
 	}
 
 	return s.repo.CreateProduct(prod, options...)
 }
 
-func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) error {
+func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) (*Product, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
-		return errs.ErrForbidden
+		return nil, errs.ErrForbidden
 	}
 
 	err := s.sanitizer.SanitizeStruct(uprod)
 	if err != nil {
-		return errs.ErrSanitizer
+		return nil, errs.ErrSanitizer
 	}
 
 	if err := s.validator.Validate(uprod); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
 
 	prod, err := s.repo.GetProductByID(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if prod.Category != uprod.Category {
-		newnum, err := s.counterService.AddOneToProduct(claims, uprod.Category)
+		newnum, err := s.counterService.AddOneToProduct(claims, uprod.Category.Code())
 		if err != nil {
-			return err
+			return nil, err
 		}
 		uprod.Number = newnum
 	} else {
@@ -110,7 +110,15 @@ func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, i
 	uprod.CreatedAt = prod.CreatedAt
 
 	for i := range uprod.Variants {
-		uprod.Variants[i].ProductRef = uprod.Ref()
+		prod.Variants[i].ProductSKU = prod.SKU()
+		if prod.Variants[i].Price == 0 {
+			// TODO: populate the used materials to set the price
+			prod.Variants[i].Price = prod.Variants[i].EstPrice()
+		}
+		if prod.Variants[i].WholesalePrice == 0 {
+			// TODO: populate the used materials to set the price
+			prod.Variants[i].Price = prod.Variants[i].EstWholesalePrice()
+		}
 	}
 
 	// This keeps the variant even if the new update data doesn't

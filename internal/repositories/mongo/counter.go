@@ -1,49 +1,39 @@
 package mongo
 
 import (
+	"errors"
 	"fmt"
 
+	product "github.com/omareloui/odinls/internal/application/core/_product"
 	"github.com/omareloui/odinls/internal/application/core/counter"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const amountToIncrement = 1
 
-func (r *repository) CreateCounter(cntr *counter.Counter) error {
+func (r *repository) createCounter(cntr *counter.Counter) (*counter.Counter, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	doc, err := r.bu.MarshalBsonD(cntr)
-	if err != nil {
-		return err
-	}
-
-	res, err := r.countersColl.InsertOne(ctx, doc)
-
-	if err == nil {
-		cntr.ID = res.InsertedID.(primitive.ObjectID).Hex()
-	}
-
-	if ok := mongo.IsDuplicateKeyError(err); ok {
-		return counter.ErrAlreadyExistingCounter
-	}
-
-	return err
+	return InsertStruct(ctx, r.countersColl, cntr)
 }
 
-func (r *repository) GetCounter() (*counter.Counter, error) {
+func (r *repository) getCounter() (*counter.Counter, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	cntr := &counter.Counter{}
-
-	err := r.countersColl.FindOne(ctx, bson.M{}).Decode(cntr)
+	cntr, err := GetOne[counter.Counter](ctx, r.countersColl, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, counter.ErrCounterNotFound
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			codes := product.CategoriesCodes()
+			pcodes := make(counter.ProductsCodes, len(codes))
+			for _, code := range codes {
+				pcodes[code] = 0
+			}
+			return r.createCounter(&counter.Counter{ProductsCodes: pcodes})
 		}
+
 		return nil, err
 	}
 
@@ -54,48 +44,42 @@ func (r *repository) AddOneToProduct(category string) (uint8, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	cntr, err := r.GetCounter()
-	if err != nil {
-		return 0, err
-	}
-
 	filter := bson.M{}
 	update := bson.M{
 		"$inc": bson.M{fmt.Sprintf("products_codes.%s", category): amountToIncrement},
 	}
 
-	updated, err := r.countersColl.UpdateOne(ctx, filter, update)
+	err := UpdateOne[counter.Counter](ctx, r.countersColl, filter, update)
 	if err != nil {
 		return 0, err
 	}
-	if updated.ModifiedCount == 0 {
-		return 0, counter.ErrCounterNotFound
+
+	cntr, err := r.getCounter()
+	if err != nil {
+		return 0, err
 	}
 
-	return cntr.ProductsCodes[category] + amountToIncrement, nil
+	return cntr.ProductsCodes[category], nil
 }
 
 func (r *repository) AddOneToOrder() (uint, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	cntr, err := r.GetCounter()
-	if err != nil {
-		return 0, err
-	}
-
 	filter := bson.M{}
 	update := bson.M{
 		"$inc": bson.M{"orders_number": amountToIncrement},
 	}
 
-	updated, err := r.countersColl.UpdateOne(ctx, filter, update)
+	err := UpdateOne[counter.Counter](ctx, r.countersColl, filter, update)
 	if err != nil {
 		return 0, err
 	}
-	if updated.ModifiedCount == 0 {
-		return 0, counter.ErrCounterNotFound
+
+	cntr, err := r.getCounter()
+	if err != nil {
+		return 0, err
 	}
 
-	return cntr.OrdersNumber + amountToIncrement, nil
+	return cntr.OrdersNumber, nil
 }

@@ -5,97 +5,45 @@ import (
 	"math"
 	"time"
 
-	"github.com/omareloui/odinls/internal/application/core/user"
+	"github.com/omareloui/odinls/internal/application/core/material"
 )
 
 const (
+	hourlyRate = 60
+
+	monthlyFixedCosts = 6000
+	monthlyWorkHours  = 176
+	hourlyFixedCosts  = monthlyFixedCosts / monthlyWorkHours
+
 	incalculableCostsPercentage = 0.05
-	commercialProfitPercentage  = 1
-	wholesaleProfitPercentage   = 0.4
+
+	retailProfitPercentage    = 1
+	wholesaleProfitPercentage = 0.5
 )
-
-type CategoryEnum uint8
-
-const (
-	BackPacks CategoryEnum = iota
-	Bags
-	Bookmarks
-	Bracelets
-	Cuffs
-	DeskPads
-	Folders
-	HairSliders
-	HandBags
-	Masks
-	PhoneCases
-	Tools
-	Wallets
-)
-
-func (c *CategoryEnum) String() string {
-	return [...]string{
-		"Back Packs", "Bags", "Bookmarks", "Bracelets",
-		"Cuffs", "Desk Pads", "Folders", "Hair Sliders",
-		"Hand Bags", "Masks", "Phone Cases", "Tools",
-		"Wallets",
-	}[*c]
-}
-
-func (c *CategoryEnum) Code() string {
-	return [...]string{
-		"BKPK", "BAGS", "BKMR", "BRCT",
-		"CUFS", "DKPD", "FLDR", "HSLD",
-		"HNDB", "MASK", "FNCS", "TOLS",
-		"WLET",
-	}[*c]
-}
-
-func CategoriesEnums() []CategoryEnum {
-	return []CategoryEnum{
-		BackPacks, Bags, Bookmarks, Bracelets,
-		Cuffs, DeskPads, Folders, HairSliders,
-		HandBags, Masks, PhoneCases,
-		Tools,
-		Wallets,
-	}
-}
-
-func CategoriesStrings() []string {
-	catenums := CategoriesEnums()
-	categories := make([]string, len(catenums))
-	for _, catenum := range CategoriesEnums() {
-		categories = append(categories, catenum.String())
-	}
-	return categories
-}
-
-func CategoriesCodes() []string {
-	catenums := CategoriesEnums()
-	categories := make([]string, len(catenums))
-	for _, catenum := range catenums {
-		categories = append(categories, catenum.Code())
-	}
-	return categories
-}
 
 type Product struct {
 	ID     string `json:"id" bson:"_id,omitempty"`
 	Number uint8  `json:"number" bson:"number,omitempty"`
 
-	Name        string `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
-	Description string `json:"description" bson:"description,omitempty" conform:"trim"`
-	Category    string `json:"category" bson:"category,omitempty" conform:"trim,upper" validate:"required,oneof=BKPK BAGS BKMR BRCT CUFS DKPD FLDR HSLD HNDB MASK FNCS TOLS WLET"`
+	Name        string       `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
+	Description string       `json:"description" bson:"description,omitempty" conform:"trim"`
+	Category    CategoryEnum `json:"category" bson:"category,omitempty" conform:"trim,upper" validate:"required"`
 
 	Variants []Variant `json:"variants" bson:"variants" validate:"required,min=1,dive"`
 
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
-
-	Craftsman *user.User `json:"craftsman" bson:"populatedCraftsman,omitempty"`
 }
 
-func (p *Product) Ref() string {
-	return fmt.Sprintf("%s%03d", p.Category, int(p.Number))
+func (p *Product) SKU() string {
+	return fmt.Sprintf("%s%03d", p.Category.Code(), int(p.Number))
+}
+
+type MaterialUsage struct {
+	MaterialID string  `json:"material_id" bson:"material_id"`
+	Quantity   float64 `json:"quantity" bson:"quantity"`
+
+	Material *material.Material `json:"material" bson:"populated_material"`
 }
 
 type Variant struct {
@@ -104,37 +52,62 @@ type Variant struct {
 	Name        string `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
 	Description string `json:"description" conform:"trim" bson:"description,omitempty"`
 
-	MaterialsCost  float64 `json:"materials_cost" bson:"materials_cost"`
+	// The options that make this variant
+	Options map[string]string `json:"options" bson:"options,omitempty"`
+
+	MaterialUsage []MaterialUsage `json:"material_usage" bson:"material_usage"`
+
 	Price          float64 `json:"price" bson:"price"`
 	WholesalePrice float64 `json:"wholesale_price" bson:"wholesale_price"`
 
 	TimeToCraft time.Duration `json:"time_to_craft" bson:"time_to_craft,omitempty"`
-	ProductRef  string        `json:"product_ref" bson:"product_ref,omitempty"`
+	ProductSKU  string        `json:"-" bson:"-"`
 }
 
-func (v *Variant) Ref() string {
-	return fmt.Sprintf("%s-%s", v.ProductRef, v.Suffix)
+func (v *Variant) SKU() string {
+	return fmt.Sprintf("%s-%s", v.ProductSKU, v.Suffix)
 }
 
-func (v *Variant) TotalCost(hourlyRate float64) float64 {
-	timeCost := hourlyRate * v.TimeToCraft.Hours()
-	materialsCost := v.MaterialsCost * (1 + incalculableCostsPercentage)
-	return materialsCost + timeCost
+func (v *Variant) MaterialCost() float64 {
+	var sum float64 = 0
+	for _, u := range v.MaterialUsage {
+		if u.Material == nil {
+			return 0
+		}
+		sum += u.Quantity * u.Material.PricePerUnit
+	}
+	return sum * (1 + incalculableCostsPercentage)
 }
 
-func (v *Variant) EstPrice(hourlyRate float64) float64 {
-	return v.estPrice(hourlyRate, commercialProfitPercentage)
+func (v *Variant) TimeCost() float64 {
+	return hourlyRate * v.TimeToCraft.Hours()
 }
 
-func (v *Variant) EstWholesalePrice(hourlyRate float64) float64 {
-	return v.estPrice(hourlyRate, wholesaleProfitPercentage)
+func (v *Variant) FixedCost() float64 {
+	return hourlyFixedCosts * v.TimeToCraft.Hours()
 }
 
-func (v *Variant) estPrice(hourlyRate, profitPercentage float64) float64 {
-	return math.Floor((v.TotalCost(hourlyRate)*(1+profitPercentage))/5) * 5
+func (v *Variant) TotalCost() float64 {
+	return v.TimeCost() + v.MaterialCost() + v.FixedCost()
 }
 
-func (v *Variant) Profit(hourlyRate float64) float64 {
-	// TODO: include labor cost?
-	return v.Price - v.MaterialsCost
+func (v *Variant) EstPrice() float64 {
+	return v.estPrice(retailProfitPercentage)
+}
+
+func (v *Variant) EstWholesalePrice() float64 {
+	return v.estPrice(wholesaleProfitPercentage)
+}
+
+func (v *Variant) estPrice(profitPercentage float64) float64 {
+	return math.Floor((v.TotalCost()*(1+profitPercentage))/5) * 5
+}
+
+func (v *Variant) Profit(price float64) float64 {
+	return price - v.TotalCost()
+}
+
+func (v *Variant) MaxDiscountPercentage(price float64) float64 {
+	profit := v.Profit(price)
+	return profit / price * 100
 }

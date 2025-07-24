@@ -1,9 +1,15 @@
-package user
+package material
 
 type (
 	RetrieveOptsFunc func(*RetrieveOpts)
-	RetrieveOpts     struct{}
+	RetrieveOpts     struct {
+		PopulateSupplier bool
+	}
 )
+
+func WithPopulatedSupplier(opts *RetrieveOpts) {
+	opts.PopulateSupplier = true
+}
 
 func ParseRetrieveOpts(funcs ...RetrieveOptsFunc) *RetrieveOpts {
 	o := &RetrieveOpts{}

@@ -140,9 +140,9 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 				"from":         usersCollectionName,
 				"localField":   "craftsmen",
 				"foreignField": "_id",
-				"as":           "populatedCraftsmen",
+				"as":           "populated_craftsmen",
 			},
-		}, bson.M{"$unwind": bson.M{"path": "$populatedCraftsmen", "preserveNullAndEmptyArrays": true}})
+		}, bson.M{"$unwind": bson.M{"path": "$populated_craftsmen", "preserveNullAndEmptyArrays": true}})
 	}
 	if opts.PopulateClient {
 		*pipeline = append(*pipeline, bson.M{
@@ -150,9 +150,9 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 				"from":         clientsCollectionName,
 				"localField":   "client",
 				"foreignField": "_id",
-				"as":           "populatedClient",
+				"as":           "populated_client",
 			},
-		}, bson.M{"$unwind": bson.M{"path": "$populatedClient", "preserveNullAndEmptyArrays": true}})
+		}, bson.M{"$unwind": bson.M{"path": "$populated_client", "preserveNullAndEmptyArrays": true}})
 	}
 	if opts.PopulateItemProducts {
 		*pipeline = append(*pipeline, bson.M{
@@ -161,7 +161,7 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 				// TODO(research): THIS IS AN ARRAY, HOW WILL IT WORK?
 				"localField":   "items.product",
 				"foreignField": "_id",
-				"as":           "items.populatedProduct",
+				"as":           "items.populated_product",
 			},
 		})
 	}
@@ -173,7 +173,7 @@ func buildPipelineForOrdersFromOpts(pipeline *bson.A, opts *order.RetrieveOpts) 
 				// TODO(research): THIS IS AN ARRAY, HOW WILL IT WORK?
 				"localField":   "items.variant",
 				"foreignField": "variants._id",
-				"as":           "items.populatedVariant",
+				"as":           "items.populated_variant",
 			},
 		})
 	}

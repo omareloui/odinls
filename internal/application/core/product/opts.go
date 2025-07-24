@@ -3,12 +3,12 @@ package product
 type (
 	RetrieveOptsFunc func(*RetrieveOpts)
 	RetrieveOpts     struct {
-		PopulateCraftsman bool
+		PopulateUsedMaterial bool
 	}
 )
 
-func WithPopulatedCraftsman(opts *RetrieveOpts) {
-	opts.PopulateCraftsman = true
+func WithPopulatedUserMaterial(opts *RetrieveOpts) {
+	opts.PopulateUsedMaterial = true
 }
 
 func ParseRetrieveOpts(funcs ...RetrieveOptsFunc) *RetrieveOpts {

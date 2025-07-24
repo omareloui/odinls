@@ -2,120 +2,112 @@ package user
 
 import (
 	"errors"
-	"time"
 
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const passwordHashCost = 14
 
-var (
-	ErrUserNotFound          = errors.New("user not found")
-	ErrEmailAlreadyExists    = errors.New("user email exists")
-	ErrUsernameAlreadyExists = errors.New("user username Exists")
-)
-
 type userService struct {
-	userRepository UserRepository
-	validator      interfaces.Validator
-	sanitizer      interfaces.Sanitizer
+	repo      UserRepository
+	validator interfaces.Validator
+	sanitizer interfaces.Sanitizer
 }
 
 func NewUserService(userRepository UserRepository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) UserService {
 	return &userService{
-		userRepository: userRepository,
-		validator:      validator,
-		sanitizer:      sanitizer,
+		repo:      userRepository,
+		validator: validator,
+		sanitizer: sanitizer,
 	}
 }
 
-func (s *userService) GetUsers(opts ...RetrieveOptsFunc) ([]User, error) {
-	return s.userRepository.GetUsers(opts...)
+func (s *userService) GetUsers() ([]User, error) {
+	return s.repo.GetUsers()
 }
 
-func (s *userService) GetUserByEmailOrUsername(emailOrUsername string, opts ...RetrieveOptsFunc) (*User, error) {
-	return s.userRepository.FindUserByEmailOrUsername(s.sanitizer.Lower(s.sanitizer.Trim(emailOrUsername)), opts...)
+func (s *userService) GetUserByEmailOrUsername(emailOrUsername string) (*User, error) {
+	return s.repo.GetUserByEmailOrUsername(s.sanitizer.Lower(s.sanitizer.Trim(emailOrUsername)))
 }
 
-func (s *userService) GetUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error) {
+func (s *userService) GetUserByEmailOrUsernameFromUser(usr *User) (*User, error) {
 	err := s.sanitizer.SanitizeStruct(usr)
 	if err != nil {
 		return nil, errs.ErrSanitizer
 	}
-	return s.userRepository.FindUserByEmailOrUsernameFromUser(usr, opts...)
+	return s.repo.GetUserByEmailOrUsernameFromUser(usr)
 }
 
-func (s *userService) GetUserByID(id string, opts ...RetrieveOptsFunc) (*User, error) {
-	return s.userRepository.FindUser(id, opts...)
+func (s *userService) GetUserByID(id string) (*User, error) {
+	return s.repo.GetUser(id)
 }
 
-func (s *userService) CreateUser(usr *User, opts ...RetrieveOptsFunc) error {
+func (s *userService) CreateUser(usr *User) (*User, error) {
 	err := s.sanitizer.SanitizeStruct(usr)
 	if err != nil {
-		return errs.ErrSanitizer
+		return nil, errs.ErrSanitizer
 	}
 
 	if err := s.validator.Validate(usr); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
 
 	passStr := usr.Password
 	hash, err := bcrypt.GenerateFromPassword([]byte(passStr), passwordHashCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	usr.Password = string(hash)
 
-	usr.CreatedAt = time.Now()
-	usr.UpdatedAt = time.Now()
-
-	err = s.userRepository.CreateUser(usr, opts...)
-	if err != nil {
-		usr.Password = passStr
-		usr.ConfirmPassword = passStr
-	}
-
-	return err
+	return s.repo.CreateUser(usr)
 }
 
-func (s *userService) UpdateUserByID(id string, usr *User, opts ...RetrieveOptsFunc) error {
+func (s *userService) UpdateUserByID(id string, usr *User) (*User, error) {
 	err := s.sanitizer.SanitizeStruct(usr)
 	if err != nil {
-		return errs.ErrSanitizer
+		return nil, errs.ErrSanitizer
 	}
 
 	if err := s.validator.Validate(usr); err != nil {
 		valerr := s.validator.ParseError(err)
 		delete(valerr.Errors, "Password")
 		if len(valerr.Errors) > 0 {
-			return valerr
+			return nil, valerr
 		}
 	}
 
-	sameEmailUsr, err := s.userRepository.FindUserByEmailOrUsername(usr.Email)
-	if err != nil && !errors.Is(err, ErrUserNotFound) {
-		return err
+	sameEmailUsr, err := s.repo.GetUserByEmailOrUsername(usr.Email)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, err
 	}
 	if sameEmailUsr != nil && sameEmailUsr.ID != id {
-		return ErrEmailAlreadyExists
+		return nil, errs.ErrDocumentAlreadyExists
 	}
 
-	sameUsernameUsr, err := s.userRepository.FindUserByEmailOrUsername(usr.Username)
-	if err != nil && !errors.Is(err, ErrUserNotFound) {
-		return err
+	sameUsernameUsr, err := s.repo.GetUserByEmailOrUsername(usr.Username)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, err
 	}
 	if sameUsernameUsr != nil && sameUsernameUsr.ID != id {
-		return ErrUsernameAlreadyExists
+		return nil, errs.ErrDocumentAlreadyExists
 	}
 
-	usr.UpdatedAt = time.Now()
+	if usr.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(usr.Password), passwordHashCost)
+		if err != nil {
+			return nil, err
+		}
 
-	return s.userRepository.UpdateUserByID(id, usr, opts...)
+		usr.Password = string(hash)
+	}
+
+	return s.repo.UpdateUserByID(id, usr)
 }
 
-func (s *userService) UnsetCraftsmanByID(id string) error {
-	return s.userRepository.UnsetCraftsmanByID(id)
+func (s *userService) UnsetCraftsmanByID(id string) (*User, error) {
+	return s.repo.UnsetCraftsmanByID(id)
 }

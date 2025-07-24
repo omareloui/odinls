@@ -31,3 +31,11 @@ packages:
     interfaces:
       OrderService:
       OrderRepository:
+  github.com/omareloui/odinls/internal/application/core/supplier:
+    interfaces:
+      SupplierService:
+      SupplierRepository:
+  github.com/omareloui/odinls/internal/application/core/material:
+    interfaces:
+      MaterialService:
+      MaterialRepository:

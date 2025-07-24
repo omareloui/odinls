@@ -68,31 +68,42 @@ func (bu *BsonUtils) MarshalBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
 	return doc, nil
 }
 
-func (bu *BsonUtils) WithObjectID(key string) OptsFunc {
+func (bu *BsonUtils) MarshalInsertBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
+	now := time.Now()
+	opts = append(opts,
+		WithFieldToAdd("created_at", now),
+		WithFieldToAdd("updated_at", now),
+	)
+	return bu.MarshalBsonD(rec, opts...)
+}
+
+func (bu *BsonUtils) MarshalUpdateBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
+	return bu.MarshalBsonD(rec,
+		WithFieldToRemove("_id"),
+		WithFieldToRemove("created_at"),
+		WithFieldToAdd("updated_at", time.Now()),
+	)
+}
+
+func WithObjectID(key string) OptsFunc {
 	return func(opts *opts) {
 		opts.objIDKeys = append(opts.objIDKeys, key)
 	}
 }
 
-func (bu *BsonUtils) WithStringfied(key string) OptsFunc {
+func WithStringfied(key string) OptsFunc {
 	return func(opts *opts) {
 		opts.stringifyKeys = append(opts.stringifyKeys, key)
 	}
 }
 
-func (bu *BsonUtils) WithFieldToAdd(key string, val any) OptsFunc {
+func WithFieldToAdd(key string, val any) OptsFunc {
 	return func(opts *opts) {
 		opts.append = append(opts.append, bson.E{Key: key, Value: val})
 	}
 }
 
-func (bu *BsonUtils) WithUpdatedAt() OptsFunc {
-	return func(opts *opts) {
-		opts.append = append(opts.append, bson.E{Key: "updated_at", Value: time.Now()})
-	}
-}
-
-func (bu *BsonUtils) WithFieldToRemove(key string) OptsFunc {
+func WithFieldToRemove(key string) OptsFunc {
 	return func(opts *opts) {
 		if opts.removeKeys == nil {
 			opts.removeKeys = []string{}

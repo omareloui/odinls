@@ -1,17 +1,9 @@
 package client
 
 import (
-	"errors"
-	"time"
-
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-)
-
-var (
-	ErrClientNotFound = errors.New("client not found")
-	ErrClientExists   = errors.New("client exists")
 )
 
 type clientService struct {
@@ -28,64 +20,54 @@ func NewClientService(clientRepository ClientRepository, validator interfaces.Va
 	}
 }
 
-func (s *clientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts ...RetrieveOptsFunc) ([]Client, error) {
+func (s *clientService) GetClients(claims *jwtadapter.JwtAccessClaims) ([]Client, error) {
 	if claims == nil || (!claims.Role.IsModerator() && !claims.IsCraftsman()) {
 		return nil, errs.ErrForbidden
 	}
 
-	return s.repo.GetClients(opts...)
+	return s.repo.GetClients()
 }
 
-func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...RetrieveOptsFunc) (*Client, error) {
+func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id string) (*Client, error) {
 	if claims == nil || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
 
-	return s.repo.GetClientByID(id, opts...)
+	return s.repo.GetClientByID(id)
 }
 
-func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client *Client, opts ...RetrieveOptsFunc) error {
+func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client *Client) (*Client, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
-		return errs.ErrForbidden
+		return nil, errs.ErrForbidden
 	}
 
 	err := s.sanitizeClient(client)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := s.validator.Validate(client); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
 
-	now := time.Now()
-	client.CreatedAt = now
-	client.UpdatedAt = now
-
-	return s.repo.CreateClient(client, opts...)
+	return s.repo.CreateClient(client)
 }
 
-func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, client *Client, opts ...RetrieveOptsFunc) error {
+func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, client *Client) (*Client, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
-		return errs.ErrForbidden
+		return nil, errs.ErrForbidden
 	}
 
 	err := s.sanitizeClient(client)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := s.validator.Validate(client); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
 
-	// TODO(refactor): make sure to update the updated from the SERVICE level in all services
-	// TODO(refactor): DON'T as this is a database responsibility, move everything there.
-
-	client.CreatedAt = time.Time{}
-	client.UpdatedAt = time.Now()
-
-	return s.repo.UpdateClientByID(id, client, opts...)
+	return s.repo.UpdateClientByID(id, client)
 }
 
 func (s *clientService) sanitizeClient(cli *Client) error {
