@@ -6,7 +6,6 @@ type (
 		PopulateCraftsmen    bool
 		PopulateClient       bool
 		PopulateItemProducts bool
-		PopulateItemVariants bool
 	}
 )
 
