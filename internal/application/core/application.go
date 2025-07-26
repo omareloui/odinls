@@ -3,9 +3,8 @@ package application
 import (
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/application/core/counter"
-
-	// "github.com/omareloui/odinls/internal/application/core/order"
 	"github.com/omareloui/odinls/internal/application/core/material"
+	"github.com/omareloui/odinls/internal/application/core/order"
 	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/application/core/supplier"
 	"github.com/omareloui/odinls/internal/application/core/user"
@@ -14,12 +13,12 @@ import (
 )
 
 type Application struct {
-	UserService    user.UserService
-	ClientService  client.ClientService
-	ProductService product.ProductService
-	// OrderService    order.OrderService
-	SupplierService supplier.SupplierService
+	ClientService   client.ClientService
 	MaterialService material.MaterialService
+	OrderService    order.OrderService
+	ProductService  product.ProductService
+	SupplierService supplier.SupplierService
+	UserService     user.UserService
 }
 
 func NewApplication(repo repository.Repository, validator interfaces.Validator, sanitizer interfaces.Sanitizer) *Application {
@@ -28,11 +27,11 @@ func NewApplication(repo repository.Repository, validator interfaces.Validator, 
 	productService := product.NewProductService(repo, validator, sanitizer, counterService)
 
 	return &Application{
-		UserService:    user.NewUserService(repo, validator, sanitizer),
-		ClientService:  client.NewClientService(repo, validator, sanitizer),
-		ProductService: productService,
-		// OrderService:    order.NewOrderService(repo, productService, counterService, validator, sanitizer),
-		SupplierService: supplier.NewSupplierService(repo, validator, sanitizer),
+		ClientService:   client.NewClientService(repo, validator, sanitizer),
 		MaterialService: material.NewMaterialService(repo, validator, sanitizer),
+		OrderService:    order.NewOrderService(repo, productService, counterService, validator, sanitizer),
+		ProductService:  productService,
+		SupplierService: supplier.NewSupplierService(repo, validator, sanitizer),
+		UserService:     user.NewUserService(repo, validator, sanitizer),
 	}
 }
