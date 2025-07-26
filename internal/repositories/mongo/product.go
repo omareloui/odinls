@@ -48,39 +48,6 @@ func (r *repository) GetProductByVariantID(id string, options ...product.Retriev
 	return &docs[0], nil
 }
 
-func (r *repository) GetProductByIDAndVariantID(id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
-	opts := product.ParseRetrieveOpts(options...)
-
-	ctx, cancel := r.newCtx()
-	defer cancel()
-
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errs.ErrInvalidID
-	}
-
-	varObjID, err := primitive.ObjectIDFromHex(variantId)
-	if err != nil {
-		return nil, errs.ErrInvalidID
-	}
-
-	docs, err := PopulateAggregation[product.Product](ctx, r.productsColl,
-		bson.A{
-			bson.M{
-				"$match": bson.M{
-					"_id":          objID,
-					"variants._id": varObjID,
-				},
-			},
-		},
-		r.productPotsToPopulateOpts(opts)...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &docs[0], nil
-}
-
 func (r *repository) CreateProduct(prod *product.Product, options ...product.RetrieveOptsFunc) (*product.Product, error) {
 	ctx, cancel := r.newCtx()
 	defer cancel()

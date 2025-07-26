@@ -37,10 +37,6 @@ func (s *productService) GetProductByVariantID(claims *jwtadapter.JwtAccessClaim
 	return s.repo.GetProductByVariantID(id, options...)
 }
 
-func (s *productService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccessClaims, id string, variantId string, options ...RetrieveOptsFunc) (*Product, error) {
-	return s.repo.GetProductByIDAndVariantID(id, variantId, options...)
-}
-
 func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, options ...RetrieveOptsFunc) (*Product, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
