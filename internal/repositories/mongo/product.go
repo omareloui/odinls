@@ -13,7 +13,7 @@ func (r *repository) GetProducts(options ...product.RetrieveOptsFunc) ([]product
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	return PopulateAggregation[product.Product](ctx, r.productsColl, bson.A{}, r.productPotsToPopulateOpts(opts)...)
+	return PopulateAggregation[product.Product](ctx, r.productsColl, bson.A{}, r.productOptsToPopulateOpts(opts)...)
 }
 
 func (r *repository) GetProductByID(id string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
@@ -22,7 +22,7 @@ func (r *repository) GetProductByID(id string, options ...product.RetrieveOptsFu
 	ctx, cancel := r.newCtx()
 	defer cancel()
 
-	return PopulateAggregationByID[product.Product](ctx, r.productsColl, id, r.productPotsToPopulateOpts(opts)...)
+	return PopulateAggregationByID[product.Product](ctx, r.productsColl, id, r.productOptsToPopulateOpts(opts)...)
 }
 
 func (r *repository) GetProductByVariantID(id string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
@@ -40,7 +40,7 @@ func (r *repository) GetProductByVariantID(id string, options ...product.Retriev
 		bson.A{
 			bson.M{"$match": bson.M{"variants._id": objID}},
 		},
-		r.productPotsToPopulateOpts(opts)...)
+		r.productOptsToPopulateOpts(opts)...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (r *repository) UpdateProductByID(id string, prod *product.Product, options
 	return r.GetProductByID(doc.ID, options...)
 }
 
-func (r *repository) productPotsToPopulateOpts(opts *product.RetrieveOpts) []populateOpts {
+func (r *repository) productOptsToPopulateOpts(opts *product.RetrieveOpts) []populateOpts {
 	return []populateOpts{{
 		include:      opts.PopulateUsedMaterial,
 		from:         usersCollectionName,
