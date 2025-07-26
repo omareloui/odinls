@@ -52,70 +52,77 @@ func (s *orderService) GetOrderByID(claims *jwtadapter.JwtAccessClaims, id strin
 	return s.repo.GetOrderByID(id, options...)
 }
 
-func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Order, options ...RetrieveOptsFunc) error {
+func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Order, options ...RetrieveOptsFunc) (*Order, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
-		return errs.ErrForbidden
-	}
-
-	err := s.sanitizer.SanitizeStruct(ord)
-	if err != nil {
-		return errs.ErrSanitizer
-	}
-
-	if err := s.validator.Validate(ord); err != nil {
-		return s.validator.ParseError(err)
-	}
-
-	for i, item := range ord.Items {
-		// Set the price
-		prod, err := s.productService.GetProductByIDAndVariantID(claims, item.ProductID, item.VariantID)
-		if err != nil {
-			return err
-		}
-		variantIdx := slices.IndexFunc(prod.Variants, func(v product.Variant) bool {
-			return v.ID == ord.Items[i].VariantID
-		})
-		if variantIdx == -1 {
-			log.Fatalln("invalid variant index: (searching a variant after getting it back by searching for a product with its id and its variant id)")
-		}
-		ord.Items[i].Price = prod.Variants[variantIdx].Price
-
-		// Set the default progress status
-		ord.Items[i].Progress = ItemProgressNotStarted.String()
+		return nil, errs.ErrForbidden
 	}
 
 	ord.Ref, _ = nanoid.Generate(refAlphabet, refSize)
 
-	ord.Subtotal = ord.calcSubtotal()
-
 	num, err := s.counterService.AddOneToOrder(claims)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	ord.Number = num
 
-	now := time.Now()
-	ord.CreatedAt = now
-	ord.UpdatedAt = now
+	if ord.Timeline.IssuanceDate.IsZero() {
+		ord.Timeline.IssuanceDate = time.Now()
+	}
+
+	for i, item := range ord.Items {
+		prod, err := s.productService.GetProductByVariantID(claims, item.Snapshot.VariantID)
+		if err != nil {
+			return nil, err
+		}
+
+		variantIdx := slices.IndexFunc(prod.Variants, func(v product.Variant) bool {
+			return v.ID == ord.Items[i].Snapshot.VariantID
+		})
+		if variantIdx == -1 {
+			log.Fatalln("invalid variant index: (searching a variant after getting it back by searching for a product with its id and its variant id)")
+		}
+		variant := prod.Variants[variantIdx]
+
+		ord.Items[i].Snapshot.ProductID = prod.ID
+		ord.Items[i].Snapshot.ProductName = prod.Name
+		ord.Items[i].Snapshot.Category = prod.Category
+
+		ord.Items[i].Snapshot.SKU = variant.SKU()
+		ord.Items[i].Snapshot.VariantName = variant.Name
+		ord.Items[i].Snapshot.Options = variant.Options
+
+		ord.Items[i].Snapshot.Price = variant.Price
+
+		ord.Items[i].Snapshot.TimeToCraft = variant.TimeToCraft
+
+		ord.Items[i].Progress = ItemProgressNotStarted
+	}
+
+	err = s.sanitizer.SanitizeStruct(ord)
+	if err != nil {
+		return nil, errs.ErrSanitizer
+	}
+
+	if err := s.validator.Validate(ord); err != nil {
+		return nil, s.validator.ParseError(err)
+	}
 
 	return s.repo.CreateOrder(ord, options...)
 }
 
-func (s *orderService) UpdateOrderByID(claims *jwtadapter.JwtAccessClaims, id string, uord *Order, options ...RetrieveOptsFunc) error {
+func (s *orderService) UpdateOrderByID(claims *jwtadapter.JwtAccessClaims, id string, uord *Order, options ...RetrieveOptsFunc) (*Order, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
-		return errs.ErrForbidden
+		return nil, errs.ErrForbidden
 	}
 
 	err := s.sanitizer.SanitizeStruct(uord)
 	if err != nil {
-		return errs.ErrSanitizer
+		return nil, errs.ErrSanitizer
 	}
 
 	if err := s.validator.Validate(uord); err != nil {
-		return s.validator.ParseError(err)
+		return nil, s.validator.ParseError(err)
 	}
-
-	uord.UpdatedAt = time.Now()
 
 	return s.repo.UpdateOrderByID(id, uord, options...)
 }

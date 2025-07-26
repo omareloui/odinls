@@ -206,7 +206,12 @@ func PopulateAggregation[T any](ctx context.Context, coll *mongo.Collection, fil
 			})
 
 			if !pop.isMany {
-				pipeline = append(pipeline, bson.M{"$unwind": fmt.Sprintf("$%s", pop.as)})
+				pipeline = append(pipeline, bson.M{
+					"$unwind": bson.M{
+						"path":                       fmt.Sprintf("$%s", pop.as),
+						"preserveNullAndEmptyArrays": true,
+					},
+				})
 			}
 		}
 	}

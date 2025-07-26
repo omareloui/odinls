@@ -38,21 +38,6 @@ type Order struct {
 	Client *client.Client `json:"client" bson:"populated_client,omitempty"`
 }
 
-type Item struct {
-	ID       string           `json:"id" bson:"_id,omitempty" validate:"omitempty,mongodb"`
-	Progress ItemProgressEnum `json:"progress" bson:"progress" validate:"omitempty"`
-
-	CraftsmanID string `json:"craftsman_id,omitzero" bson:"craftsman,omitempty" validate:"omitempty,mongodb"`
-
-	CustomUnitPrice float64 `json:"custom_price" bson:"custom_price" validate:"gte=0"`
-	Quantity        uint16  `json:"quantity" bson:"quantity"`
-
-	Snapshot ItemSnapshot `json:"snapshot" bson:"snapshot,omitempty"`
-
-	Product   *product.Product `json:"product" bson:"populated_product"`
-	Craftsman *user.User       `json:"craftsman" bson:"populated_craftsman,omitempty"`
-}
-
 type PriceAddon struct {
 	Kind         PriceAddonKindEnum `json:"kind" bson:"kind" validate:"required"`
 	Amount       float64            `json:"amount" bson:"amount" validate:"required,gte=1"`
@@ -68,27 +53,40 @@ type Timeline struct {
 	DueDate       time.Time `json:"due_date,omitzero" bson:"due_date,omitempty" validate:"omitempty,gtfield=IssuanceDate"`
 }
 
+type ReceivedAmount struct {
+	Amount float64   `json:"amount" bson:"amount" validate:"required,lte=0"`
+	Date   time.Time `json:"date" bson:"date" validate:"required"`
+}
+
+type Item struct {
+	ID       string           `json:"id" bson:"_id,omitempty" validate:"omitempty,mongodb"`
+	Progress ItemProgressEnum `json:"progress" bson:"progress" validate:"omitempty"`
+
+	CraftsmanID string `json:"craftsman_id,omitzero" bson:"craftsman,omitempty" validate:"omitempty,mongodb"`
+
+	CustomUnitPrice float64 `json:"custom_price" bson:"custom_price" validate:"gte=0"`
+	Quantity        uint16  `json:"quantity" bson:"quantity"`
+
+	Snapshot ItemSnapshot `json:"snapshot" bson:"snapshot,omitempty"`
+
+	Product   *product.Product `json:"product" bson:"populated_product"`
+	Craftsman *user.User       `json:"craftsman" bson:"populated_craftsman,omitempty"`
+}
+
 type ItemSnapshot struct {
-	ProductID string `json:"product_id" bson:"product_id,omitempty"`
+	ProductID string `json:"product_id" bson:"product,omitempty"`
 
 	ProductName string               `json:"name" bson:"name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
 	Category    product.CategoryEnum `json:"category" bson:"category,omitempty" conform:"trim,upper" validate:"required"`
 
-	VariantID   string `json:"variant_id" bson:"variant_id,omitempty" validate:"required,mongodb"`
-	VariantName string `json:"variant_name" bson:"variant_name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
-	SKU         string `json:"sku" bson:"sku,omitempty"`
+	VariantID   string            `json:"variant_id" bson:"variant_id,omitempty" validate:"required,mongodb"`
+	VariantName string            `json:"variant_name" bson:"variant_name,omitempty" conform:"trim,title" validate:"required,min=3,max=255"`
+	SKU         string            `json:"sku" bson:"sku,omitempty"`
+	Options     map[string]string `json:"options" bson:"options,omitempty"`
 
-	Options map[string]string `json:"options" bson:"options,omitempty"`
-
-	Price          float64 `json:"price" bson:"price" validate:"required,gte=0"`
-	WholesalePrice float64 `json:"wholesale_price" bson:"wholesale_price"`
+	Price float64 `json:"price" bson:"price" validate:"required,gte=0"`
 
 	TimeToCraft time.Duration `json:"time_to_craft" bson:"time_to_craft,omitempty"`
-}
-
-type ReceivedAmount struct {
-	Amount float64   `json:"amount" bson:"amount" validate:"required,lte=0"`
-	Date   time.Time `json:"date" bson:"date" validate:"required"`
 }
 
 func (o *Order) RefView() string {
