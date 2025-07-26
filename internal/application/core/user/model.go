@@ -4,72 +4,41 @@ import (
 	"time"
 )
 
-type RoleEnum uint8
-
-const (
-	NoAuthority RoleEnum = iota
-	Moderator
-	Admin
-	SuperAdmin
-)
-
-func (r RoleEnum) String() string {
-	return [...]string{
-		"NO_AUTHORITY", "MODERATOR",
-		"ADMIN", "SUPER_ADMIN",
-	}[r]
-}
-
-func (r RoleEnum) View() string {
-	return [...]string{
-		"No Authority", "Moderator",
-		"Admin", "Super Admin",
-	}[r]
-}
-
-func RoleFromString(role string) RoleEnum {
-	switch role {
-	case "NO_AUTHORITY":
-		return NoAuthority
-	case "MODERATOR":
-		return Moderator
-	case "ADMIN":
-		return Admin
-	case "SUPER_ADMIN":
-		return SuperAdmin
-	default:
-		return NoAuthority
-	}
-}
-
-func (r RoleEnum) IsSuperAdmin() bool {
-	return r >= SuperAdmin
-}
-
-func (r RoleEnum) IsAdmin() bool {
-	return r >= Admin
-}
-
-func (r RoleEnum) IsModerator() bool {
-	return r >= Moderator
-}
-
 type Name struct {
 	First string `json:"first" bson:"first" conform:"name" validate:"required,not_blank"`
 	Last  string `json:"last" bson:"last" conform:"name" validate:"required,not_blank"`
 }
 
+func (n Name) FullName() string {
+	if n.First == "" && n.Last == "" {
+		return ""
+	}
+	if n.First == "" {
+		return n.Last
+	}
+	if n.Last == "" {
+		return n.First
+	}
+	return n.First + " " + n.Last
+}
+
 type User struct {
-	ID              string    `json:"id" bson:"_id,omitempty"`
-	Name            Name      `json:"name" bson:"name" validate:"required"`
-	Username        string    `json:"username" bson:"username" conform:"trim,lower" validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
-	Email           string    `json:"email" bson:"email" conform:"email" validate:"required,email,not_blank"`
-	Password        string    `json:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
-	ConfirmPassword string    `json:"-" bson:"-" validate:"eqfield=Password"`
-	Phone           string    `json:"phone" bson:"phone,omitempty" conform:"num"`
-	Role            RoleEnum  `json:"role" bson:"role"`
-	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
+	ID              string   `json:"id" bson:"_id,omitempty"`
+	Name            Name     `json:"name" bson:"name" validate:"required"`
+	Username        string   `json:"username" bson:"username" conform:"trim,lower" validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
+	Email           string   `json:"email" bson:"email" conform:"email" validate:"required,email,not_blank"`
+	Password        string   `json:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
+	ConfirmPassword string   `json:"-" bson:"-" validate:"eqfield=Password"`
+	Phone           string   `json:"phone" bson:"phone,omitempty" conform:"num"`
+	Role            RoleEnum `json:"role" bson:"role"`
+
+	Picture string `json:"picture_url" bson:"picture_url,omitempty" validate:"omitempty,url"`
+
+	OAuthID       string        `json:"oauth_id,omitzero" bson:"oauth_id,omitempty" validate:"omitempty"`
+	OAuthProvider OAuthProvider `json:"oauth_provider,omitzero" bson:"oauth_provider,omitempty" validate:"omitempty"`
+
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 
 	Craftsman *Craftsman `json:"craftsman" bson:"craftsman,omitempty"`
 }

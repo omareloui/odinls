@@ -1,4 +1,4 @@
-package resthandlers
+package handler
 
 import (
 	"errors"

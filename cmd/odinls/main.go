@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/joho/godotenv"
 	"github.com/omareloui/odinls/config"
-	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
-	"github.com/omareloui/odinls/internal/api/chisrv"
-	"github.com/omareloui/odinls/internal/api/resthandlers"
+	"github.com/omareloui/odinls/internal/api/handler"
+	"github.com/omareloui/odinls/internal/api/router"
 	application "github.com/omareloui/odinls/internal/application/core"
 	"github.com/omareloui/odinls/internal/logger"
 	"github.com/omareloui/odinls/internal/repositories/mongo"
@@ -36,11 +39,16 @@ func main() {
 	sanitizer := conformadaptor.NewSanitizer()
 
 	app := application.NewApplication(repo, validator, sanitizer)
-	jwtAdapter := jwtadapter.NewJWTV5Adapter(config.GetJwtSecret())
-	handler := resthandlers.NewHandler(app, jwtAdapter)
 
-	api := chisrv.NewAdapter(handler, config.GetApplicationPort())
-	l := logger.Get()
-	l.Info("Starting OdinLS API", zap.Int("port", config.GetApplicationPort()))
-	api.Run()
+	h := handler.New(app)
+
+	port := config.GetApplicationPort()
+
+	srv := http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: router.New(h),
+	}
+
+	log.Printf("Starting to listen on http://localhost:%d\n", port)
+	log.Fatalln(srv.ListenAndServe())
 }
