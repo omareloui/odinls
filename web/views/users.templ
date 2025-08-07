@@ -26,7 +26,7 @@ type EditUserOpts struct {
 	WithCraftsmanInfo bool
 }
 
-templ UserPage(accessClaims *jwtadapter.JwtAccessClaims, users []user.User) {
+templ UserPage(accessClaims *jwtadapter.AccessClaims, users []user.User) {
 	@baseLayout(accessClaims, "Users | Odin LS") {
 		@container() {
 			<h2 class="text-3xl font-bold mb-3">Users</h2>

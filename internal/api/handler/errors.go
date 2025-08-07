@@ -4,13 +4,19 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/omareloui/odinls/internal/errs"
 )
 
 func (h *handler) NotFound(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
-	return nil, errs.NewRespError(http.StatusNotFound, "")
+	// TODO: create  component
+	return NotFound()
 }
 
 func (h *handler) InternalServerError(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
-	return nil, errs.NewRespError(http.StatusInternalServerError, "")
+	// TODO: create  component
+	return InternalServerError()
+}
+
+func (h *handler) Unauthorized(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	// TODO: create  component
+	return Unauthorized()
 }

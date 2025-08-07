@@ -15,7 +15,7 @@ func NewCounterService(repo CounterRepository) *counterService {
 	}
 }
 
-func (s *counterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims, category string) (uint8, error) {
+func (s *counterService) AddOneToProduct(claims *jwtadapter.AccessClaims, category string) (uint8, error) {
 	if claims == nil || !claims.IsCraftsman() || !claims.Role.IsAdmin() {
 		return 0, errs.ErrForbidden
 	}
@@ -23,7 +23,7 @@ func (s *counterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims, cat
 	return s.repo.AddOneToProduct(category)
 }
 
-func (s *counterService) AddOneToOrder(claims *jwtadapter.JwtAccessClaims) (uint, error) {
+func (s *counterService) AddOneToOrder(claims *jwtadapter.AccessClaims) (uint, error) {
 	if claims == nil || !claims.IsCraftsman() || !claims.Role.IsAdmin() {
 		return 0, errs.ErrForbidden
 	}

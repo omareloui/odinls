@@ -3,9 +3,9 @@ package product
 import jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 
 type ProductService interface {
-	GetProducts(claims *jwtadapter.JwtAccessClaims, opts ...RetrieveOptsFunc) ([]Product, error)
-	GetProductByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...RetrieveOptsFunc) (*Product, error)
-	GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, opts ...RetrieveOptsFunc) (*Product, error)
-	CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, opts ...RetrieveOptsFunc) (*Product, error)
-	UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, prod *Product, opts ...RetrieveOptsFunc) (*Product, error)
+	GetProducts(claims *jwtadapter.AccessClaims, opts ...RetrieveOptsFunc) ([]Product, error)
+	GetProductByID(claims *jwtadapter.AccessClaims, id string, opts ...RetrieveOptsFunc) (*Product, error)
+	GetProductByVariantID(claims *jwtadapter.AccessClaims, id string, opts ...RetrieveOptsFunc) (*Product, error)
+	CreateProduct(claims *jwtadapter.AccessClaims, prod *Product, opts ...RetrieveOptsFunc) (*Product, error)
+	UpdateProductByID(claims *jwtadapter.AccessClaims, id string, prod *Product, opts ...RetrieveOptsFunc) (*Product, error)
 }

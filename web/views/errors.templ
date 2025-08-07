@@ -6,7 +6,7 @@ import (
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 )
 
-templ ErrorPage(accessClaims *jwtadapter.JwtAccessClaims, message string, status int) {
+templ ErrorPage(accessClaims *jwtadapter.AccessClaims, message string, status int) {
 	@baseLayout(accessClaims, "Error | Odin Leather Store") {
 		@container() {
 			<h1 class="text-2xl mb-2">Error</h1>

@@ -2,7 +2,7 @@ package views
 
 import "github.com/omareloui/odinls/internal/adapters/jwt"
 
-templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
+templ baseLayout(accessClaims *jwtadapter.AccessClaims, pageTitle string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -45,7 +45,7 @@ templ baseLayout(accessClaims *jwtadapter.JwtAccessClaims, pageTitle string) {
 	</html>
 }
 
-templ navbar(access *jwtadapter.JwtAccessClaims) {
+templ navbar(access *jwtadapter.AccessClaims) {
 	<nav class="flex gap-6 items-start my-4">
 		if access != nil {
 			<div class="text font-bold text-green-500">

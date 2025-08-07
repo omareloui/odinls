@@ -18,7 +18,7 @@ type ClientFormData struct {
 	Location           FormInputData
 }
 
-templ ClientsPage(access *jwtadapter.JwtAccessClaims, clients []client.Client, formdata *ClientFormData) {
+templ ClientsPage(access *jwtadapter.AccessClaims, clients []client.Client, formdata *ClientFormData) {
 	@baseLayout(access, "Clients | Odin LS") {
 		@container() {
 			@CreateClientForm(formdata, true)

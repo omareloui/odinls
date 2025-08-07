@@ -25,19 +25,19 @@ func NewProductService(repo ProductRepository, validator interfaces.Validator, s
 	}
 }
 
-func (s *productService) GetProducts(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Product, error) {
+func (s *productService) GetProducts(claims *jwtadapter.AccessClaims, options ...RetrieveOptsFunc) ([]Product, error) {
 	return s.repo.GetProducts(options...)
 }
 
-func (s *productService) GetProductByID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
+func (s *productService) GetProductByID(claims *jwtadapter.AccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
 	return s.repo.GetProductByID(id, options...)
 }
 
-func (s *productService) GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
+func (s *productService) GetProductByVariantID(claims *jwtadapter.AccessClaims, id string, options ...RetrieveOptsFunc) (*Product, error) {
 	return s.repo.GetProductByVariantID(id, options...)
 }
 
-func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *Product, options ...RetrieveOptsFunc) (*Product, error) {
+func (s *productService) CreateProduct(claims *jwtadapter.AccessClaims, prod *Product, options ...RetrieveOptsFunc) (*Product, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
@@ -73,7 +73,7 @@ func (s *productService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod 
 	return s.repo.CreateProduct(prod, options...)
 }
 
-func (s *productService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) (*Product, error) {
+func (s *productService) UpdateProductByID(claims *jwtadapter.AccessClaims, id string, uprod *Product, options ...RetrieveOptsFunc) (*Product, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}

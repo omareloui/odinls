@@ -20,7 +20,7 @@ func NewClientService(clientRepository ClientRepository, validator interfaces.Va
 	}
 }
 
-func (s *clientService) GetClients(claims *jwtadapter.JwtAccessClaims) ([]Client, error) {
+func (s *clientService) GetClients(claims *jwtadapter.AccessClaims) ([]Client, error) {
 	if claims == nil || (!claims.Role.IsModerator() && !claims.IsCraftsman()) {
 		return nil, errs.ErrForbidden
 	}
@@ -28,7 +28,7 @@ func (s *clientService) GetClients(claims *jwtadapter.JwtAccessClaims) ([]Client
 	return s.repo.GetClients()
 }
 
-func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id string) (*Client, error) {
+func (s *clientService) GetClientByID(claims *jwtadapter.AccessClaims, id string) (*Client, error) {
 	if claims == nil || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
@@ -36,7 +36,7 @@ func (s *clientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id str
 	return s.repo.GetClientByID(id)
 }
 
-func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client *Client) (*Client, error) {
+func (s *clientService) CreateClient(claims *jwtadapter.AccessClaims, client *Client) (*Client, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
@@ -53,7 +53,7 @@ func (s *clientService) CreateClient(claims *jwtadapter.JwtAccessClaims, client 
 	return s.repo.CreateClient(client)
 }
 
-func (s *clientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, client *Client) (*Client, error) {
+func (s *clientService) UpdateClientByID(claims *jwtadapter.AccessClaims, id string, client *Client) (*Client, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
 		return nil, errs.ErrForbidden
 	}

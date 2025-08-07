@@ -45,6 +45,12 @@ type AccessClaims struct {
 	Email         string
 	Name          user.Name
 	Picture       string
+	Role          user.RoleEnum
+	Craftsman     *user.Craftsman
+}
+
+func (a AccessClaims) IsCraftsman() bool {
+	return a.Craftsman != nil
 }
 
 var (
@@ -72,17 +78,26 @@ func ParseAccessClaims(token string) (*AccessClaims, error) {
 	}
 	_claims := *claims
 
-	return &AccessClaims{
+	aclaims := &AccessClaims{
 		ID:            _claims["id"].(string),
 		OAuthID:       _claims["oauth_id"].(string),
 		OAuthProvider: user.OAuthProvider(_claims["oauth_provider"].(string)),
+		Role:          user.RoleEnum(_claims["role"].(float64)),
 		Name: user.Name{
 			First: _claims["first_name"].(string),
 			Last:  _claims["last_name"].(string),
 		},
 		Email:   _claims["email"].(string),
 		Picture: _claims["picture"].(string),
-	}, nil
+	}
+
+	if _claims["hourly_rate"] != nil {
+		aclaims.Craftsman = &user.Craftsman{
+			HourlyRate: _claims["hourly_rate"].(float64),
+		}
+	}
+
+	return aclaims, nil
 }
 
 func ParseRefreshClaims(token string) (*RefreshClaims, error) {
@@ -120,13 +135,13 @@ func parse(tokenStr string) (*jwt.MapClaims, error) {
 
 func newToken(kind TokenType, usr *user.User) (string, time.Time, error) {
 	var exp time.Time
-	var claims *jwt.MapClaims
+	var claims jwt.MapClaims
 
 	now := time.Now()
 
 	if kind == refreshToken {
 		exp = time.Now().Add(refreshExpiration)
-		claims = &jwt.MapClaims{
+		claims = jwt.MapClaims{
 			"id": usr.ID,
 
 			"oauth_id":       usr.OAuthID,
@@ -137,11 +152,13 @@ func newToken(kind TokenType, usr *user.User) (string, time.Time, error) {
 		}
 	} else {
 		exp = time.Now().Add(accessExpiration)
-		claims = &jwt.MapClaims{
+		claims = jwt.MapClaims{
 			"id": usr.ID,
 
 			"oauth_id":       usr.OAuthID,
 			"oauth_provider": usr.OAuthProvider,
+
+			"role": usr.Role,
 
 			"email":      usr.Email,
 			"first_name": usr.Name.First,
@@ -151,9 +168,13 @@ func newToken(kind TokenType, usr *user.User) (string, time.Time, error) {
 			"iat": now.Unix(),
 			"exp": exp.Unix(),
 		}
+
+		if usr.Craftsman != nil {
+			claims["hourly_rate"] = usr.Craftsman.HourlyRate
+		}
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 
 	tokenStr, err := token.SignedString(config.GetJwtSecret())
 	if err != nil {

@@ -44,8 +44,7 @@ func errorResponse(l *zap.Logger, w http.ResponseWriter, err error) {
 		httperr = errs.NewRespError(http.StatusInternalServerError, err.Error())
 	}
 
-	l.Error("server error",
-		zap.Error(httperr),
+	l.Error("server error", zap.Error(httperr),
 		zap.String("message", httperr.Message),
 		zap.Int("status_code", httperr.Code),
 	)

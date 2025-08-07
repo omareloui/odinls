@@ -28,7 +28,7 @@ type ProductVariantFormData struct {
 	MaterialsCost  FormInputData `json:"materials_cost"`
 }
 
-templ ProductsPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product) {
+templ ProductsPage(claims *jwtadapter.AccessClaims, prods []product.Product) {
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
 			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate(), true)

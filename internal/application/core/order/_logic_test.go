@@ -52,7 +52,7 @@ func TestCreateOrder(t *testing.T) {
 		mockRepo.On("CreateOrder", &ord2).Return(nil)
 
 		t.Run("with permissions", func(t *testing.T) {
-			claims := jwtadapter.JwtAccessClaims{
+			claims := jwtadapter.AccessClaims{
 				Role:          user.Admin,
 				CraftsmanInfo: &user.Craftsman{},
 			}
@@ -67,7 +67,7 @@ func TestCreateOrder(t *testing.T) {
 		})
 
 		t.Run("without permissions", func(t *testing.T) {
-			claims := jwtadapter.JwtAccessClaims{
+			claims := jwtadapter.AccessClaims{
 				Role: user.Moderator,
 			}
 
@@ -106,7 +106,7 @@ func TestCreateOrder(t *testing.T) {
 			},
 		}
 
-		claims := jwtadapter.JwtAccessClaims{
+		claims := jwtadapter.AccessClaims{
 			Role:          role.Role{Name: role.SuperAdmin.String()},
 			CraftsmanInfo: user.Craftsman{},
 		}
@@ -222,7 +222,7 @@ func TestCreateOrder(t *testing.T) {
 			},
 		}
 
-		claims := jwtadapter.JwtAccessClaims{
+		claims := jwtadapter.AccessClaims{
 			Role:          user.Admin,
 			CraftsmanInfo: &user.Craftsman{},
 		}
@@ -315,7 +315,7 @@ func TestCreateOrder(t *testing.T) {
 			},
 		}
 
-		claims := jwtadapter.JwtAccessClaims{
+		claims := jwtadapter.AccessClaims{
 			Role:          user.Admin,
 			CraftsmanInfo: &user.Craftsman{},
 		}

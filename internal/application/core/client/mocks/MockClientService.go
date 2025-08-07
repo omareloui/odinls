@@ -15,7 +15,7 @@ type MockClientService struct {
 }
 
 // CreateClient provides a mock function with given fields: claims, _a1, opts
-func (_m *MockClientService) CreateClient(claims *jwtadapter.JwtAccessClaims, _a1 *client.Client, opts ...client.RetrieveOptsFunc) error {
+func (_m *MockClientService) CreateClient(claims *jwtadapter.AccessClaims, _a1 *client.Client, opts ...client.RetrieveOptsFunc) error {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -30,7 +30,7 @@ func (_m *MockClientService) CreateClient(claims *jwtadapter.JwtAccessClaims, _a
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, *client.Client, ...client.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, *client.Client, ...client.RetrieveOptsFunc) error); ok {
 		r0 = rf(claims, _a1, opts...)
 	} else {
 		r0 = ret.Error(0)
@@ -40,7 +40,7 @@ func (_m *MockClientService) CreateClient(claims *jwtadapter.JwtAccessClaims, _a
 }
 
 // GetClientByID provides a mock function with given fields: claims, id, opts
-func (_m *MockClientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...client.RetrieveOptsFunc) (*client.Client, error) {
+func (_m *MockClientService) GetClientByID(claims *jwtadapter.AccessClaims, id string, opts ...client.RetrieveOptsFunc) (*client.Client, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -56,10 +56,10 @@ func (_m *MockClientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, i
 
 	var r0 *client.Client
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...client.RetrieveOptsFunc) (*client.Client, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...client.RetrieveOptsFunc) (*client.Client, error)); ok {
 		return rf(claims, id, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...client.RetrieveOptsFunc) *client.Client); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...client.RetrieveOptsFunc) *client.Client); ok {
 		r0 = rf(claims, id, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -67,7 +67,7 @@ func (_m *MockClientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, i
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, ...client.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string, ...client.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, id, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -77,7 +77,7 @@ func (_m *MockClientService) GetClientByID(claims *jwtadapter.JwtAccessClaims, i
 }
 
 // GetClients provides a mock function with given fields: claims, opts
-func (_m *MockClientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts ...client.RetrieveOptsFunc) ([]client.Client, error) {
+func (_m *MockClientService) GetClients(claims *jwtadapter.AccessClaims, opts ...client.RetrieveOptsFunc) ([]client.Client, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -93,10 +93,10 @@ func (_m *MockClientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts
 
 	var r0 []client.Client
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, ...client.RetrieveOptsFunc) ([]client.Client, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, ...client.RetrieveOptsFunc) ([]client.Client, error)); ok {
 		return rf(claims, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, ...client.RetrieveOptsFunc) []client.Client); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, ...client.RetrieveOptsFunc) []client.Client); ok {
 		r0 = rf(claims, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -104,7 +104,7 @@ func (_m *MockClientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, ...client.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, ...client.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -114,7 +114,7 @@ func (_m *MockClientService) GetClients(claims *jwtadapter.JwtAccessClaims, opts
 }
 
 // UpdateClientByID provides a mock function with given fields: claims, id, _a2, opts
-func (_m *MockClientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims, id string, _a2 *client.Client, opts ...client.RetrieveOptsFunc) error {
+func (_m *MockClientService) UpdateClientByID(claims *jwtadapter.AccessClaims, id string, _a2 *client.Client, opts ...client.RetrieveOptsFunc) error {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -129,7 +129,7 @@ func (_m *MockClientService) UpdateClientByID(claims *jwtadapter.JwtAccessClaims
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, *client.Client, ...client.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, *client.Client, ...client.RetrieveOptsFunc) error); ok {
 		r0 = rf(claims, id, _a2, opts...)
 	} else {
 		r0 = ret.Error(0)

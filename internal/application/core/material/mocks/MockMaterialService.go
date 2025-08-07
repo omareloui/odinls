@@ -15,7 +15,7 @@ type MockMaterialService struct {
 }
 
 // CreateMaterial provides a mock function with given fields: claims, mat, opts
-func (_m *MockMaterialService) CreateMaterial(claims *jwtadapter.JwtAccessClaims, mat *material.Material, opts ...material.RetrieveOptsFunc) error {
+func (_m *MockMaterialService) CreateMaterial(claims *jwtadapter.AccessClaims, mat *material.Material, opts ...material.RetrieveOptsFunc) error {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -30,7 +30,7 @@ func (_m *MockMaterialService) CreateMaterial(claims *jwtadapter.JwtAccessClaims
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, *material.Material, ...material.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, *material.Material, ...material.RetrieveOptsFunc) error); ok {
 		r0 = rf(claims, mat, opts...)
 	} else {
 		r0 = ret.Error(0)
@@ -40,7 +40,7 @@ func (_m *MockMaterialService) CreateMaterial(claims *jwtadapter.JwtAccessClaims
 }
 
 // GetMaterialByID provides a mock function with given fields: claims, id, opts
-func (_m *MockMaterialService) GetMaterialByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...material.RetrieveOptsFunc) (*material.Material, error) {
+func (_m *MockMaterialService) GetMaterialByID(claims *jwtadapter.AccessClaims, id string, opts ...material.RetrieveOptsFunc) (*material.Material, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -56,10 +56,10 @@ func (_m *MockMaterialService) GetMaterialByID(claims *jwtadapter.JwtAccessClaim
 
 	var r0 *material.Material
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...material.RetrieveOptsFunc) (*material.Material, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...material.RetrieveOptsFunc) (*material.Material, error)); ok {
 		return rf(claims, id, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...material.RetrieveOptsFunc) *material.Material); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...material.RetrieveOptsFunc) *material.Material); ok {
 		r0 = rf(claims, id, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -67,7 +67,7 @@ func (_m *MockMaterialService) GetMaterialByID(claims *jwtadapter.JwtAccessClaim
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, ...material.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string, ...material.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, id, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -77,7 +77,7 @@ func (_m *MockMaterialService) GetMaterialByID(claims *jwtadapter.JwtAccessClaim
 }
 
 // GetMaterials provides a mock function with given fields: claims, opts
-func (_m *MockMaterialService) GetMaterials(claims *jwtadapter.JwtAccessClaims, opts ...material.RetrieveOptsFunc) ([]material.Material, error) {
+func (_m *MockMaterialService) GetMaterials(claims *jwtadapter.AccessClaims, opts ...material.RetrieveOptsFunc) ([]material.Material, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -93,10 +93,10 @@ func (_m *MockMaterialService) GetMaterials(claims *jwtadapter.JwtAccessClaims, 
 
 	var r0 []material.Material
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, ...material.RetrieveOptsFunc) ([]material.Material, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, ...material.RetrieveOptsFunc) ([]material.Material, error)); ok {
 		return rf(claims, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, ...material.RetrieveOptsFunc) []material.Material); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, ...material.RetrieveOptsFunc) []material.Material); ok {
 		r0 = rf(claims, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -104,7 +104,7 @@ func (_m *MockMaterialService) GetMaterials(claims *jwtadapter.JwtAccessClaims, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, ...material.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, ...material.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -114,7 +114,7 @@ func (_m *MockMaterialService) GetMaterials(claims *jwtadapter.JwtAccessClaims, 
 }
 
 // UpdateMaterialByID provides a mock function with given fields: claims, id, mat, opts
-func (_m *MockMaterialService) UpdateMaterialByID(claims *jwtadapter.JwtAccessClaims, id string, mat *material.Material, opts ...material.RetrieveOptsFunc) error {
+func (_m *MockMaterialService) UpdateMaterialByID(claims *jwtadapter.AccessClaims, id string, mat *material.Material, opts ...material.RetrieveOptsFunc) error {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -129,7 +129,7 @@ func (_m *MockMaterialService) UpdateMaterialByID(claims *jwtadapter.JwtAccessCl
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, *material.Material, ...material.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, *material.Material, ...material.RetrieveOptsFunc) error); ok {
 		r0 = rf(claims, id, mat, opts...)
 	} else {
 		r0 = ret.Error(0)

@@ -13,7 +13,7 @@ type MockCounterService struct {
 }
 
 // AddOneToOrder provides a mock function with given fields: claims
-func (_m *MockCounterService) AddOneToOrder(claims *jwtadapter.JwtAccessClaims) (uint, error) {
+func (_m *MockCounterService) AddOneToOrder(claims *jwtadapter.AccessClaims) (uint, error) {
 	ret := _m.Called(claims)
 
 	if len(ret) == 0 {
@@ -22,16 +22,16 @@ func (_m *MockCounterService) AddOneToOrder(claims *jwtadapter.JwtAccessClaims) 
 
 	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims) (uint, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims) (uint, error)); ok {
 		return rf(claims)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims) uint); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims) uint); ok {
 		r0 = rf(claims)
 	} else {
 		r0 = ret.Get(0).(uint)
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims) error); ok {
 		r1 = rf(claims)
 	} else {
 		r1 = ret.Error(1)
@@ -41,7 +41,7 @@ func (_m *MockCounterService) AddOneToOrder(claims *jwtadapter.JwtAccessClaims) 
 }
 
 // AddOneToProduct provides a mock function with given fields: claims, category
-func (_m *MockCounterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims, category string) (uint8, error) {
+func (_m *MockCounterService) AddOneToProduct(claims *jwtadapter.AccessClaims, category string) (uint8, error) {
 	ret := _m.Called(claims, category)
 
 	if len(ret) == 0 {
@@ -50,16 +50,16 @@ func (_m *MockCounterService) AddOneToProduct(claims *jwtadapter.JwtAccessClaims
 
 	var r0 uint8
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string) (uint8, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string) (uint8, error)); ok {
 		return rf(claims, category)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string) uint8); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string) uint8); ok {
 		r0 = rf(claims, category)
 	} else {
 		r0 = ret.Get(0).(uint8)
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string) error); ok {
 		r1 = rf(claims, category)
 	} else {
 		r1 = ret.Error(1)

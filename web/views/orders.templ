@@ -62,7 +62,7 @@ func NewDefaultOrderFormData() *OrderFormData {
 	}
 }
 
-templ OrdersPage(claims *jwtadapter.JwtAccessClaims, prods []product.Product, clients []client.Client, ords []order.Order) {
+templ OrdersPage(claims *jwtadapter.AccessClaims, prods []product.Product, clients []client.Client, ords []order.Order) {
 	@baseLayout(claims, "Orders | Odin LS") {
 		@container() {
 			@CreateOrderForm(&order.Order{}, prods, clients,

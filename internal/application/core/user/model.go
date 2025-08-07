@@ -23,16 +23,16 @@ func (n Name) FullName() string {
 }
 
 type User struct {
-	ID              string   `json:"id" bson:"_id,omitempty"`
+	ID              string   `json:"id" formfield:"-" bson:"_id,omitempty"`
 	Name            Name     `json:"name" bson:"name" validate:"required"`
-	Username        string   `json:"username" bson:"username" conform:"trim,lower" validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
-	Email           string   `json:"email" bson:"email" conform:"email" validate:"required,email,not_blank"`
-	Password        string   `json:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
-	ConfirmPassword string   `json:"-" bson:"-" validate:"eqfield=Password"`
-	Phone           string   `json:"phone" bson:"phone,omitempty" conform:"num"`
-	Role            RoleEnum `json:"role" bson:"role"`
+	Username        string   `json:"username" formfield:"username" bson:"username" conform:"trim,lower" validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
+	Email           string   `json:"email" formfield:"email" bson:"email" conform:"email" validate:"required,email,not_blank"`
+	Password        string   `json:"password" formfield:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`
+	ConfirmPassword string   `json:"-" bson:"-" formfield:"cpassword" validate:"eqfield=Password"`
+	Phone           string   `json:"phone" formfield:"-" bson:"phone,omitempty" conform:"num"`
+	Role            RoleEnum `json:"role" formfield:"-" bson:"role"`
 
-	Picture string `json:"picture_url" bson:"picture_url,omitempty" validate:"omitempty,url"`
+	Picture string `json:"picture_url" formfield:"picture_url" bson:"picture_url,omitempty" validate:"omitempty,url"`
 
 	OAuthID       string        `json:"oauth_id,omitzero" bson:"oauth_id,omitempty" validate:"omitempty"`
 	OAuthProvider OAuthProvider `json:"oauth_provider,omitzero" bson:"oauth_provider,omitempty" validate:"omitempty"`
@@ -44,7 +44,7 @@ type User struct {
 }
 
 type Craftsman struct {
-	HourlyRate float64 `json:"hourly_rate" bson:"hourly_rate,omitempty" validate:"required,number"`
+	HourlyRate float64 `json:"hourly_rate" formfield:"hourly_rate" bson:"hourly_rate,omitempty" validate:"required,number"`
 }
 
 func (u User) IsCraftsman() bool {

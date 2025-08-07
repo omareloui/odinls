@@ -1,20 +1,22 @@
 module github.com/omareloui/odinls
 
-go 1.24.1
+go 1.24.4
 
 require (
 	github.com/a-h/templ v0.3.906
 	github.com/aidarkhanov/nanoid v1.0.8
 	github.com/charmbracelet/huh v0.6.0
-	github.com/go-chi/chi v1.5.5
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/joho/godotenv v1.5.1
 	github.com/leebenson/conform v1.2.2
+	github.com/oklog/ulid v1.3.1
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.15.0
+	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/text v0.24.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
@@ -46,7 +48,7 @@ require (
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a // indirect
-	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/omareloui/former v0.0.0-20250802180746-193cefabdd72 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
@@ -55,10 +57,8 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

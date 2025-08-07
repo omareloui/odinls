@@ -20,7 +20,7 @@ func NewMaterialService(repo MaterialRepository, validator interfaces.Validator,
 	}
 }
 
-func (s *materialService) GetMaterials(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Material, error) {
+func (s *materialService) GetMaterials(claims *jwtadapter.AccessClaims, options ...RetrieveOptsFunc) ([]Material, error) {
 	if claims == nil || !claims.Role.IsModerator() {
 		return nil, errs.ErrForbidden
 	}
@@ -28,7 +28,7 @@ func (s *materialService) GetMaterials(claims *jwtadapter.JwtAccessClaims, optio
 	return s.repo.GetMaterials(options...)
 }
 
-func (s *materialService) GetMaterialByID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Material, error) {
+func (s *materialService) GetMaterialByID(claims *jwtadapter.AccessClaims, id string, options ...RetrieveOptsFunc) (*Material, error) {
 	if claims == nil || !claims.Role.IsModerator() {
 		return nil, errs.ErrForbidden
 	}
@@ -36,7 +36,7 @@ func (s *materialService) GetMaterialByID(claims *jwtadapter.JwtAccessClaims, id
 	return s.repo.GetMaterialByID(id, options...)
 }
 
-func (s *materialService) CreateMaterial(claims *jwtadapter.JwtAccessClaims, mat *Material, options ...RetrieveOptsFunc) (*Material, error) {
+func (s *materialService) CreateMaterial(claims *jwtadapter.AccessClaims, mat *Material, options ...RetrieveOptsFunc) (*Material, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
 		return nil, errs.ErrForbidden
 	}
@@ -53,7 +53,7 @@ func (s *materialService) CreateMaterial(claims *jwtadapter.JwtAccessClaims, mat
 	return s.repo.CreateMaterial(mat, options...)
 }
 
-func (s *materialService) UpdateMaterialByID(claims *jwtadapter.JwtAccessClaims, id string, umat *Material, options ...RetrieveOptsFunc) (*Material, error) {
+func (s *materialService) UpdateMaterialByID(claims *jwtadapter.AccessClaims, id string, umat *Material, options ...RetrieveOptsFunc) (*Material, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
 		return nil, errs.ErrForbidden
 	}

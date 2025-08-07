@@ -20,7 +20,7 @@ func NewSupplierService(supplierRepository SupplierRepository, validator interfa
 	}
 }
 
-func (s *supplierService) GetSuppliers(claims *jwtadapter.JwtAccessClaims) ([]Supplier, error) {
+func (s *supplierService) GetSuppliers(claims *jwtadapter.AccessClaims) ([]Supplier, error) {
 	if claims == nil || !claims.Role.IsModerator() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
@@ -28,7 +28,7 @@ func (s *supplierService) GetSuppliers(claims *jwtadapter.JwtAccessClaims) ([]Su
 	return s.repo.GetSuppliers()
 }
 
-func (s *supplierService) GetSupplierByID(claims *jwtadapter.JwtAccessClaims, id string) (*Supplier, error) {
+func (s *supplierService) GetSupplierByID(claims *jwtadapter.AccessClaims, id string) (*Supplier, error) {
 	if claims == nil || !claims.Role.IsModerator() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
@@ -36,7 +36,7 @@ func (s *supplierService) GetSupplierByID(claims *jwtadapter.JwtAccessClaims, id
 	return s.repo.GetSupplierByID(id)
 }
 
-func (s *supplierService) CreateSupplier(claims *jwtadapter.JwtAccessClaims, sup *Supplier) (*Supplier, error) {
+func (s *supplierService) CreateSupplier(claims *jwtadapter.AccessClaims, sup *Supplier) (*Supplier, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
 		return nil, errs.ErrForbidden
 	}
@@ -52,7 +52,7 @@ func (s *supplierService) CreateSupplier(claims *jwtadapter.JwtAccessClaims, sup
 	return s.repo.CreateSupplier(sup)
 }
 
-func (s *supplierService) UpdateSupplierByID(claims *jwtadapter.JwtAccessClaims, id string, sup *Supplier) (*Supplier, error) {
+func (s *supplierService) UpdateSupplierByID(claims *jwtadapter.AccessClaims, id string, sup *Supplier) (*Supplier, error) {
 	if claims == nil || !claims.Role.IsAdmin() {
 		return nil, errs.ErrForbidden
 	}

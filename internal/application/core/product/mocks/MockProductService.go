@@ -15,7 +15,7 @@ type MockProductService struct {
 }
 
 // CreateProduct provides a mock function with given fields: claims, prod, opts
-func (_m *MockProductService) CreateProduct(claims *jwtadapter.JwtAccessClaims, prod *product.Product, opts ...product.RetrieveOptsFunc) error {
+func (_m *MockProductService) CreateProduct(claims *jwtadapter.AccessClaims, prod *product.Product, opts ...product.RetrieveOptsFunc) error {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -30,7 +30,7 @@ func (_m *MockProductService) CreateProduct(claims *jwtadapter.JwtAccessClaims, 
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, *product.Product, ...product.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, *product.Product, ...product.RetrieveOptsFunc) error); ok {
 		r0 = rf(claims, prod, opts...)
 	} else {
 		r0 = ret.Error(0)
@@ -40,7 +40,7 @@ func (_m *MockProductService) CreateProduct(claims *jwtadapter.JwtAccessClaims, 
 }
 
 // GetProductByID provides a mock function with given fields: claims, id, opts
-func (_m *MockProductService) GetProductByID(claims *jwtadapter.JwtAccessClaims, id string, opts ...product.RetrieveOptsFunc) (*product.Product, error) {
+func (_m *MockProductService) GetProductByID(claims *jwtadapter.AccessClaims, id string, opts ...product.RetrieveOptsFunc) (*product.Product, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -56,10 +56,10 @@ func (_m *MockProductService) GetProductByID(claims *jwtadapter.JwtAccessClaims,
 
 	var r0 *product.Product
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
 		return rf(claims, id, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) *product.Product); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...product.RetrieveOptsFunc) *product.Product); ok {
 		r0 = rf(claims, id, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -67,7 +67,7 @@ func (_m *MockProductService) GetProductByID(claims *jwtadapter.JwtAccessClaims,
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string, ...product.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, id, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -77,7 +77,7 @@ func (_m *MockProductService) GetProductByID(claims *jwtadapter.JwtAccessClaims,
 }
 
 // GetProductByIDAndVariantID provides a mock function with given fields: claims, id, variantId, options
-func (_m *MockProductService) GetProductByIDAndVariantID(claims *jwtadapter.JwtAccessClaims, id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
+func (_m *MockProductService) GetProductByIDAndVariantID(claims *jwtadapter.AccessClaims, id string, variantId string, options ...product.RetrieveOptsFunc) (*product.Product, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -93,10 +93,10 @@ func (_m *MockProductService) GetProductByIDAndVariantID(claims *jwtadapter.JwtA
 
 	var r0 *product.Product
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
 		return rf(claims, id, variantId, options...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, string, ...product.RetrieveOptsFunc) *product.Product); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, string, ...product.RetrieveOptsFunc) *product.Product); ok {
 		r0 = rf(claims, id, variantId, options...)
 	} else {
 		if ret.Get(0) != nil {
@@ -104,7 +104,7 @@ func (_m *MockProductService) GetProductByIDAndVariantID(claims *jwtadapter.JwtA
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, string, ...product.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string, string, ...product.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, id, variantId, options...)
 	} else {
 		r1 = ret.Error(1)
@@ -114,7 +114,7 @@ func (_m *MockProductService) GetProductByIDAndVariantID(claims *jwtadapter.JwtA
 }
 
 // GetProductByVariantID provides a mock function with given fields: claims, id, opts
-func (_m *MockProductService) GetProductByVariantID(claims *jwtadapter.JwtAccessClaims, id string, opts ...product.RetrieveOptsFunc) (*product.Product, error) {
+func (_m *MockProductService) GetProductByVariantID(claims *jwtadapter.AccessClaims, id string, opts ...product.RetrieveOptsFunc) (*product.Product, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -130,10 +130,10 @@ func (_m *MockProductService) GetProductByVariantID(claims *jwtadapter.JwtAccess
 
 	var r0 *product.Product
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...product.RetrieveOptsFunc) (*product.Product, error)); ok {
 		return rf(claims, id, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) *product.Product); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, ...product.RetrieveOptsFunc) *product.Product); ok {
 		r0 = rf(claims, id, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -141,7 +141,7 @@ func (_m *MockProductService) GetProductByVariantID(claims *jwtadapter.JwtAccess
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string, ...product.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string, ...product.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, id, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -151,7 +151,7 @@ func (_m *MockProductService) GetProductByVariantID(claims *jwtadapter.JwtAccess
 }
 
 // GetProducts provides a mock function with given fields: claims, opts
-func (_m *MockProductService) GetProducts(claims *jwtadapter.JwtAccessClaims, opts ...product.RetrieveOptsFunc) ([]product.Product, error) {
+func (_m *MockProductService) GetProducts(claims *jwtadapter.AccessClaims, opts ...product.RetrieveOptsFunc) ([]product.Product, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -167,10 +167,10 @@ func (_m *MockProductService) GetProducts(claims *jwtadapter.JwtAccessClaims, op
 
 	var r0 []product.Product
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, ...product.RetrieveOptsFunc) ([]product.Product, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, ...product.RetrieveOptsFunc) ([]product.Product, error)); ok {
 		return rf(claims, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, ...product.RetrieveOptsFunc) []product.Product); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, ...product.RetrieveOptsFunc) []product.Product); ok {
 		r0 = rf(claims, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -178,7 +178,7 @@ func (_m *MockProductService) GetProducts(claims *jwtadapter.JwtAccessClaims, op
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, ...product.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, ...product.RetrieveOptsFunc) error); ok {
 		r1 = rf(claims, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -188,7 +188,7 @@ func (_m *MockProductService) GetProducts(claims *jwtadapter.JwtAccessClaims, op
 }
 
 // UpdateProductByID provides a mock function with given fields: claims, id, prod, opts
-func (_m *MockProductService) UpdateProductByID(claims *jwtadapter.JwtAccessClaims, id string, prod *product.Product, opts ...product.RetrieveOptsFunc) error {
+func (_m *MockProductService) UpdateProductByID(claims *jwtadapter.AccessClaims, id string, prod *product.Product, opts ...product.RetrieveOptsFunc) error {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -203,7 +203,7 @@ func (_m *MockProductService) UpdateProductByID(claims *jwtadapter.JwtAccessClai
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, *product.Product, ...product.RetrieveOptsFunc) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, *product.Product, ...product.RetrieveOptsFunc) error); ok {
 		r0 = rf(claims, id, prod, opts...)
 	} else {
 		r0 = ret.Error(0)

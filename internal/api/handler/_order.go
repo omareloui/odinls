@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/application/core/order"
@@ -18,7 +19,7 @@ import (
 	"github.com/omareloui/odinls/web/views"
 )
 
-func (h *handler) GetOrders(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) GetOrders(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	claims, _ := h.getAuthFromContext(r)
 	ords, err := h.app.OrderService.GetOrders(claims)
 	if err != nil {
@@ -32,7 +33,7 @@ func (h *handler) GetOrders(w http.ResponseWriter, r *http.Request) error {
 	return respondWithTemplate(w, r, http.StatusOK, views.OrdersPage(claims, prods, clients, ords))
 }
 
-func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	claims, err := h.getAuthFromContext(r)
 	if err != nil {
 		return err
@@ -71,7 +72,7 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *handler) GetOrder(id string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
+	return func(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 		claims, err := h.getAuthFromContext(r)
 		if err != nil {
 			return err
@@ -90,7 +91,7 @@ func (h *handler) GetOrder(id string) HandlerFunc {
 }
 
 func (h *handler) GetEditOrder(id string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
+	return func(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 		claims, err := h.getAuthFromContext(r)
 		if err != nil {
 			return err
@@ -114,7 +115,7 @@ func (h *handler) GetEditOrder(id string) HandlerFunc {
 }
 
 func (h *handler) EditOrder(id string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
+	return func(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 		claims, err := h.getAuthFromContext(r)
 		if err != nil {
 			return err
@@ -143,7 +144,7 @@ func (h *handler) EditOrder(id string) HandlerFunc {
 	}
 }
 
-func (h *handler) getProdsAndClients(claims *jwtadapter.JwtAccessClaims) ([]product.Product, []client.Client, error) {
+func (h *handler) getProdsAndClients(claims *jwtadapter.AccessClaims) ([]product.Product, []client.Client, error) {
 	prods, err := h.app.ProductService.GetProducts(claims)
 	if err != nil {
 		return nil, nil, err
@@ -342,7 +343,7 @@ func mapOrderToFormData(ord *order.Order, valerr *errs.ValidationError) *views.O
 	return formdata
 }
 
-func setOrderDate(f *url.Values, key string, t *time.Time) error {
+func setOrderDate(f *url.Values, key string, t *time.Time) (templ.Component, error) {
 	var err error
 	val := (*f)[key]
 	if val != nil {

@@ -9,34 +9,40 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
+	"github.com/omareloui/former"
 	"github.com/omareloui/odinls/internal/application/core/product"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/web/views"
 )
 
-func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) error {
-	claims, _ := h.getAuthFromContext(r)
+func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	claims := getClaims(r.Context())
+
 	prods, err := h.app.ProductService.GetProducts(claims)
 	if err != nil {
-		return err
+		return RespondError(err)
 	}
-	return respondWithTemplate(w, r, http.StatusOK, views.ProductsPage(claims, prods))
+
+	comp := views.ProductsPage(claims, prods)
+	return RespondOK(w, RespondWithComponent(comp))
 }
 
-func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) error {
-	claims, _ := h.getAuthFromContext(r)
+func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	claims := getClaims(r.Context())
 
 	err := r.ParseForm()
 	if err != nil {
-		return err
+		return RespondError(err)
 	}
 
-	prod, err := mapFormToProduct(r.PostForm)
+	prod := new(product.Product)
+	err = former.Populate(r, prod)
 	if err != nil {
-		return err
+		return BadRequest()
 	}
 
-	err = h.app.ProductService.CreateProduct(claims, prod)
+	prod, err = h.app.ProductService.CreateProduct(claims, prod)
 	if err != nil {
 		if valerr, ok := err.(errs.ValidationError); ok {
 			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.CreateProductForm(prod, mapProductToFormData(prod, &valerr), claims.HourlyRate()))
@@ -51,52 +57,46 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) error {
 	return respondWithTemplate(w, r, http.StatusOK, views.CreateProductForm(&product.Product{}, &views.ProductFormData{Variants: []views.ProductVariantFormData{{}}}, claims.HourlyRate()))
 }
 
-func (h *handler) GetProduct(id string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		claims, _ := h.getAuthFromContext(r)
-		prod, err := h.app.ProductService.GetProductByID(claims, id)
-		if err != nil {
-			return err
-		}
-		return respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
+func (h *handler) GetProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	claims := getClaims(r.Context())
+	prod, err := h.app.ProductService.GetProductByID(claims, id)
+	if err != nil {
+		return err
 	}
+	return respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
 }
 
-func (h *handler) GetEditProduct(id string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		claims, _ := h.getAuthFromContext(r)
-		prod, err := h.app.ProductService.GetProductByID(claims, id)
-		if err != nil {
-			return err
-		}
-		return respondWithTemplate(w, r, http.StatusOK, views.EditProduct(prod, mapProductToFormData(prod, &errs.ValidationError{}), claims.HourlyRate()))
+func (h *handler) GetEditProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	claims := getClaims(r.Context())
+	prod, err := h.app.ProductService.GetProductByID(claims, id)
+	if err != nil {
+		return err
 	}
+	return respondWithTemplate(w, r, http.StatusOK, views.EditProduct(prod, mapProductToFormData(prod, &errs.ValidationError{}), claims.HourlyRate()))
 }
 
-func (h *handler) EditProduct(id string) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		claims, _ := h.getAuthFromContext(r)
+func (h *handler) EditProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	claims := getClaims(r.Context())
 
-		err := r.ParseForm()
-		if err != nil {
-			return err
-		}
-
-		prod, err := mapFormToProduct(r.PostForm)
-		if err != nil {
-			return err
-		}
-
-		err = h.app.ProductService.UpdateProductByID(claims, id, prod)
-		if err != nil {
-			if valerr, ok := err.(errs.ValidationError); ok {
-				return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditProduct(prod, mapProductToFormData(prod, &valerr), claims.HourlyRate()))
-			}
-			return err
-		}
-
-		return respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
+	err := r.ParseForm()
+	if err != nil {
+		return err
 	}
+
+	prod, err := mapFormToProduct(r.PostForm)
+	if err != nil {
+		return err
+	}
+
+	err = h.app.ProductService.UpdateProductByID(claims, id, prod)
+	if err != nil {
+		if valerr, ok := err.(errs.ValidationError); ok {
+			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.EditProduct(prod, mapProductToFormData(prod, &valerr), claims.HourlyRate()))
+		}
+		return err
+	}
+
+	return respondWithTemplate(w, r, http.StatusOK, views.Product(prod, claims.HourlyRate()))
 }
 
 func mapFormToProduct(form url.Values) (*product.Product, error) {

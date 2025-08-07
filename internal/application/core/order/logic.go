@@ -36,7 +36,7 @@ func NewOrderService(repo OrderRepository, productService product.ProductService
 	}
 }
 
-func (s *orderService) GetOrders(claims *jwtadapter.JwtAccessClaims, options ...RetrieveOptsFunc) ([]Order, error) {
+func (s *orderService) GetOrders(claims *jwtadapter.AccessClaims, options ...RetrieveOptsFunc) ([]Order, error) {
 	if claims == nil || !claims.Role.IsModerator() {
 		return nil, errs.ErrForbidden
 	}
@@ -44,7 +44,7 @@ func (s *orderService) GetOrders(claims *jwtadapter.JwtAccessClaims, options ...
 	return s.repo.GetOrders(options...)
 }
 
-func (s *orderService) GetOrderByID(claims *jwtadapter.JwtAccessClaims, id string, options ...RetrieveOptsFunc) (*Order, error) {
+func (s *orderService) GetOrderByID(claims *jwtadapter.AccessClaims, id string, options ...RetrieveOptsFunc) (*Order, error) {
 	if claims == nil || !claims.Role.IsModerator() {
 		return nil, errs.ErrForbidden
 	}
@@ -52,7 +52,7 @@ func (s *orderService) GetOrderByID(claims *jwtadapter.JwtAccessClaims, id strin
 	return s.repo.GetOrderByID(id, options...)
 }
 
-func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Order, options ...RetrieveOptsFunc) (*Order, error) {
+func (s *orderService) CreateOrder(claims *jwtadapter.AccessClaims, ord *Order, options ...RetrieveOptsFunc) (*Order, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}
@@ -110,7 +110,7 @@ func (s *orderService) CreateOrder(claims *jwtadapter.JwtAccessClaims, ord *Orde
 	return s.repo.CreateOrder(ord, options...)
 }
 
-func (s *orderService) UpdateOrderByID(claims *jwtadapter.JwtAccessClaims, id string, uord *Order, options ...RetrieveOptsFunc) (*Order, error) {
+func (s *orderService) UpdateOrderByID(claims *jwtadapter.AccessClaims, id string, uord *Order, options ...RetrieveOptsFunc) (*Order, error) {
 	if claims == nil || !claims.Role.IsAdmin() || !claims.IsCraftsman() {
 		return nil, errs.ErrForbidden
 	}

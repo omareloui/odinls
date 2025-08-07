@@ -5,6 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
+	"github.com/omareloui/former"
+	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/api/middleware"
 	"github.com/omareloui/odinls/internal/application/core/user"
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/logger"
@@ -18,59 +22,62 @@ type cookiePair struct {
 	Refresh *http.Cookie
 }
 
-func (h *handler) GetLogin(w http.ResponseWriter, r *http.Request) error {
-	return respondWithTemplate(w, r, http.StatusOK, views.Login(mapLoginToFormData(&user.User{}, &errs.ValidationError{})))
+func (h *handler) GetLogin(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	comp := views.Login(mapLoginToFormData(&user.User{}, &errs.ValidationError{}))
+	return RespondOK(w, RespondWithComponent(comp))
 }
 
-func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) error {
-	return respondWithTemplate(w, r, http.StatusOK, views.Register(mapRegisterToFormData(&user.User{}, &errs.ValidationError{})))
+func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	comp := views.Register(mapRegisterToFormData(&user.User{}, &errs.ValidationError{}))
+	return RespondOK(w, RespondWithComponent(comp))
 }
 
-func (h *handler) Register(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) Register(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	l := logger.FromCtx(r.Context())
 
-	usr := mapFormToUser(r)
+	usr := new(user.User)
+	err := former.Populate(r, usr)
+	if err != nil {
+		return BadRequest()
+	}
 
-	err := h.app.UserService.CreateUser(usr)
+	usr, err = h.app.UserService.CreateUser(usr)
 	if err != nil {
 		l.Warn("Error creating user", zap.Error(err), zap.Any("user", usr))
 		if valerr, ok := err.(errs.ValidationError); ok {
 			l.Warn("Validation errors", zap.Any("valerr", valerr.Errors))
-			return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.RegisterForm(mapRegisterToFormData(usr, &valerr)))
+			comp := views.RegisterForm(mapRegisterToFormData(usr, &valerr))
+			return UnprocessableEntity(RespondWithComponent(comp))
 		}
 
-		emailExists := errors.Is(err, user.ErrEmailAlreadyExists)
-		usernameExists := errors.Is(err, user.ErrUsernameAlreadyExists)
+		alreadyExists := errors.Is(err, errs.ErrDocumentAlreadyExists)
 
-		if emailExists || usernameExists {
+		if alreadyExists {
 			l.Warn("Existing username or email", zap.Error(err))
 			e := mapRegisterToFormData(usr, &errs.ValidationError{})
-			if emailExists {
-				e.Email.Error = "Email already exists, try another one"
-			}
-			if usernameExists {
-				e.Username.Error = "Username already exists, try another one"
-			}
-			return respondWithTemplate(w, r, http.StatusConflict, views.RegisterForm(e))
+			e.Email.Error = "Email or Username already exists, try another one"
+			e.Username.Error = "Email or Username already exists, try another one"
+			comp := views.RegisterForm(e)
+			return UnprocessableEntity(RespondWithComponent(comp))
 		}
 
-		return err
+		return RespondError(err)
 	}
 
 	l.Info("Created the user", zap.Any("user", usr))
 
 	cookiesPair, err := h.newCookiesPairFromUser(usr)
 	if err != nil {
-		return err
+		return RespondError(err)
 	}
 
 	http.SetCookie(w, cookiesPair.Access)
 	http.SetCookie(w, cookiesPair.Refresh)
 
-	return hxRespondWithRedirect(w, "/")
+	return RespondRedirectHX(w, RespondWithPath("/"))
 }
 
-func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
+func (h *handler) Login(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	var err error
 
 	emailOrUsername := r.FormValue("email_or_username")
@@ -81,43 +88,45 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		e := mapLoginToFormData(inpUser, &errs.ValidationError{})
 		e.Email.Error = "Invalid email or username"
-		return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
+		comp := views.LoginForm(e)
+		return UnprocessableEntity(RespondWithComponent(comp))
 	}
 
-	// TODO: move this to the business logic
+	// TODO: move this to the business logic?
 	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(password))
 	if err != nil {
 		e := mapLoginToFormData(inpUser, &errs.ValidationError{})
 		e.Password.Error = "Invalid password"
-		return respondWithTemplate(w, r, http.StatusUnprocessableEntity, views.LoginForm(e))
+		comp := views.LoginForm(e)
+		return UnprocessableEntity(RespondWithComponent(comp))
 	}
 
 	cookiesPair, err := h.newCookiesPairFromUser(usr)
 	if err != nil {
-		return err
+		return RespondError(err)
 	}
 
 	http.SetCookie(w, cookiesPair.Refresh)
 	http.SetCookie(w, cookiesPair.Access)
 
-	return hxRespondWithRedirect(w, "/")
+	return RespondRedirectHX(w, RespondWithPath("/"))
 }
 
-func (h *handler) Logout(w http.ResponseWriter, r *http.Request) error {
-	unsetCookie(w, refreshTokenCookieName)
-	unsetCookie(w, accessTokenCookieName)
+func (h *handler) Logout(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	unsetCookie(w, middleware.AccessClaimsCookieName)
+	unsetCookie(w, middleware.RefreshClaimsCookieName)
 
-	return hxRespondWithRedirect(w, "/")
+	return RespondRedirectHX(w, RespondWithPath("/"))
 }
 
 func (h *handler) newCookiesPairFromUser(usr *user.User) (*cookiePair, error) {
-	tokens, err := h.jwtAdapter.NewPair(usr)
+	tokens, err := jwtadapter.NewPair(usr)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshCookie := newCookie(refreshTokenCookieName, tokens.Refresh.Encoded, tokens.Refresh.Expiration)
-	accessCookie := newCookie(accessTokenCookieName, tokens.Access.Encoded, tokens.Access.Expiration)
+	refreshCookie := newCookie(middleware.RefreshClaimsCookieName, tokens.Refresh.Encoded, tokens.Refresh.Expiration)
+	accessCookie := newCookie(middleware.AccessClaimsCookieName, tokens.Access.Encoded, tokens.Access.Expiration)
 
 	return &cookiePair{Refresh: refreshCookie, Access: accessCookie}, nil
 }
@@ -157,15 +166,5 @@ func mapRegisterToFormData(usr *user.User, valerr *errs.ValidationError) *views.
 		Email:           views.FormInputData{Value: usr.Email, Error: valerr.Errors.MsgFor("Email")},
 		Password:        views.FormInputData{Value: usr.Password, Error: valerr.Errors.MsgFor("Password")},
 		ConfirmPassword: views.FormInputData{Value: usr.Password, Error: valerr.Errors.MsgFor("ConfirmPassword")},
-	}
-}
-
-func mapFormToUser(r *http.Request) *user.User {
-	return &user.User{
-		Name:            user.Name{First: r.FormValue("first_name"), Last: r.FormValue("last_name")},
-		Username:        r.FormValue("username"),
-		Email:           r.FormValue("email"),
-		Password:        r.FormValue("password"),
-		ConfirmPassword: r.FormValue("cpassword"),
 	}
 }

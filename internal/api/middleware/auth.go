@@ -42,6 +42,7 @@ func Auth(next http.Handler) http.Handler {
 		}
 
 		currPath := r.URL.Path
+		// TODO: update the logic to use a more robust way of checking if the path is for refresh tokens
 		isRefreshTokenRoute := strings.Contains(currPath, "oauth/refresh-tokens")
 		refreshCookie, err := r.Cookie(RefreshClaimsCookieName)
 		if err != nil {
@@ -55,6 +56,7 @@ func Auth(next http.Handler) http.Handler {
 			if next == "" {
 				next = currPath
 			}
+			// TODO: update the logic to use a more robust way of checking if the path is for refresh tokens
 			path := fmt.Sprintf("/oauth/refresh-tokens?next=%s", next)
 			http.Redirect(w, r, path, http.StatusTemporaryRedirect)
 			return
@@ -79,6 +81,27 @@ func Protected(next http.Handler) http.Handler {
 			httperr := errs.NewRespError(http.StatusUnauthorized, "")
 			w.Header().Set("Content-Type", "text/html")
 			l.Error("trying to access protected route", zap.String("path", r.URL.Path))
+			http.Error(w, httperr.Message, httperr.Code)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func AlreadyAuthed(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if accessClaims := r.Context().Value(AccessClaimsCtxKey{}); accessClaims != nil {
+			l := logger.FromCtx(r.Context())
+			l.Error("trying to access register or login page while logged", zap.String("path", r.URL.Path))
+
+			if r.Header.Get("Hx-Request") == "true" {
+				w.Header().Set("HX-Location", "/")
+				return
+			}
+
+			httperr := errs.NewRespError(http.StatusUnauthorized, "")
+			w.Header().Set("Content-Type", "text/html")
 			http.Error(w, httperr.Message, httperr.Code)
 			return
 		}

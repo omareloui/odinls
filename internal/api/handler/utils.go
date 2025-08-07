@@ -1,13 +1,24 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"regexp"
 
 	"github.com/a-h/templ"
+	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/api/middleware"
 )
 
 var nonDigitRegexp *regexp.Regexp = regexp.MustCompile(`\D+`)
+
+func getClaims(ctx context.Context) *jwtadapter.AccessClaims {
+	v := ctx.Value(middleware.AccessClaimsCtxKey{})
+	if v == nil {
+		return nil
+	}
+	return v.(*jwtadapter.AccessClaims)
+}
 
 func respondWithTemplate(w http.ResponseWriter, r *http.Request, status int, template templ.Component) error {
 	w.Header().Set("Content-Type", "text/html")
@@ -43,15 +54,10 @@ func respondWithNotFound(w http.ResponseWriter, r *http.Request) error {
 func respondWithErrorPage(w http.ResponseWriter, r *http.Request, status int) error {
 	// TODO:
 	// auth := r.Context().Value(middleware.AccessClaimsCtxKey)
-	// return respondWithTemplate(w, r, status, views.ErrorPage(auth.(*jwtadapter.JwtAccessClaims), http.StatusText(status), status))
+	// return respondWithTemplate(w, r, status, views.ErrorPage(auth.(*jwtadapter.AccessClaims), http.StatusText(status), status))
 	return nil
 }
 
 func renderToBody(w http.ResponseWriter, r *http.Request, template templ.Component) error {
 	return template.Render(r.Context(), w)
-}
-
-func hxRespondWithRedirect(w http.ResponseWriter, path string) error {
-	w.Header().Set("HX-Location", path)
-	return nil
 }

@@ -15,7 +15,7 @@ type MockSupplierService struct {
 }
 
 // CreateSupplier provides a mock function with given fields: claims, _a1
-func (_m *MockSupplierService) CreateSupplier(claims *jwtadapter.JwtAccessClaims, _a1 *supplier.Supplier) error {
+func (_m *MockSupplierService) CreateSupplier(claims *jwtadapter.AccessClaims, _a1 *supplier.Supplier) error {
 	ret := _m.Called(claims, _a1)
 
 	if len(ret) == 0 {
@@ -23,7 +23,7 @@ func (_m *MockSupplierService) CreateSupplier(claims *jwtadapter.JwtAccessClaims
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, *supplier.Supplier) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, *supplier.Supplier) error); ok {
 		r0 = rf(claims, _a1)
 	} else {
 		r0 = ret.Error(0)
@@ -33,7 +33,7 @@ func (_m *MockSupplierService) CreateSupplier(claims *jwtadapter.JwtAccessClaims
 }
 
 // GetSupplierByID provides a mock function with given fields: claims, id
-func (_m *MockSupplierService) GetSupplierByID(claims *jwtadapter.JwtAccessClaims, id string) (*supplier.Supplier, error) {
+func (_m *MockSupplierService) GetSupplierByID(claims *jwtadapter.AccessClaims, id string) (*supplier.Supplier, error) {
 	ret := _m.Called(claims, id)
 
 	if len(ret) == 0 {
@@ -42,10 +42,10 @@ func (_m *MockSupplierService) GetSupplierByID(claims *jwtadapter.JwtAccessClaim
 
 	var r0 *supplier.Supplier
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string) (*supplier.Supplier, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string) (*supplier.Supplier, error)); ok {
 		return rf(claims, id)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string) *supplier.Supplier); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string) *supplier.Supplier); ok {
 		r0 = rf(claims, id)
 	} else {
 		if ret.Get(0) != nil {
@@ -53,7 +53,7 @@ func (_m *MockSupplierService) GetSupplierByID(claims *jwtadapter.JwtAccessClaim
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims, string) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims, string) error); ok {
 		r1 = rf(claims, id)
 	} else {
 		r1 = ret.Error(1)
@@ -63,7 +63,7 @@ func (_m *MockSupplierService) GetSupplierByID(claims *jwtadapter.JwtAccessClaim
 }
 
 // GetSuppliers provides a mock function with given fields: claims
-func (_m *MockSupplierService) GetSuppliers(claims *jwtadapter.JwtAccessClaims) ([]supplier.Supplier, error) {
+func (_m *MockSupplierService) GetSuppliers(claims *jwtadapter.AccessClaims) ([]supplier.Supplier, error) {
 	ret := _m.Called(claims)
 
 	if len(ret) == 0 {
@@ -72,10 +72,10 @@ func (_m *MockSupplierService) GetSuppliers(claims *jwtadapter.JwtAccessClaims) 
 
 	var r0 []supplier.Supplier
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims) ([]supplier.Supplier, error)); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims) ([]supplier.Supplier, error)); ok {
 		return rf(claims)
 	}
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims) []supplier.Supplier); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims) []supplier.Supplier); ok {
 		r0 = rf(claims)
 	} else {
 		if ret.Get(0) != nil {
@@ -83,7 +83,7 @@ func (_m *MockSupplierService) GetSuppliers(claims *jwtadapter.JwtAccessClaims) 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwtadapter.JwtAccessClaims) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwtadapter.AccessClaims) error); ok {
 		r1 = rf(claims)
 	} else {
 		r1 = ret.Error(1)
@@ -93,7 +93,7 @@ func (_m *MockSupplierService) GetSuppliers(claims *jwtadapter.JwtAccessClaims) 
 }
 
 // UpdateSupplierByID provides a mock function with given fields: claims, id, _a2
-func (_m *MockSupplierService) UpdateSupplierByID(claims *jwtadapter.JwtAccessClaims, id string, _a2 *supplier.Supplier) error {
+func (_m *MockSupplierService) UpdateSupplierByID(claims *jwtadapter.AccessClaims, id string, _a2 *supplier.Supplier) error {
 	ret := _m.Called(claims, id, _a2)
 
 	if len(ret) == 0 {
@@ -101,7 +101,7 @@ func (_m *MockSupplierService) UpdateSupplierByID(claims *jwtadapter.JwtAccessCl
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jwtadapter.JwtAccessClaims, string, *supplier.Supplier) error); ok {
+	if rf, ok := ret.Get(0).(func(*jwtadapter.AccessClaims, string, *supplier.Supplier) error); ok {
 		r0 = rf(claims, id, _a2)
 	} else {
 		r0 = ret.Error(0)
