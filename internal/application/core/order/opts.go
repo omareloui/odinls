@@ -21,11 +21,6 @@ func WithPopulatedItemProducts(opts *RetrieveOpts) {
 	opts.PopulateItemProducts = true
 }
 
-func WithPopulatedItemVariants(opts *RetrieveOpts) {
-	WithPopulatedItemProducts(opts)
-	opts.PopulateItemVariants = true
-}
-
 func ParseRetrieveOpts(funcs ...RetrieveOptsFunc) *RetrieveOpts {
 	o := &RetrieveOpts{}
 	for _, fun := range funcs {

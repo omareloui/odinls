@@ -1,11 +1,11 @@
 package user
 
 type UserService interface {
-	GetUsers(opts ...RetrieveOptsFunc) ([]User, error)
-	GetUserByID(id string, opts ...RetrieveOptsFunc) (*User, error)
-	GetUserByEmailOrUsername(emailOrUsername string, opts ...RetrieveOptsFunc) (*User, error)
-	GetUserByEmailOrUsernameFromUser(usr *User, opts ...RetrieveOptsFunc) (*User, error)
-	CreateUser(user *User, opts ...RetrieveOptsFunc) (*User, error)
-	UpdateUserByID(id string, user *User, opts ...RetrieveOptsFunc) (*User, error)
+	GetUsers() ([]User, error)
+	GetUserByID(id string) (*User, error)
+	GetUserByEmailOrUsername(emailOrUsername string) (*User, error)
+	GetUserByEmailOrUsernameFromUser(usr *User) (*User, error)
+	CreateUser(user *User) (*User, error)
+	UpdateUserByID(id string, user *User) (*User, error)
 	UnsetCraftsmanByID(id string) (*User, error)
 }
