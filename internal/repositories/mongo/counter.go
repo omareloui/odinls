@@ -6,8 +6,8 @@ import (
 
 	"github.com/omareloui/odinls/internal/application/core/counter"
 	"github.com/omareloui/odinls/internal/application/core/product"
+	"github.com/omareloui/odinls/internal/errs"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const amountToIncrement = 1
@@ -25,7 +25,7 @@ func (r *repository) getCounter() (*counter.Counter, error) {
 
 	cntr, err := GetOne[counter.Counter](ctx, r.countersColl, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
+		if errors.Is(err, errs.ErrDocumentNotFound) {
 			codes := product.CategoriesCodes()
 			pcodes := make(counter.ProductsCodes, len(codes))
 			for _, code := range codes {

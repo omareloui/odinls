@@ -10,14 +10,15 @@ import (
 	"strconv"
 	"github.com/omareloui/odinls/internal/application/core/client"
 	"github.com/omareloui/odinls/internal/application/core/product"
+	"github.com/omareloui/formmap"
 )
 
 type OrderFormData struct {
-	ClientID FormInputData `json:"client_id"`
-	Status   FormInputData `json:"status"`
+	ClientID formmap.FormInputData `json:"client_id"`
+	Status   formmap.FormInputData `json:"status"`
 
 	Timeline OrderTimelineFormData `json:"timeline"`
-	Note     FormInputData         `json:"note"`
+	Note     formmap.FormInputData `json:"note"`
 
 	Items           []OrderItemFormData      `json:"items"`
 	PriceAddons     []PriceAddonFormData     `json:"price_addons"`
@@ -25,39 +26,39 @@ type OrderFormData struct {
 }
 
 type OrderItemFormData struct {
-	ID          FormInputData `json:"id"`
-	Product     FormInputData `json:"product_id"`
-	Variant     FormInputData `json:"variant_id"`
-	CustomPrice FormInputData `json:"custom_price"`
-	Quantity    FormInputData `json:"quantity"`
+	ID          formmap.FormInputData `json:"id"`
+	Product     formmap.FormInputData `json:"product_id"`
+	Variant     formmap.FormInputData `json:"variant_id"`
+	CustomPrice formmap.FormInputData `json:"custom_price"`
+	Quantity    formmap.FormInputData `json:"quantity"`
 }
 
 type PriceAddonFormData struct {
-	Kind         FormInputData `json:"kind"`
-	Amount       FormInputData `json:"amount"`
-	IsPercentage FormInputData `json:"is_percentage"`
+	Kind         formmap.FormInputData `json:"kind"`
+	Amount       formmap.FormInputData `json:"amount"`
+	IsPercentage formmap.FormInputData `json:"is_percentage"`
 }
 
 type ReceivedAmountFormData struct {
-	Amount FormInputData `json:"amount"`
-	Date   FormInputData `json:"date"`
+	Amount formmap.FormInputData `json:"amount"`
+	Date   formmap.FormInputData `json:"date"`
 }
 
 type OrderTimelineFormData struct {
-	IssuanceDate FormInputData `json:"issuance_date"`
-	DueDate      FormInputData `json:"due_date"`
-	Deadline     FormInputData `json:"deadline"`
-	DoneOn       FormInputData `json:"done_on"`
-	ShippedOn    FormInputData `json:"shipped_on"`
-	ResolvedOn   FormInputData `json:"resolved_on"`
+	IssuanceDate formmap.FormInputData `json:"issuance_date"`
+	DueDate      formmap.FormInputData `json:"due_date"`
+	Deadline     formmap.FormInputData `json:"deadline"`
+	DoneOn       formmap.FormInputData `json:"done_on"`
+	ShippedOn    formmap.FormInputData `json:"shipped_on"`
+	ResolvedOn   formmap.FormInputData `json:"resolved_on"`
 }
 
 func NewDefaultOrderFormData() *OrderFormData {
 	return &OrderFormData{
-		Status: FormInputData{Value: order.StatusPendingConfirmation.String()},
+		Status: formmap.FormInputData{Value: string(order.StatusPendingConfirmation)},
 		Timeline: OrderTimelineFormData{
-			IssuanceDate: FormInputData{Value: time.Now().Format(time.DateOnly)}},
-		Items:       []OrderItemFormData{{Quantity: FormInputData{Value: "1"}}},
+			IssuanceDate: formmap.FormInputData{Value: time.Now().Format(time.DateOnly)}},
+		Items:       []OrderItemFormData{{Quantity: formmap.FormInputData{Value: "1"}}},
 		PriceAddons: []PriceAddonFormData{},
 	}
 }
@@ -215,11 +216,11 @@ templ ordersList(ords []order.Order) {
 templ Order(ord *order.Order) {
 	<div hx-target="this" class="entry-container">
 		<p>ID: { ord.ID }</p>
-		for _, crafmanId := range ord.CraftsmenIDs {
-			<p>CraftsmanID: { crafmanId }</p>
-		}
+		<!-- for _, crafmanId := range ord.CraftsmenIDs { -->
+		<!-- 	<p>CraftsmanID: { crafmanId }</p> -->
+		<!-- } -->
 		<p>Ref: { ord.RefView() }</p>
-		<p>Subtotal: { strconv.FormatFloat(ord.Subtotal, 'f', 2, 64) }</p>
+		<p>Subtotal: { strconv.FormatFloat(ord.Subtotal(), 'f', 2, 64) }</p>
 		<p>Created At: { ord.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { ord.UpdatedAt.Format(time.RFC1123) }</p>
 		<h3 class="text-lg font-bold">Items ({ strconv.Itoa(len(ord.Items)) })</h3>
@@ -245,7 +246,7 @@ func getOrderStatusesMap() map[string]string {
 	enums := order.StatusesEnums()
 	m := make(map[string]string, len(enums))
 	for _, enum := range enums {
-		m[enum.String()] = enum.View()
+		m[string(enum)] = enum.View()
 	}
 	return m
 }
@@ -262,7 +263,7 @@ func getPriceAddonsKindOptions() []SelectOptions {
 	enums := order.PriceAddonKindEnums()
 	m := make([]SelectOptions, len(enums))
 	for i, enum := range enums {
-		m[i] = SelectOptions{Value: enum.String(), View: enum.View()}
+		m[i] = SelectOptions{Value: string(enum), View: enum.View()}
 	}
 	return m
 }

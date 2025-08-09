@@ -48,7 +48,7 @@ func (s *productService) CreateProduct(claims *jwtadapter.AccessClaims, prod *Pr
 	}
 
 	if err := s.validator.Validate(prod); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	num, err := s.counterService.AddOneToProduct(claims, prod.Category.Code())
@@ -84,7 +84,7 @@ func (s *productService) UpdateProductByID(claims *jwtadapter.AccessClaims, id s
 	}
 
 	if err := s.validator.Validate(uprod); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	prod, err := s.repo.GetProductByID(id)

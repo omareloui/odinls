@@ -6,16 +6,17 @@ import (
 
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/client"
+	"github.com/omareloui/formmap"
 )
 
 type ClientFormData struct {
-	Name               FormInputData
-	Notes              FormInputData
-	WholesaleAsDefault FormInputData
-	Phone              FormInputData
-	Link               FormInputData
-	Email              FormInputData
-	Location           FormInputData
+	Name               formmap.FormInputData
+	Notes              formmap.FormInputData
+	WholesaleAsDefault formmap.FormInputData
+	Phone              formmap.FormInputData
+	Link               formmap.FormInputData
+	Email              formmap.FormInputData
+	Location           formmap.FormInputData
 }
 
 templ ClientsPage(access *jwtadapter.AccessClaims, clients []client.Client, formdata *ClientFormData) {

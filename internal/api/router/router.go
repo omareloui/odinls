@@ -36,17 +36,17 @@ func New(h handler.Handler) Router {
 	mux.Handle("PUT /clients/{id}", handle(h.EditClient))
 	mux.Handle("POST /clients", handle(h.CreateClient))
 
-	// mux.Handle("GET /products", handle(h.GetProducts))
-	// mux.Handle("GET /products/{id}", handle(h.GetProduct))
-	// mux.Handle("GET /products/{id}/edit", handle(h.GetEditProduct))
-	// mux.Handle("PUT /products/{id}", handle(h.EditProduct))
-	// mux.Handle("POST /products", handle(h.CreateProduct))
+	mux.Handle("GET /products", handle(h.GetProducts))
+	mux.Handle("GET /products/{id}", handle(h.GetProduct))
+	mux.Handle("GET /products/{id}/edit", handle(h.GetEditProduct))
+	mux.Handle("PUT /products/{id}", handle(h.EditProduct))
+	mux.Handle("POST /products", handle(h.CreateProduct))
 
-	// mux.Handle("GET /orders", handle(h.GetOrders))
-	// mux.Handle("GET /orders/{id}", handle(h.GetOrder))
-	// mux.Handle("GET /orders/{id}/edit", handle(h.GetEditOrder))
-	// mux.Handle("PUT /orders/{id}", handle(h.EditOrder))
-	// mux.Handle("POST /orders", handle(h.CreateOrder))
+	mux.Handle("GET /orders", handle(h.GetOrders))
+	mux.Handle("GET /orders/{id}", handle(h.GetOrder))
+	mux.Handle("GET /orders/{id}/edit", handle(h.GetEditOrder))
+	mux.Handle("PUT /orders/{id}", handle(h.EditOrder))
+	mux.Handle("POST /orders", handle(h.CreateOrder))
 
 	mux.Handle("GET /unauthorized", handlePub(h.Unauthorized))
 

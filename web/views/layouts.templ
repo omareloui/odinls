@@ -49,7 +49,7 @@ templ navbar(access *jwtadapter.AccessClaims) {
 	<nav class="flex gap-6 items-start my-4">
 		if access != nil {
 			<div class="text font-bold text-green-500">
-				<p>{ access.Username }</p>
+				<p>{ access.Name.FullName() }</p>
 			</div>
 		}
 		<div hx-boost="true" class="flex gap-6 justify-between w-full">

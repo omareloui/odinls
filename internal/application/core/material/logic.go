@@ -47,7 +47,7 @@ func (s *materialService) CreateMaterial(claims *jwtadapter.AccessClaims, mat *M
 	}
 
 	if err := s.validator.Validate(mat); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.CreateMaterial(mat, options...)
@@ -64,7 +64,7 @@ func (s *materialService) UpdateMaterialByID(claims *jwtadapter.AccessClaims, id
 	}
 
 	if err := s.validator.Validate(umat); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.UpdateMaterialByID(id, umat, options...)

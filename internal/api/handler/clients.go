@@ -5,8 +5,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/omareloui/former"
+	"github.com/omareloui/odinls/internal/api/responder"
 	"github.com/omareloui/odinls/internal/application/core/client"
-	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/web/views"
 )
 
@@ -15,11 +15,11 @@ func (h *handler) GetClients(w http.ResponseWriter, r *http.Request) (templ.Comp
 
 	clients, err := h.app.ClientService.GetClients(claims)
 	if err != nil {
-		return RespondError(err)
+		return responder.Error(err)
 	}
 
 	comp := views.ClientsPage(claims, clients, &views.ClientFormData{})
-	return RespondOK(w, RespondWithComponent(comp))
+	return responder.OK(w, responder.WithComponent(comp))
 }
 
 func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -28,22 +28,19 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) (templ.Co
 	cli := new(client.Client)
 	err := former.Populate(r, cli)
 	if err != nil {
-		return BadRequest()
+		return responder.BadRequest()
 	}
 
 	cli, err = h.app.ClientService.CreateClient(claims, cli)
 	if err != nil {
-		if valerr, ok := err.(errs.ValidationError); ok {
-			return UnprocessableEntity(RespondWithComponent(views.CreateClientForm(mapClientToFormData(cli, &valerr))))
-		}
-		return RespondError(err)
+		var fd *views.ClientFormData
+		h.fm.MapToForm(cli, err, fd)
+		return responder.Error(err, responder.WithComponentIfValidationErr(views.CreateClientForm(fd)))
 	}
 
-	if err := renderToBody(w, r, views.ClientOOB(cli)); err != nil {
-		return RespondError(err)
-	}
-
-	return RespondCreated(w, RespondWithComponent(views.CreateClientForm(&views.ClientFormData{})))
+	return responder.Created(w,
+		responder.WithOOBComponent(w, r.Context(), views.ClientOOB(cli)),
+		responder.WithComponent(views.CreateClientForm(new(views.ClientFormData))))
 }
 
 func (h *handler) GetClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -51,22 +48,23 @@ func (h *handler) GetClient(w http.ResponseWriter, r *http.Request) (templ.Compo
 	claims := getClaims(r.Context())
 	c, err := h.app.ClientService.GetClientByID(claims, id)
 	if err != nil {
-		return RespondError(err)
+		return responder.Error(err)
 	}
-	return RespondOK(w, RespondWithComponent(views.Client(c)))
+	return responder.OK(w, responder.WithComponent(views.Client(c)))
 }
 
 func (h *handler) GetEditClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	id := r.PathValue("id")
 	claims := getClaims(r.Context())
 
-	c, err := h.app.ClientService.GetClientByID(claims, id)
+	cli, err := h.app.ClientService.GetClientByID(claims, id)
 	if err != nil {
-		return RespondError(err)
+		return responder.Error(err)
 	}
 
-	return RespondOK(w,
-		RespondWithComponent(views.EditClient(c, mapClientToFormData(c, &errs.ValidationError{}))))
+	var fd *views.ClientFormData
+	h.fm.MapToForm(cli, nil, fd)
+	return responder.OK(w, responder.WithComponent(views.EditClient(cli, fd)))
 }
 
 func (h *handler) EditClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -76,44 +74,16 @@ func (h *handler) EditClient(w http.ResponseWriter, r *http.Request) (templ.Comp
 	cli := new(client.Client)
 	err := former.Populate(r, cli)
 	if err != nil {
-		return BadRequest()
+		return responder.BadRequest()
 	}
 
 	cli, err = h.app.ClientService.UpdateClientByID(claims, id, cli)
 	if err != nil {
-		if valerr, ok := err.(errs.ValidationError); ok {
-			return UnprocessableEntity(RespondWithComponent(views.EditClient(cli, mapClientToFormData(cli, &valerr))))
-		}
-		return RespondError(err)
+		var fd *views.ClientFormData
+		h.fm.MapToForm(cli, err, fd)
+		return responder.Error(err,
+			responder.WithComponentIfValidationErr(views.EditClient(cli, fd)))
 	}
 
-	return RespondOK(w, RespondWithComponent(views.Client(cli)))
-}
-
-func mapClientToFormData(client *client.Client, valerr *errs.ValidationError) *views.ClientFormData {
-	formData := &views.ClientFormData{
-		Name:  views.FormInputData{Value: client.Name, Error: valerr.Errors.MsgFor("Name")},
-		Notes: views.FormInputData{Value: client.Notes, Error: valerr.Errors.MsgFor("Notes")},
-	}
-
-	if client.WholesaleAsDefault {
-		formData.WholesaleAsDefault = views.FormInputData{Value: "on", Error: valerr.Errors.MsgFor("WholesaleAsDefault")}
-	} else {
-		formData.WholesaleAsDefault = views.FormInputData{Value: "", Error: valerr.Errors.MsgFor("WholesaleAsDefault")}
-	}
-
-	if client.ContactInfo.PhoneNumbers != nil {
-		formData.Phone = views.FormInputData{Value: client.ContactInfo.PhoneNumbers["default"], Error: valerr.Errors.MsgFor("ContactInfo.PhoneNumbers")}
-	}
-	if client.ContactInfo.Emails != nil {
-		formData.Email = views.FormInputData{Value: client.ContactInfo.Emails["default"], Error: valerr.Errors.MsgFor("ContactInfo.Emails")}
-	}
-	if client.ContactInfo.Locations != nil {
-		formData.Location = views.FormInputData{Value: client.ContactInfo.Locations["default"], Error: valerr.Errors.MsgFor("ContactInfo.Locations")}
-	}
-	if client.ContactInfo.Links != nil {
-		formData.Link = views.FormInputData{Value: client.ContactInfo.Links["default"], Error: valerr.Errors.MsgFor("ContactInfo.Links")}
-	}
-
-	return formData
+	return responder.OK(w, responder.WithComponent(views.Client(cli)))
 }

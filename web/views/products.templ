@@ -8,32 +8,33 @@ import (
 	"github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/application/core/product"
 	"math"
+	"github.com/omareloui/formmap"
 )
 
 type ProductFormData struct {
-	Name        FormInputData
-	Description FormInputData
-	Category    FormInputData
+	Name        formmap.FormInputData
+	Description formmap.FormInputData
+	Category    formmap.FormInputData
 	Variants    []ProductVariantFormData
 }
 
 type ProductVariantFormData struct {
-	ID             FormInputData `json:"id"`
-	Suffix         FormInputData `json:"suffix"`
-	Name           FormInputData `json:"name"`
-	Description    FormInputData `json:"description"`
-	Price          FormInputData `json:"price"`
-	WholesalePrice FormInputData `json:"wholesale_price"`
-	TimeToCraft    FormInputData `json:"time_to_craft"`
-	MaterialsCost  FormInputData `json:"materials_cost"`
+	ID             formmap.FormInputData `json:"id"`
+	Suffix         formmap.FormInputData `json:"suffix"`
+	Name           formmap.FormInputData `json:"name"`
+	Description    formmap.FormInputData `json:"description"`
+	Price          formmap.FormInputData `json:"price"`
+	WholesalePrice formmap.FormInputData `json:"wholesale_price"`
+	TimeToCraft    formmap.FormInputData `json:"time_to_craft"`
+	MaterialsCost  formmap.FormInputData `json:"materials_cost"`
 }
 
 templ ProductsPage(claims *jwtadapter.AccessClaims, prods []product.Product) {
 	@baseLayout(claims, "Products | Odin LS") {
 		@container() {
-			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.HourlyRate(), true)
+			@CreateProductForm(&product.Product{}, &ProductFormData{Variants: []ProductVariantFormData{{}}}, claims.Craftsman.HourlyRate, true)
 			<h2 class="text-3xl font-bold mb-3">Products</h2>
-			@productsList(prods, claims.HourlyRate())
+			@productsList(prods, claims.Craftsman.HourlyRate)
 		}
 	}
 }
@@ -118,7 +119,7 @@ templ Product(prod *product.Product, hourlyRate float64) {
 		<p>ID: { prod.ID }</p>
 		<p>Name: { prod.Name }</p>
 		<p>Description: { prod.Description }</p>
-		<p>Ref: { prod.Ref() }</p>
+		<p>SKU: { prod.SKU() }</p>
 		<p>Created At: { prod.CreatedAt.Format(time.RFC1123) }</p>
 		<p>Updated At: { prod.UpdatedAt.Format(time.RFC1123) }</p>
 		<h3 class="text-lg font-bold">Variants ({ strconv.Itoa(len(prod.Variants)) })</h3>
@@ -126,13 +127,13 @@ templ Product(prod *product.Product, hourlyRate float64) {
 			<h4 class="text font-bold">{ variant.Name }</h4>
 			<p>ID: { variant.ID }</p>
 			<p>Description: { variant.Description }</p>
-			<p>Materials Cost: { strconv.FormatFloat(variant.MaterialsCost, 'f', 2, 64) }</p>
+			<p>Materials Cost: { strconv.FormatFloat(variant.MaterialCost(), 'f', 2, 64) }</p>
 			<p>Time to Craft: { strconv.Itoa(int(variant.TimeToCraft.Hours())) }h { strconv.FormatFloat(variant.TimeToCraft.Minutes() - math.Floor(variant.TimeToCraft.Hours()) * 60, 'f', 0, 64) }m</p>
-			<p>Est. Commercial Price: { strconv.FormatFloat(variant.EstPrice(hourlyRate), 'f', 2, 64) }</p>
-			<p>Est. Wholesale Price: { strconv.FormatFloat(variant.EstWholesalePrice(hourlyRate), 'f', 2, 64) }</p>
+			<p>Est. Commercial Price: { strconv.FormatFloat(variant.EstPrice(), 'f', 2, 64) }</p>
+			<p>Est. Wholesale Price: { strconv.FormatFloat(variant.EstWholesalePrice(), 'f', 2, 64) }</p>
 			<p>Commercial Price: { strconv.FormatFloat(variant.Price, 'f', 2, 64) }</p>
 			<p>Wholesale Price: { strconv.FormatFloat(variant.WholesalePrice, 'f', 2, 64) }</p>
-			<p>Ref: { variant.Ref() }</p>
+			<p>SKU: { variant.SKU() }</p>
 		}
 		<button
 			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
@@ -151,7 +152,7 @@ templ ProductOOB(prod *product.Product, hourlyRate float64) {
 func getProductCategoriesMap() *map[string]string {
 	m := make(map[string]string)
 	for _, cat := range product.CategoriesEnums() {
-		m[cat.Code()] = cat.String()
+		m[cat.Code()] = string(cat)
 	}
 	return &m
 }

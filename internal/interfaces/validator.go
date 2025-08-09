@@ -1,8 +1,9 @@
 package interfaces
 
-import "github.com/omareloui/odinls/internal/errs"
+import (
+	"github.com/omareloui/formmap"
+)
 
 type Validator interface {
-	Validate(any) error
-	ParseError(any) errs.ValidationError
+	Validate(any) *formmap.ValidationError
 }

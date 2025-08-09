@@ -5,7 +5,6 @@ import (
 
 	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/interfaces"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,7 +51,7 @@ func (s *userService) CreateUser(usr *User) (*User, error) {
 	}
 
 	if err := s.validator.Validate(usr); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	passStr := usr.Password
@@ -73,15 +72,14 @@ func (s *userService) UpdateUserByID(id string, usr *User) (*User, error) {
 	}
 
 	if err := s.validator.Validate(usr); err != nil {
-		valerr := s.validator.ParseError(err)
-		delete(valerr.Errors, "Password")
-		if len(valerr.Errors) > 0 {
-			return nil, valerr
+		delete(err.Errors, "Password")
+		if len(err.Errors) > 0 {
+			return nil, err
 		}
 	}
 
 	sameEmailUsr, err := s.repo.GetUserByEmailOrUsername(usr.Email)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && !errors.Is(err, errs.ErrDocumentNotFound) {
 		return nil, err
 	}
 	if sameEmailUsr != nil && sameEmailUsr.ID != id {
@@ -89,7 +87,7 @@ func (s *userService) UpdateUserByID(id string, usr *User) (*User, error) {
 	}
 
 	sameUsernameUsr, err := s.repo.GetUserByEmailOrUsername(usr.Username)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && !errors.Is(err, errs.ErrDocumentNotFound) {
 		return nil, err
 	}
 	if sameUsernameUsr != nil && sameUsernameUsr.ID != id {

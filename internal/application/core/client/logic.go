@@ -47,7 +47,7 @@ func (s *clientService) CreateClient(claims *jwtadapter.AccessClaims, client *Cl
 	}
 
 	if err := s.validator.Validate(client); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.CreateClient(client)
@@ -64,7 +64,7 @@ func (s *clientService) UpdateClientByID(claims *jwtadapter.AccessClaims, id str
 	}
 
 	if err := s.validator.Validate(client); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.UpdateClientByID(id, client)

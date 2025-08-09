@@ -104,7 +104,7 @@ func (s *orderService) CreateOrder(claims *jwtadapter.AccessClaims, ord *Order, 
 	}
 
 	if err := s.validator.Validate(ord); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.CreateOrder(ord, options...)
@@ -121,7 +121,7 @@ func (s *orderService) UpdateOrderByID(claims *jwtadapter.AccessClaims, id strin
 	}
 
 	if err := s.validator.Validate(uord); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.UpdateOrderByID(id, uord, options...)

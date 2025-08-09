@@ -46,7 +46,7 @@ func (s *supplierService) CreateSupplier(claims *jwtadapter.AccessClaims, sup *S
 	}
 
 	if err := s.validator.Validate(sup); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.CreateSupplier(sup)
@@ -62,7 +62,7 @@ func (s *supplierService) UpdateSupplierByID(claims *jwtadapter.AccessClaims, id
 	}
 
 	if err := s.validator.Validate(sup); err != nil {
-		return nil, s.validator.ParseError(err)
+		return nil, err
 	}
 
 	return s.repo.UpdateSupplierByID(id, sup)

@@ -2,11 +2,7 @@ package views
 
 import "fmt"
 import "strings"
-
-type FormInputData struct {
-	Value string `json:"value"`
-	Error string `json:"error"`
-}
+import "github.com/omareloui/formmap"
 
 type SelectOptions struct {
 	Value string `json:"value"`
@@ -19,7 +15,7 @@ templ list(id string) {
 	</div>
 }
 
-templ input(label, kind, name, placeholder, idSuffix string, data FormInputData) {
+templ input(label, kind, name, placeholder, idSuffix string, data formmap.FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<input
@@ -49,7 +45,7 @@ templ alpineInput(label, kind, nameKey, placeholder, idSuffixKey, dataKey string
 	</div>
 }
 
-templ moneyInput(label, name, idSuffix string, data FormInputData) {
+templ moneyInput(label, name, idSuffix string, data formmap.FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<input
@@ -79,7 +75,7 @@ templ alpineMoneyInput(label, nameKey, idSuffixKey, dataKey string, classes ...s
 	</div>
 }
 
-templ percentageInput(label, name, idSuffix string, data FormInputData) {
+templ percentageInput(label, name, idSuffix string, data formmap.FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<input
@@ -94,7 +90,7 @@ templ percentageInput(label, name, idSuffix string, data FormInputData) {
 	</div>
 }
 
-templ textarea(label, name, placeholder, idSuffix string, data FormInputData) {
+templ textarea(label, name, placeholder, idSuffix string, data formmap.FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<textarea
@@ -121,7 +117,7 @@ templ alpineTextarea(label, nameKey, placeholder, idSuffixKey, dataKey string) {
 	</div>
 }
 
-templ checkbox(label, name, idSuffix string, data FormInputData) {
+templ checkbox(label, name, idSuffix string, data formmap.FormInputData) {
 	<div>
 		if data.Value == "on" {
 			<input id={ join(name, idSuffix) } type="checkbox" name={ name } checked/>
@@ -144,7 +140,7 @@ templ alpineCheckbox(label, nameKey, idSuffix, dataKey string) {
 	</div>
 }
 
-templ selectInput(label, name, placeholder, idSuffix string, options map[string]string, data FormInputData, classes ...string) {
+templ selectInput(label, name, placeholder, idSuffix string, options map[string]string, data formmap.FormInputData, classes ...string) {
 	<div class={ strings.Join(classes, " ") }>
 		<label for={ join(name, idSuffix) } class="input-label">{ label }</label>
 		<select
@@ -183,7 +179,7 @@ templ alpineSelect(label, nameKey, placeholder, idSuffixKey, optionsKey, dataKey
 	</div>
 }
 
-templ dateInput(label, name, idSuffix string, data FormInputData) {
+templ dateInput(label, name, idSuffix string, data formmap.FormInputData) {
 	<div>
 		<label class="input-label" for={ join(name, idSuffix) }>{ label }</label>
 		<input

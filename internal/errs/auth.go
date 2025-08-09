@@ -2,4 +2,4 @@ package errs
 
 import "errors"
 
-var ErrForbidden = errors.New("forbbiden to access resources")
+var ErrForbidden = errors.New("forbidden to access resources")

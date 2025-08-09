@@ -17,18 +17,18 @@ func (v *playgroundValidator) Validate(input any) error {
 	return v.validator.Struct(input)
 }
 
-func (v *playgroundValidator) ParseError(error any) errs.ValidationError {
-	valerr := errs.ValidationErrors{}
+func (v *playgroundValidator) ParseError(error any) formmap.ValidationError {
+	valerr := formmap.ValidationErrors{}
 	for _, err := range error.(validator.ValidationErrors) {
 		namespace := err.Namespace()
 		firstDot := strings.Index(namespace, ".")
 		path := namespace[firstDot+1:]
-		valerr[path] = errs.ValidationField{
+		valerr[path] = formmap.ValidationField{
 			Tag:   err.ActualTag(),
 			Param: err.Param(),
 		}
 	}
-	return errs.ValidationError{Errors: valerr}
+	return formmap.ValidationError{Errors: valerr}
 }
 
 func NewValidator() *playgroundValidator {

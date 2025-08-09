@@ -10,16 +10,16 @@ import (
 )
 
 type NameFormData struct {
-	First FormInputData
-	Last  FormInputData
+	First formmap.FormInputData
+	Last  formmap.FormInputData
 }
 
 type UserFormData struct {
 	Name       NameFormData
-	Email      FormInputData
-	Username   FormInputData
-	Role       FormInputData
-	HourlyRate FormInputData
+	Email      formmap.FormInputData
+	Username   formmap.FormInputData
+	Role       formmap.FormInputData
+	HourlyRate formmap.FormInputData
 }
 
 type EditUserOpts struct {

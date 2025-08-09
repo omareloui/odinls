@@ -26,6 +26,10 @@ func Get[T any](ctx context.Context, coll *mongo.Collection, filter *bson.M) ([]
 
 	cursor, err = coll.Find(ctx, filter)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			l.Warn("no document found for the given filter", zap.String("collection", coll.Name()), zap.Any("filter", filter))
+			return nil, errs.ErrDocumentNotFound
+		}
 		l.Warn("error finding in collection", zap.String("collection", coll.Name()), zap.Error(err), zap.Any("filter", filter))
 		return nil, err
 	}
@@ -65,6 +69,10 @@ func GetOne[T any](ctx context.Context, coll *mongo.Collection, filter bson.M) (
 	res := new(T)
 
 	if err := coll.FindOne(ctx, filter).Decode(res); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			l.Warn("no document found for the given filter", zap.String("collection", coll.Name()), zap.Any("filter", filter))
+			return nil, errs.ErrDocumentNotFound
+		}
 		l.Error("error finding one documentid", zap.String("collection", coll.Name()), zap.Error(err), zap.Any("filter", filter))
 		return nil, err
 	}
@@ -167,6 +175,11 @@ func UpdateOne[T any](ctx context.Context, coll *mongo.Collection, filter bson.M
 
 	err := res.Err()
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			l.Warn("no document found for the given filter", zap.String("collection", coll.Name()), zap.Any("filter", filter))
+			return errs.ErrDocumentNotFound
+		}
+
 		if ok := mongo.IsDuplicateKeyError(err); ok {
 			if se := mongo.ServerError(nil); errors.As(err, &se) {
 				l.Warn("error duplicate document on updating the document", zap.String("collection", coll.Name()), zap.Error(err), zap.Any("filter", filter), zap.Error(se), zap.Any("update", update))

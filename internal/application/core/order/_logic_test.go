@@ -134,7 +134,7 @@ func TestCreateOrder(t *testing.T) {
 				err := s.CreateOrder(&claims, &ord3)
 
 				assert.NotNil(t, err)
-				if valerr, ok := err.(errs.ValidationError); ok {
+				if valerr, ok := err.(formmap.ValidationError); ok {
 					assert.Contains(t, valerr.Errors["Items"].Msg(), "too short")
 				}
 			})
@@ -191,7 +191,7 @@ func TestCreateOrder(t *testing.T) {
 
 				err := s.CreateOrder(&claims, &ord3)
 				assert.NotNil(t, err)
-				if valerr, ok := err.(errs.ValidationError); ok {
+				if valerr, ok := err.(formmap.ValidationError); ok {
 					assert.Contains(t, valerr.Errors["PriceAddons[0].Amount"].Msg(), "Value is low")
 					assert.Contains(t, valerr.Errors["PriceAddons[0].Kind"].Msg(), "one of")
 				}

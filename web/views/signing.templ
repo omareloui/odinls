@@ -1,17 +1,19 @@
 package views
 
+import "github.com/omareloui/formmap"
+
 type RegisterFormData struct {
-	FirstName       FormInputData
-	LastName        FormInputData
-	Username        FormInputData
-	Email           FormInputData
-	Password        FormInputData
-	ConfirmPassword FormInputData
+	FirstName       formmap.FormInputData
+	LastName        formmap.FormInputData
+	Username        formmap.FormInputData
+	Email           formmap.FormInputData
+	Password        formmap.FormInputData
+	ConfirmPassword formmap.FormInputData
 }
 
 type LoginFormData struct {
-	Email    FormInputData
-	Password FormInputData
+	Email    formmap.FormInputData
+	Password formmap.FormInputData
 }
 
 templ Login(formdata *LoginFormData) {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
+	"github.com/omareloui/formmap"
 	"github.com/omareloui/odinls/config"
 	"github.com/omareloui/odinls/internal/api/handler"
 	"github.com/omareloui/odinls/internal/api/router"
@@ -13,7 +14,6 @@ import (
 	"github.com/omareloui/odinls/internal/logger"
 	"github.com/omareloui/odinls/internal/repositories/mongo"
 	"github.com/omareloui/odinls/internal/sanitizer/conformadaptor"
-	"github.com/omareloui/odinls/internal/validator/playgroundvalidator"
 	"go.uber.org/zap"
 )
 
@@ -35,7 +35,7 @@ func main() {
 		l.Fatal("Error creating repository", zap.Error(err))
 	}
 
-	validator := playgroundvalidator.NewValidator()
+	validator := formmap.NewValidator()
 	sanitizer := conformadaptor.NewSanitizer()
 
 	app := application.NewApplication(repo, validator, sanitizer)
