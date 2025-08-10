@@ -5,8 +5,8 @@ import (
 )
 
 type Name struct {
-	First string `json:"first" bson:"first" conform:"name" validate:"required,not_blank"`
-	Last  string `json:"last" bson:"last" conform:"name" validate:"required,not_blank"`
+	First string `json:"first" formfield:"first_name" bson:"first" conform:"name" validate:"required,not_blank"`
+	Last  string `json:"last" formfield:"last_name" bson:"last" conform:"name" validate:"required,not_blank"`
 }
 
 func (n Name) FullName() string {
@@ -24,7 +24,7 @@ func (n Name) FullName() string {
 
 type User struct {
 	ID              string   `json:"id" formfield:"-" bson:"_id,omitempty"`
-	Name            Name     `json:"name" bson:"name" validate:"required"`
+	Name            Name     `json:"name" formfield:"name" bson:"name" validate:"required"`
 	Username        string   `json:"username" formfield:"username" bson:"username" conform:"trim,lower" validate:"required,min=3,max=64,alphanum_with_underscore,not_blank"`
 	Email           string   `json:"email" formfield:"email" bson:"email" conform:"email" validate:"required,email,not_blank"`
 	Password        string   `json:"password" formfield:"password" bson:"password" validate:"required,min=8,max=64,not_blank"`

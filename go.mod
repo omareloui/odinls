@@ -11,7 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/leebenson/conform v1.2.2
 	github.com/oklog/ulid v1.3.1
-	github.com/omareloui/former v0.0.0-20250802180746-193cefabdd72
+	github.com/omareloui/former v0.0.0-20250809205254-762155571e90
 	github.com/omareloui/formmap v0.0.0-20250809125228-78b2704b8007
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.15.0
