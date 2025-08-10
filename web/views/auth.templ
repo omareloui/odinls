@@ -3,8 +3,7 @@ package views
 import "github.com/omareloui/formmap"
 
 type RegisterFormData struct {
-	FirstName       formmap.FormInputData
-	LastName        formmap.FormInputData
+	Name            NameFormData
 	Username        formmap.FormInputData
 	Email           formmap.FormInputData
 	Password        formmap.FormInputData
@@ -42,8 +41,8 @@ templ Register(formdata *RegisterFormData) {
 templ RegisterForm(formdata *RegisterFormData) {
 	@creationForm("Register", "/register", "Register") {
 		<div class="grid grid-cols-2 gap-2">
-			@input("First Name", "text", "first_name", "e.g. Omar", "", formdata.FirstName)
-			@input("Last Name", "text", "last_name", "e.g. Eloui", "", formdata.LastName)
+			@input("First Name", "text", "first_name", "e.g. Omar", "", formdata.Name.First)
+			@input("Last Name", "text", "last_name", "e.g. Eloui", "", formdata.Name.Last)
 		</div>
 		@input("Username", "text", "username", "e.g. omareloui", "", formdata.Username)
 		@input("Email", "email", "email", "e.g. contact@omareloui.com", "", formdata.Email)

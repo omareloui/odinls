@@ -10,6 +10,7 @@ import (
 	"github.com/omareloui/odinls/internal/api/middleware"
 	"github.com/omareloui/odinls/internal/api/responder"
 	"github.com/omareloui/odinls/internal/application/core/user"
+	"github.com/omareloui/odinls/internal/errs"
 	"github.com/omareloui/odinls/internal/logger"
 	"github.com/omareloui/odinls/web/views"
 	"go.uber.org/zap"
@@ -44,21 +45,24 @@ func (h *handler) Register(w http.ResponseWriter, r *http.Request) (templ.Compon
 		return responder.BadRequest()
 	}
 
+	usrCp := *usr
 	usr, err = h.app.UserService.CreateUser(usr)
 	if err != nil {
 		vfd := new(views.RegisterFormData)
-		h.fm.MapToForm(usr, err, vfd)
+		h.fm.MapToForm(&usrCp, err, vfd)
+		vfd.Password.Value = ""
+		vfd.ConfirmPassword.Value = ""
 		compIfVarErr := views.RegisterForm(vfd)
 
 		cfd := new(views.RegisterFormData)
-		h.fm.MapToForm(usr, nil, cfd)
+		h.fm.MapToForm(&usrCp, nil, cfd)
 		cfd.Email.Error = "Email or Username already exists, try another one"
 		cfd.Username.Error = "Email or Username already exists, try another one"
 		compIfAlreadyExists := views.RegisterForm(cfd)
 
 		return responder.Error(err,
 			responder.WithComponentIfValidationErr(compIfVarErr),
-			responder.WithComponentIfErrIs(err, compIfAlreadyExists),
+			responder.WithComponentIfErrIs(errs.ErrDocumentAlreadyExists, compIfAlreadyExists),
 		)
 	}
 
