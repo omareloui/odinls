@@ -63,7 +63,9 @@ func WithOOBComponent(w http.ResponseWriter, context context.Context, component 
 }
 
 func parseResponseOpts(opts ...responseOptsFunc) *responseOpts {
-	_opts := &responseOpts{}
+	_opts := &responseOpts{
+		componentsIfErrIs: map[error]templ.Component{},
+	}
 	for _, opt := range opts {
 		opt(_opts)
 	}
@@ -119,8 +121,12 @@ func RedirectHX(w http.ResponseWriter, opts ...responseOptsFunc) (templ.Componen
 
 func NotFound(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	preRespond(_opts)
-	return _opts.component, errs.NewRespError(http.StatusNotFound, _opts.message)
+	return notFound(_opts)
+}
+
+func notFound(opts *responseOpts) (templ.Component, error) {
+	preRespond(opts)
+	return opts.component, errs.NewRespError(http.StatusNotFound, opts.message)
 }
 
 func InternalServerError(opts ...responseOptsFunc) (templ.Component, error) {
@@ -143,27 +149,39 @@ func Forbidden(opts ...responseOptsFunc) (templ.Component, error) {
 
 func BadRequest(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	preRespond(_opts)
-	return _opts.component, errs.NewRespError(http.StatusBadRequest, _opts.message)
+	return badRequest(_opts)
+}
+
+func badRequest(opts *responseOpts) (templ.Component, error) {
+	preRespond(opts)
+	return opts.component, errs.NewRespError(http.StatusBadRequest, opts.message)
 }
 
 func UnprocessableEntity(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	preRespond(_opts)
-	return _opts.component, errs.NewRespError(http.StatusUnprocessableEntity, _opts.message)
+	return unprocessableEntity(_opts)
+}
+
+func unprocessableEntity(opts *responseOpts) (templ.Component, error) {
+	preRespond(opts)
+	return opts.component, errs.NewRespError(http.StatusUnprocessableEntity, opts.message)
 }
 
 func Conflict(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	preRespond(_opts)
-	return _opts.component, errs.NewRespError(http.StatusConflict, _opts.message)
+	return conflict(_opts)
+}
+
+func conflict(opts *responseOpts) (templ.Component, error) {
+	preRespond(opts)
+	return opts.component, errs.NewRespError(http.StatusConflict, opts.message)
 }
 
 func Error(err error, opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
 	if errors.Is(err, errs.ErrDocumentNotFound) {
 		populateComponentIfErrorIs(_opts, err, errs.ErrDocumentNotFound)
-		return NotFound(opts...)
+		return notFound(_opts)
 	}
 
 	_, isValerr := err.(*formmap.ValidationError)
@@ -176,12 +194,12 @@ func Error(err error, opts ...responseOptsFunc) (templ.Component, error) {
 			errs.ErrInvalidID, errs.ErrInvalidFloat,
 			errs.ErrInvalidNumber, errs.ErrInvalidDate)
 		populateComponentIfErrorIsValidationError(_opts, err)
-		return UnprocessableEntity(opts...)
+		return unprocessableEntity(_opts)
 	}
 
 	if errors.Is(err, errs.ErrDocumentAlreadyExists) {
 		populateComponentIfErrorIs(_opts, err, errs.ErrDocumentAlreadyExists)
-		return Conflict(opts...)
+		return conflict(_opts)
 	}
 
 	preRespond(_opts)
