@@ -18,7 +18,7 @@ func (h *handler) GetUsers(w http.ResponseWriter, r *http.Request) (templ.Compon
 
 	claims := getClaims(r.Context())
 	comp := views.UserPage(claims, users)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) GetUser(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -28,7 +28,7 @@ func (h *handler) GetUser(w http.ResponseWriter, r *http.Request) (templ.Compone
 		return responder.Error(err)
 	}
 	comp := views.User(usr)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) GetEditUser(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -41,7 +41,7 @@ func (h *handler) GetEditUser(w http.ResponseWriter, r *http.Request) (templ.Com
 	fd := new(views.UserFormData)
 	h.fm.MapToForm(usr, nil, fd)
 	comp := views.EditUser(usr, fd)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) EditUser(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -84,7 +84,7 @@ func (h *handler) EditUser(w http.ResponseWriter, r *http.Request) (templ.Compon
 	}
 
 	comp := views.User(usr)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) UnsetCraftsman(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -107,10 +107,10 @@ func (h *handler) UnsetCraftsman(w http.ResponseWriter, r *http.Request) (templ.
 	}
 
 	comp := views.User(usr)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) GetCraftsmanForm(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	comp := views.CraftsmanForm(&views.UserFormData{})
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }

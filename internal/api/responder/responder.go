@@ -95,18 +95,16 @@ func populateComponentIfErrorIsValidationError(opts *responseOpts, err error) {
 	}
 }
 
-func OK(w http.ResponseWriter, opts ...responseOptsFunc) (templ.Component, error) {
+func OK(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	w.WriteHeader(http.StatusOK)
 	preRespond(_opts)
 	return _opts.component, nil
 }
 
-func Created(w http.ResponseWriter, opts ...responseOptsFunc) (templ.Component, error) {
+func Created(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	w.WriteHeader(http.StatusCreated)
 	preRespond(_opts)
-	return _opts.component, nil
+	return _opts.component, errs.NewRespError(http.StatusCreated, _opts.message)
 }
 
 func RedirectHX(w http.ResponseWriter, opts ...responseOptsFunc) (templ.Component, error) {

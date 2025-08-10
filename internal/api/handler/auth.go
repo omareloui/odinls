@@ -25,14 +25,14 @@ func (h *handler) GetLogin(w http.ResponseWriter, r *http.Request) (templ.Compon
 	fd := new(views.LoginFormData)
 	h.fm.MapToForm(new(user.User), nil, fd)
 	comp := views.Login(fd)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) GetRegister(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	fd := new(views.RegisterFormData)
 	h.fm.MapToForm(new(user.User), nil, fd)
 	comp := views.Register(fd)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) Register(w http.ResponseWriter, r *http.Request) (templ.Component, error) {

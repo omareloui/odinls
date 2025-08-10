@@ -19,7 +19,7 @@ func (h *handler) GetClients(w http.ResponseWriter, r *http.Request) (templ.Comp
 	}
 
 	comp := views.ClientsPage(claims, clients, &views.ClientFormData{})
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -38,8 +38,7 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) (templ.Co
 		return responder.Error(err, responder.WithComponentIfValidationErr(views.CreateClientForm(fd)))
 	}
 
-	return responder.Created(w,
-		responder.WithOOBComponent(w, r.Context(), views.ClientOOB(cli)),
+	return responder.Created(responder.WithOOBComponent(w, r.Context(), views.ClientOOB(cli)),
 		responder.WithComponent(views.CreateClientForm(new(views.ClientFormData))))
 }
 
@@ -50,7 +49,7 @@ func (h *handler) GetClient(w http.ResponseWriter, r *http.Request) (templ.Compo
 	if err != nil {
 		return responder.Error(err)
 	}
-	return responder.OK(w, responder.WithComponent(views.Client(c)))
+	return responder.OK(responder.WithComponent(views.Client(c)))
 }
 
 func (h *handler) GetEditClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -64,7 +63,7 @@ func (h *handler) GetEditClient(w http.ResponseWriter, r *http.Request) (templ.C
 
 	var fd *views.ClientFormData
 	h.fm.MapToForm(cli, nil, fd)
-	return responder.OK(w, responder.WithComponent(views.EditClient(cli, fd)))
+	return responder.OK(responder.WithComponent(views.EditClient(cli, fd)))
 }
 
 func (h *handler) EditClient(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -85,5 +84,5 @@ func (h *handler) EditClient(w http.ResponseWriter, r *http.Request) (templ.Comp
 			responder.WithComponentIfValidationErr(views.EditClient(cli, fd)))
 	}
 
-	return responder.OK(w, responder.WithComponent(views.Client(cli)))
+	return responder.OK(responder.WithComponent(views.Client(cli)))
 }

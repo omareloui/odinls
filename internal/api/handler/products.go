@@ -19,7 +19,7 @@ func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) (templ.Com
 	}
 
 	comp := views.ProductsPage(claims, prods)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -43,8 +43,7 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) (templ.C
 	comp := views.CreateProductForm(&product.Product{},
 		&views.ProductFormData{Variants: []views.ProductVariantFormData{{}}},
 		claims.Craftsman.HourlyRate)
-	return responder.OK(w,
-		responder.WithOOBComponent(w, r.Context(), oobComp),
+	return responder.OK(responder.WithOOBComponent(w, r.Context(), oobComp),
 		responder.WithComponent(comp))
 }
 
@@ -57,7 +56,7 @@ func (h *handler) GetProduct(w http.ResponseWriter, r *http.Request) (templ.Comp
 		return responder.Error(err)
 	}
 	comp := views.Product(prod, claims.Craftsman.HourlyRate)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) GetEditProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -71,7 +70,7 @@ func (h *handler) GetEditProduct(w http.ResponseWriter, r *http.Request) (templ.
 	fd := new(views.ProductFormData)
 	h.fm.MapToForm(prod, nil, fd)
 	comp := views.EditProduct(prod, fd, claims.Craftsman.HourlyRate)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }
 
 func (h *handler) EditProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -92,5 +91,5 @@ func (h *handler) EditProduct(w http.ResponseWriter, r *http.Request) (templ.Com
 		return responder.Error(err, responder.WithComponentIfValidationErr(comp))
 	}
 
-	return responder.OK(w, responder.WithComponent(views.Product(prod, claims.Craftsman.HourlyRate)))
+	return responder.OK(responder.WithComponent(views.Product(prod, claims.Craftsman.HourlyRate)))
 }

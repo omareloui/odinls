@@ -11,5 +11,5 @@ import (
 func (h *handler) GetHomepage(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	claims := getClaims(r.Context())
 	comp := views.Homepage(claims)
-	return responder.OK(w, responder.WithComponent(comp))
+	return responder.OK(responder.WithComponent(comp))
 }

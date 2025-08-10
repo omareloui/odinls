@@ -25,7 +25,7 @@ func (h *handler) GetOrders(w http.ResponseWriter, r *http.Request) (templ.Compo
 	if err != nil {
 		return responder.Error(err)
 	}
-	return responder.OK(w, responder.WithComponent(views.OrdersPage(claims, prods, clients, ords)))
+	return responder.OK(responder.WithComponent(views.OrdersPage(claims, prods, clients, ords)))
 }
 
 func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -50,8 +50,7 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) (templ.Com
 		return responder.Error(err, responder.WithComponentIfValidationErr(comp))
 	}
 
-	return responder.OK(w,
-		responder.WithOOBComponent(w, r.Context(), views.OrderOOB(ord)),
+	return responder.OK(responder.WithOOBComponent(w, r.Context(), views.OrderOOB(ord)),
 		responder.WithComponent(views.CreateOrderForm(new(order.Order), prods, clients,
 			views.NewDefaultOrderFormData())))
 }
@@ -65,7 +64,7 @@ func (h *handler) GetOrder(w http.ResponseWriter, r *http.Request) (templ.Compon
 		return responder.Error(err)
 	}
 
-	return responder.OK(w, responder.WithComponent(views.Order(ord)))
+	return responder.OK(responder.WithComponent(views.Order(ord)))
 }
 
 func (h *handler) GetEditOrder(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -85,8 +84,7 @@ func (h *handler) GetEditOrder(w http.ResponseWriter, r *http.Request) (templ.Co
 	fd := new(views.OrderFormData)
 	h.fm.MapToForm(ord, nil, fd)
 
-	return responder.OK(w,
-		responder.WithComponent(views.EditOrder(ord, prods, clients, fd)))
+	return responder.OK(responder.WithComponent(views.EditOrder(ord, prods, clients, fd)))
 }
 
 func (h *handler) EditOrder(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
@@ -111,7 +109,7 @@ func (h *handler) EditOrder(w http.ResponseWriter, r *http.Request) (templ.Compo
 		return responder.Error(err, responder.WithComponentIfValidationErr(comp))
 	}
 
-	return responder.OK(w, responder.WithComponent(views.Order(ord)))
+	return responder.OK(responder.WithComponent(views.Order(ord)))
 }
 
 func (h *handler) getProdsAndClients(claims *jwtadapter.AccessClaims) ([]product.Product, []client.Client, error) {
