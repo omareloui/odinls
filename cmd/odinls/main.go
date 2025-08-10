@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10/non-standard/validators"
 	"github.com/joho/godotenv"
 	"github.com/omareloui/formmap"
 	"github.com/omareloui/odinls/config"
@@ -40,6 +43,9 @@ func main() {
 
 	app := application.NewApplication(repo, validator, sanitizer)
 
+	_ = validator.RegisterValidation("not_blank", validators.NotBlank)
+	_ = validator.RegisterValidation("alphanum_with_underscore", IsAlphaNumWithUnderScore)
+
 	h := handler.New(app)
 
 	port := config.GetApplicationPort()
@@ -51,4 +57,10 @@ func main() {
 
 	log.Printf("Starting to listen on http://localhost:%d\n", port)
 	log.Fatalln(srv.ListenAndServe())
+}
+
+func IsAlphaNumWithUnderScore(fl validator.FieldLevel) bool {
+	re := regexp.MustCompile(`^[A-Za-z0-9_]+$`)
+	field := fl.Field()
+	return re.Match([]byte(field.String()))
 }
