@@ -22,39 +22,45 @@ func (fn process) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	comp, err := fn(w, r)
+	code := http.StatusOK
+
 	if err != nil {
+		code = getHTTPError(err).Code
+	}
+
+	w.WriteHeader(code)
+
+	if err != nil && comp == nil {
 		errorResponse(l, w, err)
 		return
 	}
 
 	if comp != nil {
-		if err := comp.Render(r.Context(), w); err != nil {
+		w.Header().Set("Content-Type", "text/html")
+		if err = comp.Render(r.Context(), w); err != nil {
 			l.Error("rendering the component")
 			errorResponse(l, w, err)
 			return
 		}
 	}
-
-	prepareResponse(w, 0)
 }
 
 func errorResponse(l *zap.Logger, w http.ResponseWriter, err error) {
+	httpErr := getHTTPError(err)
+
+	l.Error("server error", zap.Error(httpErr),
+		zap.String("message", httpErr.Message),
+		zap.Int("status_code", httpErr.Code),
+	)
+
+	w.Header().Set("Content-Type", "text/plain")
+	http.Error(w, httpErr.Error(), httpErr.Code)
+}
+
+func getHTTPError(err error) *errs.RespError {
 	var httperr *errs.RespError
 	if !errors.As(err, &httperr) {
 		httperr = errs.NewRespError(http.StatusInternalServerError, err.Error())
 	}
-
-	l.Error("server error", zap.Error(httperr),
-		zap.String("message", httperr.Message),
-		zap.Int("status_code", httperr.Code),
-	)
-
-	http.Error(w, httperr.Error(), httperr.Code)
-}
-
-func prepareResponse(w http.ResponseWriter, code int) {
-	if code != 0 {
-		w.WriteHeader(code)
-	}
-	w.Header().Add("Content-Type", "text/html")
+	return httperr
 }
