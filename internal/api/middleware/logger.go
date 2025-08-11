@@ -45,14 +45,23 @@ func RequestLogger(next http.Handler) http.Handler {
 
 type loggingResponseWriter struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode    int
+	headerWritten bool
 }
 
 func newLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
-	return &loggingResponseWriter{w, http.StatusOK}
+	return &loggingResponseWriter{
+		ResponseWriter: w,
+		statusCode:     http.StatusOK,
+		headerWritten:  false,
+	}
 }
 
 func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	if lrw.headerWritten {
+		return
+	}
 	lrw.statusCode = code
 	lrw.ResponseWriter.WriteHeader(code)
+	lrw.headerWritten = true
 }
