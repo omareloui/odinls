@@ -34,14 +34,14 @@ func Get[T any](ctx context.Context, coll *mongo.Collection, filter *bson.M) ([]
 		return nil, err
 	}
 
-	res := []T{}
+	res := new([]T)
 	if err := cursor.All(ctx, res); err != nil {
 		l.Error("error decoding after finding", zap.String("collection", coll.Name()), zap.Error(err), zap.Any("filter", filter))
 		return nil, err
 	}
 
-	l.Info("found documents", zap.String("collection", coll.Name()), zap.Any("filter", filter), zap.Int("found count", len(res)))
-	return res, nil
+	l.Info("found documents", zap.String("collection", coll.Name()), zap.Any("filter", filter), zap.Int("found count", len(*res)))
+	return *res, nil
 }
 
 func GetAll[T any](ctx context.Context, coll *mongo.Collection) ([]T, error) {
