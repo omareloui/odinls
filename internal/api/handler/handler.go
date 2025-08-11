@@ -34,6 +34,12 @@ type Handler interface {
 	GetEditClient(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	EditClient(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 
+	GetSuppliers(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	CreateSupplier(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	GetSupplier(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	GetEditSupplier(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	EditSupplier(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+
 	GetProducts(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	CreateProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	GetProduct(w http.ResponseWriter, r *http.Request) (templ.Component, error)

@@ -25,7 +25,8 @@ func (s *supplierService) GetSuppliers(claims *jwtadapter.AccessClaims) ([]Suppl
 		return nil, errs.ErrForbidden
 	}
 
-	return s.repo.GetSuppliers()
+	sup, err := s.repo.GetSuppliers()
+	return sup, err
 }
 
 func (s *supplierService) GetSupplierByID(claims *jwtadapter.AccessClaims, id string) (*Supplier, error) {

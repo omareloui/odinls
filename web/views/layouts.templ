@@ -57,6 +57,8 @@ templ navbar(access *jwtadapter.AccessClaims) {
 				@navlink("/")
 				if access!= nil {
 					@navlink("/users")
+					@navlink("/materials")
+					@navlink("/suppliers")
 					@navlink("/clients")
 					@navlink("/products")
 					@navlink("/orders")

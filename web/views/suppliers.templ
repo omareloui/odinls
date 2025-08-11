@@ -1,0 +1,85 @@
+package views
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/supplier"
+	"github.com/omareloui/formmap"
+	"strings"
+)
+
+type SupplierFormData struct {
+	Name     formmap.FormInputData
+	Location formmap.FormInputData
+
+	// TODO: add more logic to make multiple tags functional
+	Tags []formmap.FormInputData
+}
+
+templ SuppliersPage(access *jwtadapter.AccessClaims, suppliers []supplier.Supplier, formdata *SupplierFormData) {
+	@baseLayout(access, "Suppliers | Odin LS") {
+		@container() {
+			@CreateSupplierForm(formdata, true)
+			<h2 class="text-3xl font-bold mb-3">Suppliers</h2>
+			@suppliersList(suppliers)
+		}
+	}
+}
+
+templ CreateSupplierForm(formdata *SupplierFormData, close ...bool) {
+	@creationForm("Create Supplier", "/suppliers", "Create Supplier", close...) {
+		@supplierFormBody(&supplier.Supplier{}, formdata)
+	}
+}
+
+templ suppliersList(suppliers []supplier.Supplier) {
+	@list("suppliersList") {
+		for _, m := range suppliers {
+			@Supplier(&m)
+		}
+	}
+}
+
+templ Supplier(supplier *supplier.Supplier) {
+	<div hx-target="this" class="entry-container">
+		<p>ID: { supplier.ID }</p>
+		<p>Name: { supplier.Name }</p>
+		if supplier.Location != "" {
+			<p>Location: { supplier.Location }</p>
+		}
+		if len(supplier.Tags) > 0 {
+			<p>Tags: { strings.Join(supplier.Tags, "; ") }</p>
+		}
+		<p>Created At: { supplier.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { supplier.UpdatedAt.Format(time.RFC1123) }</p>
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/suppliers/%s/edit", supplier.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
+}
+
+templ EditSupplier(sup *supplier.Supplier, formdata *SupplierFormData) {
+	@form("put", fmt.Sprintf("/suppliers/%s", sup.ID), templ.Attributes{"hx-target": "this"}) {
+		<p>ID: { sup.ID }</p>
+		@supplierFormBody(sup, formdata)
+		@editFormButtons(fmt.Sprintf("/suppliers/%s", sup.ID))
+	}
+}
+
+templ SupplierOOB(sup *supplier.Supplier) {
+	<div id="suppliersList" hx-swap-oob="beforeend">
+		@Supplier(sup)
+	</div>
+}
+
+templ supplierFormBody(sup *supplier.Supplier, formdata *SupplierFormData) {
+	@input("Name", "text", "name", "e.g. John Doe", sup.ID, formdata.Name)
+	@input("Location", "text", "location", "Enter location to deliver to here...", sup.ID, formdata.Location)
+	for i := range formdata.Tags {
+		@input("Tag", "text", "tags", "e.g. materiams", sup.ID, formdata.Tags[i])
+	}
+}

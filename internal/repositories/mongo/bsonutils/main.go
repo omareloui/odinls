@@ -71,6 +71,7 @@ func (bu *BsonUtils) MarshalBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
 func (bu *BsonUtils) MarshalInsertBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
 	now := time.Now()
 	opts = append(opts,
+		WithFieldToRemove("_id"),
 		WithFieldToAdd("created_at", now),
 		WithFieldToAdd("updated_at", now),
 	)
