@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	jwtadapter "github.com/omareloui/odinls/internal/adapters/jwt"
 	"github.com/omareloui/odinls/internal/errs"
@@ -41,23 +40,20 @@ func Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		currPath := r.URL.Path
-		// TODO: update the logic to use a more robust way of checking if the path is for refresh tokens
-		isRefreshTokenRoute := strings.Contains(currPath, "oauth/refresh-tokens")
 		refreshCookie, err := r.Cookie(RefreshClaimsCookieName)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		if !isRefreshTokenRoute {
+		currPath := r.URL.Path
+		if currPath != "/refresh-tokens" {
 			queries := r.URL.Query()
 			next := queries.Get("next")
 			if next == "" {
 				next = currPath
 			}
-			// TODO: update the logic to use a more robust way of checking if the path is for refresh tokens
-			path := fmt.Sprintf("/oauth/refresh-tokens?next=%s", next)
+			path := fmt.Sprintf("/refresh-tokens?next=%s", next)
 			http.Redirect(w, r, path, http.StatusTemporaryRedirect)
 			return
 		} else {

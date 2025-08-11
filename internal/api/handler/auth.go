@@ -79,6 +79,29 @@ func (h *handler) Register(w http.ResponseWriter, r *http.Request) (templ.Compon
 	return responder.RedirectHX(w, responder.WithPath("/"))
 }
 
+func (h *handler) RefreshTokens(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
+	claims := getRefreshClaims(r.Context())
+	if claims == nil {
+		return responder.Unauthorized(responder.WithMessage("Invalid refresh token"))
+	}
+
+	usr, err := h.app.UserService.GetUserByID(claims.ID)
+	if err != nil {
+		return responder.Error(err)
+	}
+
+	cookiesPair, err := h.newCookiesPairFromUser(usr)
+	if err != nil {
+		return responder.Error(err)
+	}
+
+	http.SetCookie(w, cookiesPair.Refresh)
+	http.SetCookie(w, cookiesPair.Access)
+
+	next := r.URL.Query().Get("next")
+	return responder.Redirect(w, responder.WithPath(next))
+}
+
 func (h *handler) Login(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
 	var err error
 

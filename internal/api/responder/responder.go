@@ -117,6 +117,16 @@ func RedirectHX(w http.ResponseWriter, opts ...responseOptsFunc) (templ.Componen
 	return _opts.component, nil
 }
 
+func Redirect(w http.ResponseWriter, opts ...responseOptsFunc) (templ.Component, error) {
+	_opts := parseResponseOpts(opts...)
+	if _opts.path == "" {
+		_opts.path = "/"
+	}
+	preRespond(_opts)
+	w.Header().Set("Location", _opts.path)
+	return _opts.component, errs.NewRespError(http.StatusTemporaryRedirect, _opts.message)
+}
+
 func NotFound(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
 	return notFound(_opts)
@@ -135,14 +145,22 @@ func InternalServerError(opts ...responseOptsFunc) (templ.Component, error) {
 
 func Unauthorized(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	preRespond(_opts)
-	return _opts.component, errs.NewRespError(http.StatusUnauthorized, _opts.message)
+	return unauthorized(_opts)
+}
+
+func unauthorized(opts *responseOpts) (templ.Component, error) {
+	preRespond(opts)
+	return opts.component, errs.NewRespError(http.StatusUnauthorized, opts.message)
 }
 
 func Forbidden(opts ...responseOptsFunc) (templ.Component, error) {
 	_opts := parseResponseOpts(opts...)
-	preRespond(_opts)
-	return _opts.component, errs.NewRespError(http.StatusForbidden, _opts.message)
+	return forbidden(_opts)
+}
+
+func forbidden(opts *responseOpts) (templ.Component, error) {
+	preRespond(opts)
+	return opts.component, errs.NewRespError(http.StatusForbidden, opts.message)
 }
 
 func BadRequest(opts ...responseOptsFunc) (templ.Component, error) {
@@ -198,6 +216,11 @@ func Error(err error, opts ...responseOptsFunc) (templ.Component, error) {
 	if errors.Is(err, errs.ErrDocumentAlreadyExists) {
 		populateComponentIfErrorIs(_opts, err, errs.ErrDocumentAlreadyExists)
 		return conflict(_opts)
+	}
+
+	if errors.Is(err, errs.ErrForbidden) {
+		populateComponentIfErrorIs(_opts, err, errs.ErrForbidden)
+		return forbidden(_opts)
 	}
 
 	preRespond(_opts)

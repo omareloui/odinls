@@ -17,3 +17,11 @@ func getClaims(ctx context.Context) *jwtadapter.AccessClaims {
 	}
 	return v.(*jwtadapter.AccessClaims)
 }
+
+func getRefreshClaims(ctx context.Context) *jwtadapter.RefreshClaims {
+	v := ctx.Value(middleware.RefreshClaimsCtxKey{})
+	if v == nil {
+		return nil
+	}
+	return v.(*jwtadapter.RefreshClaims)
+}

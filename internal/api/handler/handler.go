@@ -19,6 +19,7 @@ type Handler interface {
 	GetRegister(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	Register(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	Logout(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	RefreshTokens(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 
 	GetUsers(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	GetUser(w http.ResponseWriter, r *http.Request) (templ.Component, error)

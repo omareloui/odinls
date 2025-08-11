@@ -22,6 +22,7 @@ func New(h handler.Handler) Router {
 	mux.Handle("GET /register", handlePub(h.GetRegister))
 	mux.Handle("POST /register", handlePub(h.Register))
 	mux.Handle("POST /logout", handle(h.Logout))
+	mux.Handle("GET /refresh-tokens", handlePub(h.RefreshTokens))
 
 	mux.Handle("GET /users", handle(h.GetUsers))
 	mux.Handle("GET /users/{id}", handle(h.GetUser))

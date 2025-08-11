@@ -54,7 +54,7 @@ func errorResponse(l *zap.Logger, w http.ResponseWriter, err error) {
 	)
 
 	w.Header().Set("Content-Type", "text/plain")
-	http.Error(w, httpErr.Error(), httpErr.Code)
+	http.Error(w, httpErr.Message, httpErr.Code)
 }
 
 func getHTTPError(err error) *errs.RespError {
