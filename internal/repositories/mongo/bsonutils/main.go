@@ -79,11 +79,11 @@ func (bu *BsonUtils) MarshalInsertBsonD(rec any, opts ...OptsFunc) (bson.D, erro
 }
 
 func (bu *BsonUtils) MarshalUpdateBsonD(rec any, opts ...OptsFunc) (bson.D, error) {
-	return bu.MarshalBsonD(rec,
+	opts = append(opts,
 		WithFieldToRemove("_id"),
 		WithFieldToRemove("created_at"),
-		WithFieldToAdd("updated_at", time.Now()),
-	)
+		WithFieldToAdd("updated_at", time.Now()))
+	return bu.MarshalBsonD(rec, opts...)
 }
 
 func WithObjectID(key string) OptsFunc {
