@@ -66,7 +66,7 @@ func (h *handler) GetEditSupplier(w http.ResponseWriter, r *http.Request) (templ
 		return responder.Error(err)
 	}
 
-	var fd *views.SupplierFormData
+	fd := new(views.SupplierFormData)
 	h.fm.MapToForm(sup, nil, fd)
 	return responder.OK(responder.WithComponent(views.EditSupplier(sup, fd)))
 }
@@ -83,7 +83,7 @@ func (h *handler) EditSupplier(w http.ResponseWriter, r *http.Request) (templ.Co
 
 	sup, err = h.app.SupplierService.UpdateSupplierByID(claims, id, sup)
 	if err != nil {
-		var fd *views.SupplierFormData
+		fd := new(views.SupplierFormData)
 		h.fm.MapToForm(sup, err, fd)
 		return responder.Error(err,
 			responder.WithComponentIfValidationErr(views.EditSupplier(sup, fd)))
