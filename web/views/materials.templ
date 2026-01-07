@@ -1,0 +1,147 @@
+package views
+
+import (
+	"fmt"
+	"time"
+	"strconv"
+
+	"github.com/omareloui/odinls/internal/adapters/jwt"
+	"github.com/omareloui/odinls/internal/application/core/material"
+	"github.com/omareloui/odinls/internal/application/core/supplier"
+	"github.com/omareloui/formmap"
+	"strings"
+)
+
+type MaterialFormData struct {
+	Name            formmap.FormInputData
+	Description     formmap.FormInputData
+	Category        formmap.FormInputData
+	Unit            formmap.FormInputData
+	PricePerUnit    formmap.FormInputData
+	QuantityOnHand  formmap.FormInputData
+	ReorderLevel    formmap.FormInputData
+	ReorderQuantity formmap.FormInputData
+	SupplierID      formmap.FormInputData
+	Tags            []formmap.FormInputData
+}
+
+templ MaterialsPage(access *jwtadapter.AccessClaims, materials []material.Material, suppliers []supplier.Supplier, formdata *MaterialFormData) {
+	@baseLayout(access, "Materials | Odin LS") {
+		@container() {
+			@CreateMaterialForm(formdata, suppliers, true)
+			<h2 class="text-3xl font-bold mb-3">Materials</h2>
+			@materialsList(materials)
+		}
+	}
+}
+
+templ CreateMaterialForm(formdata *MaterialFormData, suppliers []supplier.Supplier, close ...bool) {
+	@creationForm("Create Material", "/materials", "Create Material", close...) {
+		@materialFormBody(&material.Material{}, formdata, suppliers)
+	}
+}
+
+templ materialsList(materials []material.Material) {
+	@list("materialsList") {
+		for _, m := range materials {
+			@Material(&m)
+		}
+	}
+}
+
+templ Material(mat *material.Material) {
+	<div hx-target="this" class="entry-container">
+		<p>ID: { mat.ID }</p>
+		<p>Name: { mat.Name }</p>
+		if mat.Description != "" {
+			<p>Description: { mat.Description }</p>
+		}
+		if mat.Category != "" {
+			<p>Category: { mat.Category.View() }</p>
+		}
+		<p>Unit: { string(mat.Unit) }</p>
+		<p>Price Per Unit: { strconv.FormatFloat(mat.PricePerUnit, 'f', 2, 64) }</p>
+		<p>Quantity On Hand: { strconv.FormatFloat(mat.QuantityOnHand, 'f', 2, 64) }</p>
+		if mat.ReorderLevel > 0 {
+			<p>Reorder Level: { strconv.FormatFloat(mat.ReorderLevel, 'f', 2, 64) }</p>
+		}
+		if mat.ReorderQuantity > 0 {
+			<p>Reorder Quantity: { strconv.FormatFloat(mat.ReorderQuantity, 'f', 2, 64) }</p>
+		}
+		if mat.Supplier != nil {
+			<p>Supplier: { mat.Supplier.Name }</p>
+		} else if mat.SupplierID != "" {
+			<p>Supplier ID: { mat.SupplierID }</p>
+		}
+		if len(mat.Tags) > 0 {
+			<p>Tags: { strings.Join(mat.Tags, "; ") }</p>
+		}
+		if !mat.LastPriceUpdate.IsZero() {
+			<p>Last Price Update: { mat.LastPriceUpdate.Format(time.RFC1123) }</p>
+		}
+		<p>Created At: { mat.CreatedAt.Format(time.RFC1123) }</p>
+		<p>Updated At: { mat.UpdatedAt.Format(time.RFC1123) }</p>
+		<button
+			class="px-5 py-2.5 my-2 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto text-center"
+			hx-get={ fmt.Sprintf("/materials/%s/edit", mat.ID) }
+			hx-swap="outerHTML"
+		>Edit</button>
+	</div>
+}
+
+templ EditMaterial(mat *material.Material, formdata *MaterialFormData, suppliers []supplier.Supplier) {
+	@form("put", fmt.Sprintf("/materials/%s", mat.ID), templ.Attributes{"hx-target": "this"}) {
+		<p>ID: { mat.ID }</p>
+		@materialFormBody(mat, formdata, suppliers)
+		@editFormButtons(fmt.Sprintf("/materials/%s", mat.ID))
+	}
+}
+
+templ MaterialOOB(mat *material.Material) {
+	<div id="materialsList" hx-swap-oob="beforeend">
+		@Material(mat)
+	</div>
+}
+
+templ materialFormBody(mat *material.Material, formdata *MaterialFormData, suppliers []supplier.Supplier) {
+	@input("Name", "text", "name", "e.g. Italian Vegetable Tanned Leather", mat.ID, formdata.Name)
+	@textarea("Description", "description", "Write a description for this material...", mat.ID, formdata.Description)
+	@selectInput("Category", "category", "Select a category", mat.ID, *getMaterialCategoriesMap(), formdata.Category)
+	@selectInput("Unit", "unit", "Select a unit", mat.ID, *getMaterialUnitsMap(), formdata.Unit)
+	@input("Price Per Unit", "number", "price_per_unit", "e.g. 50.00", mat.ID, formdata.PricePerUnit)
+	@input("Quantity On Hand", "number", "quantity_on_hand", "e.g. 100", mat.ID, formdata.QuantityOnHand)
+	@input("Reorder Level", "number", "reorder_level", "e.g. 10", mat.ID, formdata.ReorderLevel)
+	@input("Reorder Quantity", "number", "reorder_quantity", "e.g. 50", mat.ID, formdata.ReorderQuantity)
+	@selectInput("Supplier", "supplier_id", "Select a supplier", mat.ID, getSuppliersMap(suppliers), formdata.SupplierID)
+	for i := range formdata.Tags {
+		@input("Tag", "text", "tags", "e.g. premium", mat.ID, formdata.Tags[i])
+	}
+}
+
+func getMaterialCategoriesMap() *map[string]string {
+	m := make(map[string]string)
+	for _, cat := range material.MaterialsCategoriesEnums() {
+		m[string(cat)] = cat.View()
+	}
+	return &m
+}
+
+func getMaterialUnitsMap() *map[string]string {
+	return &map[string]string{
+		string(material.UnitUnknown): string(material.UnitUnknown),
+		string(material.UnitMl):      string(material.UnitMl),
+		string(material.UnitFt2):     string(material.UnitFt2),
+		string(material.UnitM):       string(material.UnitM),
+		string(material.UnitCm):      string(material.UnitCm),
+		string(material.UnitPiece):   string(material.UnitPiece),
+		string(material.UnitGram):    string(material.UnitGram),
+	}
+}
+
+func getSuppliersMap(suppliers []supplier.Supplier) map[string]string {
+	m := make(map[string]string)
+	for _, sup := range suppliers {
+		m[sup.ID] = sup.Name
+	}
+	return m
+}

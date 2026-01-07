@@ -52,14 +52,14 @@ type Handler interface {
 	GetEditOrder(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	EditOrder(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 
-	// AttachAuthenticatedUserMiddleware(w http.ResponseWriter, r *http.Request) (templ.Component, error)
-	// ErrorHandler(w http.ResponseWriter, r *http.Request) (templ.Component, error)
-	// AuthGuard(w http.ResponseWriter, r *http.Request) (templ.Component, error)
-	// AlreadyAuthedGuard(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	GetMaterials(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	CreateMaterial(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	GetMaterial(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	GetEditMaterial(w http.ResponseWriter, r *http.Request) (templ.Component, error)
+	EditMaterial(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 
 	Unauthorized(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 	NotFound(w http.ResponseWriter, r *http.Request) (templ.Component, error)
-	// InternalServerError(w http.ResponseWriter, r *http.Request) (templ.Component, error)
 }
 
 type handler struct {

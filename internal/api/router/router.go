@@ -37,6 +37,12 @@ func New(h handler.Handler) Router {
 	mux.Handle("PUT /clients/{id}", handle(h.EditClient))
 	mux.Handle("POST /clients", handle(h.CreateClient))
 
+	mux.Handle("GET /materials", handle(h.GetMaterials))
+	mux.Handle("GET /materials/{id}", handle(h.GetMaterial))
+	mux.Handle("GET /materials/{id}/edit", handle(h.GetEditMaterial))
+	mux.Handle("PUT /materials/{id}", handle(h.EditMaterial))
+	mux.Handle("POST /materials", handle(h.CreateMaterial))
+
 	mux.Handle("GET /suppliers", handle(h.GetSuppliers))
 	mux.Handle("GET /suppliers/{id}", handle(h.GetSupplier))
 	mux.Handle("GET /suppliers/{id}/edit", handle(h.GetEditSupplier))
