@@ -42,8 +42,7 @@ type repository struct {
 }
 
 func (r *repository) newCtx() (context.Context, context.CancelFunc) {
-	l := logger.Get()
-	l.With(zap.String("space", "REPOSITORY"))
+	l := logger.Get().With(zap.String("space", "REPOSITORY"))
 	return context.WithTimeout(logger.WithContext(context.Background(), l), r.timeout)
 }
 

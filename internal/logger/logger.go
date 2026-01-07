@@ -59,8 +59,10 @@ func Get() *zap.Logger {
 		}
 
 		logger = zap.New(core).
-			With(zap.String("git_revision", gitRevision), zap.String("go_version", buildInfo.GoVersion))
-		logger = zap.New(core)
+			With(
+				zap.String("git_revision", gitRevision),
+				zap.String("go_version", buildInfo.GoVersion),
+			)
 	})
 
 	return logger

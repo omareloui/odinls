@@ -7,14 +7,19 @@ import (
 	"github.com/omareloui/former"
 	"github.com/omareloui/odinls/internal/api/responder"
 	"github.com/omareloui/odinls/internal/application/core/supplier"
+	"github.com/omareloui/odinls/internal/logger"
 	"github.com/omareloui/odinls/web/views"
+	"go.uber.org/zap"
 )
 
 func (h *handler) GetSuppliers(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
-	claims := getClaims(r.Context())
+	ctx := r.Context()
+	claims := getClaims(ctx)
+	l := logger.FromCtx(ctx)
 
 	suppliers, err := h.app.SupplierService.GetSuppliers(claims)
 	if err != nil {
+		l.Error("failed to get suppliers", zap.Any("claims", claims), zap.Error(err))
 		return responder.Error(err)
 	}
 
