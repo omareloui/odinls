@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 	"os"
-	"runtime/debug"
 	"sync"
 
 	"github.com/omareloui/odinls/config"
@@ -46,23 +45,8 @@ func Get() *zap.Logger {
 			zapcore.NewCore(consoleEncoder, stdout, level),
 			zapcore.NewCore(fileEncoder, file, level),
 		)
-		var gitRevision string
 
-		buildInfo, ok := debug.ReadBuildInfo()
-		if ok {
-			for _, v := range buildInfo.Settings {
-				if v.Key == "vcs.revision" {
-					gitRevision = v.Value
-					break
-				}
-			}
-		}
-
-		logger = zap.New(core).
-			With(
-				zap.String("git_revision", gitRevision),
-				zap.String("go_version", buildInfo.GoVersion),
-			)
+		logger = zap.New(core)
 	})
 
 	return logger
