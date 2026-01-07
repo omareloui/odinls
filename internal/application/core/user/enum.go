@@ -23,28 +23,39 @@ func (p OAuthProvider) View() string {
 type RoleEnum uint8
 
 const (
-	NoAuthority RoleEnum = iota
+	UnknownAuthority RoleEnum = iota
+	NoAuthority
 	Moderator
 	Admin
 	SuperAdmin
 )
 
 func (r RoleEnum) String() string {
-	return [...]string{
-		"NO_AUTHORITY", "MODERATOR",
+	arr := [...]string{
+		"UNKNOWN_AUTHORITY", "NO_AUTHORITY", "MODERATOR",
 		"ADMIN", "SUPER_ADMIN",
-	}[r]
+	}
+	if int(r) >= len(arr) {
+		return arr[0]
+	}
+	return arr[r]
 }
 
 func (r RoleEnum) View() string {
-	return [...]string{
-		"No Authority", "Moderator",
+	arr := [...]string{
+		"UnknownAuthority", "No Authority", "Moderator",
 		"Admin", "Super Admin",
-	}[r]
+	}
+	if int(r) >= len(arr) {
+		return arr[0]
+	}
+	return arr[r]
 }
 
 func RoleFromString(role string) RoleEnum {
 	switch role {
+	case "UNKNOWN_AUTHORITY":
+		return UnknownAuthority
 	case "NO_AUTHORITY":
 		return NoAuthority
 	case "MODERATOR":
