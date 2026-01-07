@@ -234,11 +234,11 @@ func PopulateAggregation[T any](ctx context.Context, coll *mongo.Collection, fil
 		return nil, err
 	}
 
-	var docs []T
+	docs := new([]T)
 	if err := cur.All(ctx, docs); err != nil {
 		return nil, err
 	}
-	return docs, nil
+	return *docs, nil
 }
 
 func PopulateAggregationByID[T any](ctx context.Context, coll *mongo.Collection, id string, popOpts ...populateOpts) (*T, error) {

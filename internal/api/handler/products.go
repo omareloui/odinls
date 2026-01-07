@@ -7,17 +7,25 @@ import (
 	"github.com/omareloui/former"
 	"github.com/omareloui/odinls/internal/api/responder"
 	"github.com/omareloui/odinls/internal/application/core/product"
+	"github.com/omareloui/odinls/internal/logger"
 	"github.com/omareloui/odinls/web/views"
+	"go.uber.org/zap"
 )
 
 func (h *handler) GetProducts(w http.ResponseWriter, r *http.Request) (templ.Component, error) {
-	claims := getClaims(r.Context())
+	ctx := r.Context()
+	l := logger.FromCtx(ctx)
 
+	claims := getClaims(ctx)
+
+	l.Debug("getting the products...", zap.Any("claims", claims))
 	prods, err := h.app.ProductService.GetProducts(claims)
 	if err != nil {
+		l.Error("getting the products", zap.Error(err), zap.Any("claims", claims))
 		return responder.Error(err)
 	}
 
+	l.Debug("rendering the products page...")
 	comp := views.ProductsPage(claims, prods)
 	return responder.OK(responder.WithComponent(comp))
 }
